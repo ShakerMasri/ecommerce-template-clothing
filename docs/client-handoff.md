@@ -1,6 +1,6 @@
 # Client Handoff Guide
 
-This guide explains the day-to-day admin workflow for a store built from this ecommerce template. It should be reviewed and customized with each client before launch. Use `docs/first-client-setup-checklist.md` before this handoff review so client-specific config, assets, policies, and environment setup are already checked.
+This guide explains the day-to-day admin workflow for a store built from this clothing ecommerce template. It should be reviewed and customized with each client before launch. Use `docs/first-client-setup-checklist.md` before this handoff review so client-specific config, assets, policies, and environment setup are already checked.
 
 ## Admin Responsibilities
 
@@ -14,6 +14,8 @@ The admin can safely manage:
 The admin should not receive database credentials, hosting secrets, OAuth secrets, SMTP passwords, Cloudinary API secrets, or Redis tokens.
 
 ## Product Management
+
+Current product management uses product-level stock only. Size/color variants are planned but not implemented yet. Do not promise variant support to a client until `docs/product-variants-plan.md` is implemented and tested.
 
 When adding or editing products:
 
@@ -133,7 +135,10 @@ Ask a developer for:
 - hosting changes
 - OAuth callback changes
 - email provider changes
+- size/color variants
 - new discount types or coupon features
+- POS, online payments, SMS, CSV import, accounting, or delivery-company integrations
+- PWA/install support
 - data exports or destructive database cleanup
 - unexplained repeated error reference IDs
 

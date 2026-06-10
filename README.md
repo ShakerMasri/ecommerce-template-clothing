@@ -2,7 +2,9 @@
 
 Clothing Ecommerce Template is a reusable private full-stack e-commerce starter for future clothing-store client storefronts.
 
-This project is being prepared as a real client-ready application, not just a demo. The backend, authentication, authorization, environment configuration, deployment flow, and production safety checks should be treated seriously before launch.
+This project was forked from an existing hardened ecommerce starter and is now maintained as a separate clothing-store template. It is being prepared as a real client-ready application, not just a demo. The backend, authentication, authorization, environment configuration, deployment flow, and production safety checks should be treated seriously before launch.
+
+The first clothing-specific checkpoint is a fork audit and documentation cleanup. Product variants for sizes/colors are planned, but they are not implemented yet and must not be promised to clients until the schema, stock behavior, cart behavior, order snapshots, admin UI, and tests are designed and shipped safely.
 
 ## Tech Stack
 
@@ -63,15 +65,34 @@ Completed:
 
 Not started yet:
 
-- Caching
+- Product variants for clothing sizes/colors. Current products still use product-level stock only.
+- Caching.
+
+Not supported in this clothing template yet:
+
+- size/color variants
+- POS integration
+- online payments
+- SMS
+- coupons
+- accounting integration
+- delivery-company integration
+- CSV import
+- PWA/offline install support
+- multi-tenant SaaS
+- feature-plan enforcement
 
 Postponed intentionally:
 
+- Product variants, until the data model, stock rules, cart identity, checkout validation, order snapshots, admin management, and tests are designed safely.
 - Admin-editable delivery pricing dashboard. Delivery areas/prices remain code-managed for now, and existing orders keep delivery snapshots for audit safety.
+- PWA support. If considered later, it should be a minimal installable-app checkpoint and must not cache auth, cart, order, profile, stock-sensitive, price-sensitive, or admin data unsafely.
 
 Planned next checkpoints:
 
-- Test Google sign-in on staging/production with exact OAuth callback URLs and separate environment secrets.
+- Complete the clothing-template fork audit and remove copied/stale claims from docs.
+- Document the clothing roadmap in `docs/clothing-template-roadmap.md`.
+- Document the product variants design plan in `docs/product-variants-plan.md` before coding variants.
 - Complete production readiness and client handoff review.
 - Review caching/performance only after core business rules are stable and real usage or smoke-load results show a need.
 
@@ -83,6 +104,7 @@ Planned next checkpoints:
 - Sign in with Google when OAuth is configured
 - View public products
 - View product details
+- Buy current product-level items only; size/color variants are not implemented yet
 - See discounted product prices when an admin discount is active
 - See exact stock counts only when the admin enables customer stock visibility for that product
 - Add products to cart
@@ -103,7 +125,7 @@ Planned next checkpoints:
 - Filter, sort, and paginate admin products server-side
 - Upload product images
 - Archive and restore products
-- Manage product stock
+- Manage product-level stock
 - Choose whether customers can see exact stock counts per product
 - Add optional product discount prices
 - Manage categories
@@ -201,7 +223,7 @@ SMTP_PORT="587"
 SMTP_USER=""
 SMTP_PASSWORD=""
 SMTP_FROM_EMAIL=""
-SMTP_FROM_NAME="Ecommerce Template"
+SMTP_FROM_NAME="Clothing Ecommerce Template"
 
 # Email delivery mode
 # Use "log" for local/staging without real SMTP sending.
@@ -216,7 +238,7 @@ UPSTASH_REDIS_REST_TOKEN=""
 CLOUDINARY_CLOUD_NAME=""
 CLOUDINARY_API_KEY=""
 CLOUDINARY_API_SECRET=""
-CLOUDINARY_PRODUCT_FOLDER="ecommerce-template/products"
+CLOUDINARY_PRODUCT_FOLDER="ecommerce-template-clothing/products"
 ```
 
 For production, use the real deployed HTTPS domain:
@@ -437,7 +459,7 @@ The Docker Compose setup is for local development only.
 Example local database URL:
 
 ```env
-DATABASE_URL="postgresql://ecommerce_template:ecommerce_template_dev_password@localhost:5436/ecommerce_template"
+DATABASE_URL="postgresql://ecommerce_template_clothing:ecommerce_template_clothing_dev_password@localhost:5436/ecommerce_template_clothing"
 ```
 
 Do not use the local Docker database for production.
@@ -751,16 +773,15 @@ Important production rules:
 
 Use Git tags for deployed releases only. Do not describe a version as released or tagged until the tag has actually been created and pushed.
 
-Current known tag state from the repository screenshot: `v0.6.0` is the latest visible tag. Work after that tag should be treated as post-`v0.6.0` development until a new tag is intentionally created.
+This clothing template repository starts as its own project. Do not reuse old source-repo tag claims. Create the first checkpoint tag only after the fork audit, docs cleanup, dependency review, and local checks pass in this repository.
 
 Recommended version format:
 
 ```txt
-v0.1.0  internal hardening release
-v0.5.0-legal-pages-checkpoint  legal/customer policy checkpoint
-v0.6.0  checkout delivery and admin category management checkpoint
-v0.7.0  candidate tag for post-v0.6.0 hardening work, only if created and pushed
-v1.0.0  first production launch
+v0.1.0-clothing-fork-audit  clothing fork audit checkpoint
+v0.2.0-clothing-branding-config  safe clothing branding/config checkpoint
+v0.3.0-product-variants-design  variants design documentation checkpoint
+v1.0.0  first production clothing-store launch
 v1.0.1  production bug fix
 v1.1.0  small feature release
 v2.0.0  major or breaking release
@@ -774,11 +795,11 @@ Create a release tag only after checks pass and after the matching commit is mer
 npm run check
 npm run build
 git status
-git tag -a v0.7.0 -m "Release v0.7.0"
-git push origin v0.7.0
+git tag -a v0.1.0-clothing-fork-audit -m "Clothing fork audit checkpoint"
+git push origin v0.1.0-clothing-fork-audit
 ```
 
-Replace `v0.7.0` with the version you actually intend to release. Tag the exact commit that is deployed.
+Replace `v0.1.0-clothing-fork-audit` with the version you actually intend to release. Tag the exact commit that is reviewed or deployed.
 
 For production releases, prefer this flow:
 
@@ -842,6 +863,20 @@ Admins can choose whether customers can see exact stock counts per product. This
 Admins can add an optional discounted price to products. Customers see the discounted price with the original price shown as the old price, and order items keep price snapshots so historical orders do not change if product prices or discounts change later.
 
 The server calculates the effective product price for cart/order totals. The client must not be trusted to submit product prices or discount values.
+
+### Product Variants Status
+
+Product variants for clothing sizes/colors are planned but not implemented yet. Current stock is product-level stock only. Do not describe the template as supporting size/color variants until the following are implemented and tested:
+
+- Prisma schema and migrations for variant records
+- per-variant stock and availability rules
+- cart item identity that includes the selected variant
+- checkout validation that rejects unavailable variant combinations
+- order item snapshots for product name, variant labels, price, and selected size/color
+- admin UI for variant management
+- unit tests and E2E coverage for stock, cart uniqueness, checkout, snapshots, and admin authorization
+
+See `docs/product-variants-plan.md` before starting variant implementation.
 
 ### Google Sign-in
 
@@ -968,6 +1003,8 @@ Do not use personal Gmail SMTP for production client email. Use a real transacti
 Additional handoff documents live in:
 
 ```txt
+docs/clothing-template-roadmap.md
+docs/product-variants-plan.md
 docs/first-client-setup-checklist.md
 docs/client-handoff.md
 docs/production-readiness-checklist.md
@@ -987,13 +1024,15 @@ Before commercial delivery:
 
 ## Project Notes
 
-This app is still being hardened for production. It has passed the typed store/delivery/contact/policy config, checkout delivery, admin category, admin order confirmation, admin filtering, customer stock visibility, product discount, Google sign-in, critical E2E coverage, production-safe API logging, and route error boundary checkpoints, but it should not be treated as fully production-ready until the production environment, launch checklist, staging tests, and client review are complete.
+This app is still being hardened for production as a clothing-store template. It has passed the typed store/delivery/contact/policy config, checkout delivery, admin category, admin order confirmation, admin filtering, customer stock visibility, product discount, Google sign-in, critical E2E coverage, production-safe API logging, and route error boundary checkpoints, but it should not be treated as fully production-ready until the clothing fork audit, production environment, launch checklist, staging tests, and client review are complete.
 
 Next safest checkpoints:
 
-1. Complete the first-client setup checklist and client-ready template audit.
-2. Verify Google sign-in on staging/production with exact callback URLs and separate environment secrets if OAuth is enabled for the client.
-3. Complete the production readiness checklist and client handoff guide.
-4. Review caching/performance after launch testing or measured usage shows a real need.
+1. Complete the clothing-template fork audit.
+2. Review `docs/clothing-template-roadmap.md` and keep unsupported features out of sales/client copy.
+3. Review `docs/product-variants-plan.md` before any variant migration or checkout change.
+4. Verify Google sign-in on staging/production with exact callback URLs and separate environment secrets if OAuth is enabled for the client.
+5. Complete the production readiness checklist and client handoff guide.
+6. Review caching/performance after launch testing or measured usage shows a real need.
 
 Before launch, complete the production deployment checklist, review the handoff docs with the client, and test the full customer and admin flows on the deployed domain.
