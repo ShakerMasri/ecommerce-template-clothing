@@ -1,0 +1,71 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# database
+/prisma/db.sqlite
+/prisma/db.sqlite-journal
+db.sqlite
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+
+# generated files
+/generated/
+
+# misc
+.DS_Store
+*.pem
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local env files
+# Never commit real env files. Only .env.example is allowed.
+.env
+.env.*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# editor / IDE files
+.idea
+.vscode
+
+# Playwright
+.env.e2e.local
+test-results/
+playwright-report/
+blob-report/
+
+# Playwright auth state
+tests/e2e/.auth/
+
+# Safe smoke-load local config
+.env.smoke.local
+
+# Local audit reports
+reports/license-inventory.json
+reports/license-inventory.md
+
+# Local asset audit files
+asset-files.txt
+asset-refs.txt

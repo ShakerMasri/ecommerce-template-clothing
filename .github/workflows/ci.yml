@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Typecheck, lint, unit tests, build
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_ENV: test
+      APP_URL: http://localhost:3000
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: fake-ci-secret-minimum-32-characters
+      DATABASE_URL: postgresql://template_user:template_password@localhost:5432/ecommerce_template_ci
+      DIRECT_URL: postgresql://template_user:template_password@localhost:5432/ecommerce_template_ci
+      EMAIL_DELIVERY_MODE: log
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+      SMTP_USER: fake-ci-user
+      SMTP_PASSWORD: fake-ci-password
+      SMTP_FROM_EMAIL: noreply@example.com
+      SMTP_FROM_NAME: Ecommerce Template
+      CLOUDINARY_CLOUD_NAME: fake-cloud
+      CLOUDINARY_API_KEY: fake-api-key
+      CLOUDINARY_API_SECRET: fake-api-secret
+      CLOUDINARY_PRODUCT_FOLDER: ecommerce-template/products
+      UPSTASH_REDIS_REST_URL: https://fake-upstash.example.com
+      UPSTASH_REDIS_REST_TOKEN: fake-ci-upstash-token
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test:run
+
+      - name: Build
+        run: npm run build
+
+      - name: License audit
+        run: npm run audit:licenses

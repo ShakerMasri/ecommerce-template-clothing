@@ -1,0 +1,96 @@
+/**
+ * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+ * This is especially useful for Docker builds.
+ */
+import "./src/env.js";
+
+const isProduction = process.env.NODE_ENV === "production";
+const isDevelopment = !isProduction;
+const appUrl = process.env.APP_URL ?? "";
+const isHttpsDeployment = isProduction && appUrl.startsWith("https://");
+
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self'",
+  `connect-src 'self'${isDevelopment ? " ws: wss: http://localhost:*" : ""}`,
+  "media-src 'self' https:",
+  "manifest-src 'self'",
+  "worker-src 'self' blob:",
+  isHttpsDeployment ? "upgrade-insecure-requests" : "",
+]
+  .filter(Boolean)
+  .join("; ");
+
+const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: contentSecurityPolicy,
+  },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  {
+    key: "X-Frame-Options",
+    value: "DENY",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "X-DNS-Prefetch-Control",
+    value: "off",
+  },
+  {
+    key: "X-XSS-Protection",
+    value: "0",
+  },
+  {
+    key: "Permissions-Policy",
+    value:
+      "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), browsing-topics=()",
+  },
+];
+
+const productionSecurityHeaders = isHttpsDeployment
+  ? [
+      {
+        key: "Strict-Transport-Security",
+        value: "max-age=31536000",
+      },
+    ]
+  : [];
+
+/** @type {import("next").NextConfig} */
+const config = {
+  poweredByHeader: false,
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+    ],
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [...securityHeaders, ...productionSecurityHeaders],
+      },
+    ];
+  },
+};
+
+export default config;
