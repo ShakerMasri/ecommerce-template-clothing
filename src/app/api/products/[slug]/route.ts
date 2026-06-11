@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
+import { rateLimit } from "~/lib/rate-limit";
 import { productSlugSchema } from "~/server/validations/product";
 
 type ProductRouteProps = {
@@ -8,7 +9,13 @@ type ProductRouteProps = {
   }>;
 };
 
-export async function GET(_request: Request, { params }: ProductRouteProps) {
+export async function GET(request: Request, { params }: ProductRouteProps) {
+  const limited = await rateLimit(request, "publicRead");
+
+  if (!limited.ok) {
+    return limited.response;
+  }
+
   const { slug } = await params;
 
   const parsed = productSlugSchema.safeParse({ slug });

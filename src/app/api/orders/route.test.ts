@@ -33,6 +33,9 @@ const mocks = vi.hoisted(() => {
       $transaction: vi.fn(),
       order: {
         findUnique: vi.fn(),
+        findMany: vi.fn(),
+        count: vi.fn(),
+        aggregate: vi.fn(),
       },
     },
   };
@@ -59,7 +62,11 @@ vi.mock("~/lib/prisma", () => ({
   prisma: mocks.prisma,
 }));
 
-import { POST } from "./route";
+import { GET, POST } from "./route";
+
+function createGetRequest(path = "/api/orders") {
+  return new Request(`http://localhost:3000${path}`);
+}
 
 function createRequest(body: unknown) {
   return new Request("http://localhost:3000/api/orders", {
@@ -179,6 +186,147 @@ describe("customer order route", () => {
     mocks.tx.product.updateMany.mockResolvedValue({ count: 1 });
     mocks.tx.productVariant.updateMany.mockResolvedValue({ count: 1 });
     mocks.tx.cartItem.deleteMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.order.findMany.mockResolvedValue([
+      {
+        id: "order-1",
+        status: "PENDING",
+        paymentMethod: "CASH_ON_DELIVERY",
+        paymentStatus: "UNPAID",
+        totalAmount: new Prisma.Decimal("100.00"),
+        deliveryAreaKey: "west_bank_cities",
+        deliveryPrice: new Prisma.Decimal("20.00"),
+        deliveryCity: "Ramallah",
+        deliveryAddress: "Main street, building 12",
+        deliveryNotes: "Call before arriving",
+        pickupAgreementAccepted: false,
+        createdAt: new Date("2026-05-24T10:00:00.000Z"),
+        items: [
+          {
+            id: "order-item-1",
+            quantity: 2,
+            priceAtPurchase: new Prisma.Decimal("40.00"),
+            subtotalAmount: new Prisma.Decimal("80.00"),
+            productNameAtPurchase: "Classic cotton t-shirt",
+            productSlugAtPurchase: "classic-cotton-t-shirt",
+            productImagesAtPurchase: ["https://example.com/image.jpg"],
+            productVariantId: "variant-1",
+            selectedSizeLabel: "M",
+            selectedColorLabel: "Black",
+          },
+        ],
+      },
+    ]);
+    mocks.prisma.order.count.mockResolvedValue(1);
+    mocks.prisma.order.aggregate.mockResolvedValue({
+      _sum: {
+        totalAmount: new Prisma.Decimal("100.00"),
+      },
+    });
+  });
+
+  it("loads the current customer's orders with capped pagination", async () => {
+    const response = await GET(createGetRequest("/api/orders?page=2&limit=10"));
+    const body = (await response.json()) as {
+      orders: Array<{ id: string; totalAmount: string }>;
+      pagination: {
+        page: number;
+        limit: number;
+        hasNextPage: boolean;
+        nextPage: number | null;
+      };
+      summary: {
+        totalOrders: number;
+        activeOrdersCount: number;
+        totalSpent: string;
+      };
+    };
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.order.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1" },
+        skip: 10,
+        take: 11,
+      }),
+    );
+    expect(mocks.prisma.order.count).toHaveBeenCalledWith({
+      where: { userId: "user-1" },
+    });
+    expect(mocks.prisma.order.count).toHaveBeenCalledWith({
+      where: {
+        userId: "user-1",
+        status: {
+          notIn: ["DELIVERED", "CANCELLED"],
+        },
+      },
+    });
+    expect(body.orders[0]?.totalAmount).toBe("100");
+    expect(body.pagination).toEqual({
+      page: 2,
+      limit: 10,
+      hasNextPage: false,
+      nextPage: null,
+    });
+    expect(body.summary).toEqual({
+      totalOrders: 1,
+      activeOrdersCount: 1,
+      totalSpent: "100",
+    });
+  });
+
+  it("returns next-page metadata without returning the extra lookahead order", async () => {
+    const order = {
+      id: "order-1",
+      status: "PENDING",
+      paymentMethod: "CASH_ON_DELIVERY",
+      paymentStatus: "UNPAID",
+      totalAmount: new Prisma.Decimal("100.00"),
+      deliveryAreaKey: "west_bank_cities",
+      deliveryPrice: new Prisma.Decimal("20.00"),
+      deliveryCity: "Ramallah",
+      deliveryAddress: "Main street, building 12",
+      deliveryNotes: "Call before arriving",
+      pickupAgreementAccepted: false,
+      createdAt: new Date("2026-05-24T10:00:00.000Z"),
+      items: [],
+    };
+
+    mocks.prisma.order.findMany.mockResolvedValue([
+      { ...order, id: "order-1" },
+      { ...order, id: "order-2" },
+    ]);
+
+    const response = await GET(createGetRequest("/api/orders?page=1&limit=1"));
+    const body = (await response.json()) as {
+      orders: Array<{ id: string }>;
+      pagination: { hasNextPage: boolean; nextPage: number | null };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.orders).toHaveLength(1);
+    expect(body.orders[0]?.id).toBe("order-1");
+    expect(body.pagination.hasNextPage).toBe(true);
+    expect(body.pagination.nextPage).toBe(2);
+  });
+
+  it("rejects invalid customer order pagination", async () => {
+    const response = await GET(createGetRequest("/api/orders?page=0&limit=50"));
+    const body = (await response.json()) as { message: string };
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe("Invalid order query parameters.");
+    expect(mocks.prisma.order.findMany).not.toHaveBeenCalled();
+  });
+
+  it("rejects forged customer order query parameters", async () => {
+    const response = await GET(
+      createGetRequest("/api/orders?page=1&limit=20&userId=other-user"),
+    );
+    const body = (await response.json()) as { message: string };
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe("Invalid order query parameters.");
+    expect(mocks.prisma.order.findMany).not.toHaveBeenCalled();
   });
 
   it("creates a pending order and reserves selected option stock", async () => {

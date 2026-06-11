@@ -29,6 +29,7 @@ Completed:
 
 - Better Auth migration
 - Rate limiting
+- Light public product API read rate limiting
 - Dedicated resend verification email rate limiting
 - Security headers
 - Admin/customer authorization audit
@@ -122,7 +123,7 @@ Planned next checkpoints:
 - Review product total, delivery price, and final total before confirming an order
 - Receive a post-order message explaining that the store owner will confirm the order by WhatsApp or phone
 - View public contact/support details from the shared contact config
-- View own orders, including delivery details and selected size/color snapshots
+- View own orders with capped pagination, including delivery details and selected size/color snapshots
 - View and update profile information
 
 ### Admin Features
@@ -157,6 +158,7 @@ This project follows these rules:
 - Protected data and protected actions must be checked on the server.
 - Admin actions must require server-side admin authorization.
 - Customer data must be scoped to the logged-in user.
+- Customer order history must use capped pagination instead of returning every order at once.
 - API routes must validate request bodies, route params, and query params.
 - API routes must not return password hashes, tokens, secrets, raw database errors, or stack traces.
 - Secrets must stay server-side.
@@ -712,7 +714,7 @@ Important production rules:
 - [ ] API responses do not expose password hashes.
 - [ ] API responses do not expose tokens or secrets.
 - [ ] API responses do not expose raw stack traces or raw database errors.
-- [ ] Login, registration, password reset, and public APIs are rate limited.
+- [ ] Login, registration, password reset, public product APIs, and protected mutation APIs are rate limited.
 - [ ] OAuth sign-in does not grant admin privileges unless the database `User.role` is explicitly set to `ADMIN`.
 - [ ] OAuth secrets are not committed and are not exposed through `NEXT_PUBLIC_` variables.
 
@@ -747,6 +749,7 @@ Important production rules:
 - [ ] Cancelling an order restores reserved stock exactly once when stock was reserved.
 - [ ] Duplicate checkout protection works.
 - [ ] Customer orders page only shows the current user's orders.
+- [ ] Customer orders API uses capped pagination and ignores forged user/customer query params.
 - [ ] Customer orders page shows delivery details for the user's own orders.
 - [ ] Admin products page works for admins.
 - [ ] Admin product filters, sorting, pagination, archive/restore, stock update, variant management, and edit-scroll behavior work.
@@ -868,11 +871,11 @@ Stock reservation is tracked with `stockDeductedAt`, which now means inventory h
 
 Known next hardening checkpoint:
 
-- Run a full security audit after the checkout-time stock reservation patch and tests are reviewed.
+- Complete final local, E2E, and staging verification for the post-reservation audit branch before merging.
 
-### Admin Filtering and Pagination
+### Filtering and Pagination
 
-Admin orders, products, and categories use server-side filters and capped pagination instead of loading every record into the browser. This keeps the admin dashboard faster as data grows and avoids exposing more data than the current screen needs.
+Admin orders, products, and categories use server-side filters and capped pagination instead of loading every record into the browser. Customer order history also uses capped pagination. This keeps dashboards and account pages faster as data grows and avoids exposing or loading more data than the current screen needs.
 
 ### Order Retention
 

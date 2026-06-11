@@ -3,6 +3,7 @@ import { GET } from "./route";
 
 const mocks = vi.hoisted(() => ({
   productFindFirst: vi.fn(),
+  rateLimit: vi.fn(),
 }));
 
 vi.mock("~/lib/prisma", () => ({
@@ -11,6 +12,10 @@ vi.mock("~/lib/prisma", () => ({
       findFirst: mocks.productFindFirst,
     },
   },
+}));
+
+vi.mock("~/lib/rate-limit", () => ({
+  rateLimit: mocks.rateLimit,
 }));
 
 type ProductCategory = {
@@ -99,16 +104,16 @@ describe("GET /api/products/[slug]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.productFindFirst.mockResolvedValue(product);
+    mocks.rateLimit.mockResolvedValue({ ok: true });
   });
 
   it("returns product by slug", async () => {
-    const response = await GET(
-      createRequest("/api/products/test-product"),
-      createSlugParams("test-product"),
-    );
+    const request = createRequest("/api/products/test-product");
+    const response = await GET(request, createSlugParams("test-product"));
     const body = (await response.json()) as ProductResponse;
 
     expect(response.status).toBe(200);
+    expect(mocks.rateLimit).toHaveBeenCalledWith(request, "publicRead");
     expect(body.product.name).toBe("Test Product");
     expect(body.product.slug).toBe("test-product");
     expect(body.product.price).toBe("99.99");
@@ -119,6 +124,26 @@ describe("GET /api/products/[slug]", () => {
     expect(body.product.variants[0]?.isInStock).toBe(true);
     expect(body.product.showStock).toBe(false);
     expect(body.product.hasVariants).toBe(true);
+  });
+
+  it("returns 429 when the public read rate limit is exceeded", async () => {
+    mocks.rateLimit.mockResolvedValue({
+      ok: false,
+      response: Response.json(
+        { message: "Too many requests." },
+        { status: 429 },
+      ),
+    });
+
+    const response = await GET(
+      createRequest("/api/products/test-product"),
+      createSlugParams("test-product"),
+    );
+    const body = (await response.json()) as ErrorResponse;
+
+    expect(response.status).toBe(429);
+    expect(body.message).toBe("Too many requests.");
+    expect(mocks.productFindFirst).not.toHaveBeenCalled();
   });
 
   it("returns exact option stock only when stock visibility is enabled", async () => {

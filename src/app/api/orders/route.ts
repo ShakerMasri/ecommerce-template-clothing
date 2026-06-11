@@ -7,7 +7,10 @@ import { getReferenceMessage, logError } from "~/lib/logger";
 import { rateLimit } from "~/lib/rate-limit";
 import { auth } from "~/server/auth";
 import { getEffectiveProductPrice } from "~/server/pricing";
-import { createOrderSchema } from "~/server/validations/order";
+import {
+  createOrderSchema,
+  customerOrdersQuerySchema,
+} from "~/server/validations/order";
 
 const orderSelect = {
   id: true,
@@ -56,7 +59,7 @@ function serializeOrder(order: OrderWithItems) {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -67,20 +70,80 @@ export async function GET() {
   }
 
   const userId = session.user.id;
+  const { searchParams } = new URL(request.url);
+
+  const parsedQuery = customerOrdersQuerySchema.safeParse(
+    Object.fromEntries(searchParams.entries()),
+  );
+
+  if (!parsedQuery.success) {
+    return NextResponse.json(
+      { message: "Invalid order query parameters." },
+      { status: 400 },
+    );
+  }
+
+  const { page, limit } = parsedQuery.data;
+  const skip = (page - 1) * limit;
 
   try {
-    const orders = await prisma.order.findMany({
-      where: {
-        userId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: orderSelect,
-    });
+    const [ordersPlusOne, totalOrders, activeOrdersCount, totalSpent] =
+      await Promise.all([
+        prisma.order.findMany({
+          where: {
+            userId,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          skip,
+          take: limit + 1,
+          select: orderSelect,
+        }),
+        prisma.order.count({
+          where: {
+            userId,
+          },
+        }),
+        prisma.order.count({
+          where: {
+            userId,
+            status: {
+              notIn: ["DELIVERED", "CANCELLED"],
+            },
+          },
+        }),
+        prisma.order.aggregate({
+          where: {
+            userId,
+            status: {
+              not: "CANCELLED",
+            },
+          },
+          _sum: {
+            totalAmount: true,
+          },
+        }),
+      ]);
+
+    const hasNextPage = ordersPlusOne.length > limit;
+    const orders = hasNextPage ? ordersPlusOne.slice(0, limit) : ordersPlusOne;
+    const totalSpentAmount =
+      totalSpent._sum.totalAmount ?? new Prisma.Decimal(0);
 
     return NextResponse.json({
       orders: orders.map(serializeOrder),
+      pagination: {
+        page,
+        limit,
+        hasNextPage,
+        nextPage: hasNextPage ? page + 1 : null,
+      },
+      summary: {
+        totalOrders,
+        activeOrdersCount,
+        totalSpent: totalSpentAmount.toString(),
+      },
     });
   } catch (error) {
     const errorId = logError("Failed to load customer orders.", error, {

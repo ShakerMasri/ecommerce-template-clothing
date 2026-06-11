@@ -579,8 +579,8 @@ Final accepted direction:
 The customer ordering flow follows this contract:
 
 1. Public product APIs expose only customer-safe active variant data needed for selection.
-2. A product with one or more active variants cannot be added to cart without `productVariantId`.
-3. A product with no active variants must be added as a simple product without `productVariantId`.
+2. Customer-orderable products must have a selected `productVariantId`; products with no active in-stock variants are unavailable.
+3. Product-level stock is not used as a customer checkout fallback.
 4. The server verifies that the selected variant belongs to the submitted product and is active.
 5. Cart uniqueness uses `userId + cartLineKey` instead of `userId + productId`, so multiple sizes/colors of the same product can exist as separate cart lines.
 6. Checkout revalidates product/variant availability and stock server-side before creating the order.

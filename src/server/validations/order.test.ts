@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createOrderSchema } from "./order";
+import { createOrderSchema, customerOrdersQuerySchema } from "./order";
 
 const baseOrderInput = {
   idempotencyKey: "550e8400-e29b-41d4-a716-446655440000",
@@ -70,6 +70,51 @@ describe("order validations", () => {
       deliveryCity: "Nablus",
       deliveryAddress: "",
       pickupAgreementAccepted: false,
+    });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+
+describe("customer order query validations", () => {
+  it("defaults to the first page with a safe page size", () => {
+    const result = customerOrdersQuerySchema.safeParse({});
+
+    expect(result.success).toBe(true);
+
+    if (result.success) {
+      expect(result.data).toEqual({ page: 1, limit: 20 });
+    }
+  });
+
+  it("accepts numeric query strings within the allowed range", () => {
+    const result = customerOrdersQuerySchema.safeParse({
+      page: "2",
+      limit: "10",
+    });
+
+    expect(result.success).toBe(true);
+
+    if (result.success) {
+      expect(result.data).toEqual({ page: 2, limit: 10 });
+    }
+  });
+
+  it("rejects invalid pagination values", () => {
+    const result = customerOrdersQuerySchema.safeParse({
+      page: "0",
+      limit: "100",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects unexpected query parameters", () => {
+    const result = customerOrdersQuerySchema.safeParse({
+      page: "1",
+      limit: "20",
+      userId: "another-user",
     });
 
     expect(result.success).toBe(false);

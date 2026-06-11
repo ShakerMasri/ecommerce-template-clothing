@@ -60,3 +60,10 @@ export const createOrderSchema = z
       });
     }
   });
+
+export const customerOrdersQuerySchema = z
+  .object({
+    page: z.coerce.number().int().min(1).max(10_000).optional().default(1),
+    limit: z.coerce.number().int().min(1).max(20).optional().default(20),
+  })
+  .strict();

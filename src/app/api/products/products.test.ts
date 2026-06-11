@@ -4,6 +4,7 @@ import { GET } from "./route";
 const mocks = vi.hoisted(() => ({
   productFindMany: vi.fn(),
   categoryFindMany: vi.fn(),
+  rateLimit: vi.fn(),
 }));
 
 vi.mock("~/lib/prisma", () => ({
@@ -15,6 +16,10 @@ vi.mock("~/lib/prisma", () => ({
       findMany: mocks.categoryFindMany,
     },
   },
+}));
+
+vi.mock("~/lib/rate-limit", () => ({
+  rateLimit: mocks.rateLimit,
 }));
 
 type ProductCategory = {
@@ -89,13 +94,16 @@ describe("GET /api/products", () => {
 
     mocks.productFindMany.mockResolvedValue(products);
     mocks.categoryFindMany.mockResolvedValue(categories);
+    mocks.rateLimit.mockResolvedValue({ ok: true });
   });
 
   it("returns products and categories", async () => {
-    const response = await GET(createRequest("/api/products"));
+    const request = createRequest("/api/products");
+    const response = await GET(request);
     const body = (await response.json()) as ProductResponse;
 
     expect(response.status).toBe(200);
+    expect(mocks.rateLimit).toHaveBeenCalledWith(request, "publicRead");
     expect(body.products).toHaveLength(1);
     expect(body.categories).toHaveLength(1);
     expect(body.products[0]?.name).toBe("Test Product");
@@ -105,6 +113,24 @@ describe("GET /api/products", () => {
     expect(body.products[0]?.isInStock).toBe(true);
     expect(body.products[0]?.showStock).toBe(false);
     expect(body.products[0]?.hasVariants).toBe(true);
+  });
+
+  it("returns 429 when the public read rate limit is exceeded", async () => {
+    mocks.rateLimit.mockResolvedValue({
+      ok: false,
+      response: Response.json(
+        { message: "Too many requests." },
+        { status: 429 },
+      ),
+    });
+
+    const response = await GET(createRequest("/api/products"));
+    const body = (await response.json()) as ErrorResponse;
+
+    expect(response.status).toBe(429);
+    expect(body.message).toBe("Too many requests.");
+    expect(mocks.productFindMany).not.toHaveBeenCalled();
+    expect(mocks.categoryFindMany).not.toHaveBeenCalled();
   });
 
   it("returns exact stock only when stock visibility is enabled", async () => {

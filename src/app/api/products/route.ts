@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
+import { rateLimit } from "~/lib/rate-limit";
 import { productQuerySchema } from "~/server/validations/product";
 
 export async function GET(request: Request) {
+  const limited = await rateLimit(request, "publicRead");
+
+  if (!limited.ok) {
+    return limited.response;
+  }
+
   const { searchParams } = new URL(request.url);
 
   const parsed = productQuerySchema.safeParse({

@@ -8,56 +8,36 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  "prisma/schema.prisma",
   "README.md",
+  "TESTING_GUIDE.md",
 
   "src/app/api/products/route.ts",
   "src/app/api/products/products.test.ts",
   "src/app/api/products/[slug]/route.ts",
   "src/app/api/products/[slug]/route.test.ts",
 
-  "src/app/api/cart/route.ts",
-  "src/app/api/cart/items/route.ts",
-  "src/app/api/cart/items/[id]/route.ts",
-
   "src/app/api/orders/route.ts",
   "src/app/api/orders/route.test.ts",
+  "src/app/orders/page.tsx",
+  "src/components/orders/OrdersClient.tsx",
 
-  "src/app/api/admin/orders/[id]/status/route.ts",
-  "src/app/api/admin/orders/[id]/status/route.test.ts",
+  "src/lib/rate-limit.ts",
+  "src/lib/rate-limit.test.ts",
+  "src/lib/csrf.ts",
+  "src/lib/csrf.test.ts",
+  "src/lib/logger.ts",
 
-  "src/app/api/admin/products/[id]/stock/route.ts",
-  "src/app/api/admin/products/[id]/variants/route.ts",
-  "src/app/api/admin/products/[id]/variants/route.test.ts",
-  "src/app/api/admin/products/[id]/variants/[variantId]/route.ts",
-  "src/app/api/admin/products/[id]/variants/[variantId]/route.test.ts",
-
-  "src/components/cart/AddToCartControls.tsx",
-  "src/components/cart/CartClient.tsx",
-  "src/components/products/ProductDetailClient.tsx",
-  "src/components/products/ProductCard.tsx",
-  "src/components/admin/AdminOrdersClient.tsx",
-  "src/app/admin/products/AdminProductsClient.tsx",
-
-  "src/server/validations/cart.ts",
-  "src/server/validations/cart.test.ts",
   "src/server/validations/order.ts",
   "src/server/validations/order.test.ts",
-  "src/server/validations/product-variant.ts",
-  "src/server/validations/product-variant.test.ts",
 
-  "src/server/pricing.ts",
-  "src/server/pricing.test.ts",
-
-  "tests/e2e/customer-cart.e2e.ts",
   "tests/e2e/customer-order.e2e.ts",
   "tests/e2e/customer-product-display.e2e.ts",
-  "tests/e2e/helpers/cart.ts",
   "tests/e2e/helpers/products.ts",
 
   "docs/product-variants-design-contract.md",
   "docs/product-variants-plan.md",
   "docs/product-variants-readiness-audit.md",
+  "docs/production-readiness-checklist.md",
 ];
 
 function fail(message) {

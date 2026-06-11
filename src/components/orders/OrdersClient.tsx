@@ -35,8 +35,23 @@ type Order = {
   items: OrderItem[];
 };
 
+type OrdersPagination = {
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
+  nextPage: number | null;
+};
+
+type OrdersSummary = {
+  totalOrders: number;
+  activeOrdersCount: number;
+  totalSpent: string;
+};
+
 type OrdersResponse = {
   orders?: Order[];
+  pagination?: OrdersPagination;
+  summary?: OrdersSummary;
   message?: string;
 };
 
@@ -85,11 +100,18 @@ export function OrdersClient() {
   const { t, language } = useAppPreferences();
 
   const [orders, setOrders] = useState<Order[]>([]);
+  const [pagination, setPagination] = useState<OrdersPagination | null>(null);
+  const [summary, setSummary] = useState<OrdersSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [message, setMessage] = useState("");
   const [isAuthRequired, setIsAuthRequired] = useState(false);
 
   const totalSpent = useMemo(() => {
+    if (summary) {
+      return Number(summary.totalSpent);
+    }
+
     return orders.reduce((sum, order) => {
       if (order.status === "CANCELLED") {
         return sum;
@@ -97,13 +119,19 @@ export function OrdersClient() {
 
       return sum + Number(order.totalAmount);
     }, 0);
-  }, [orders]);
+  }, [orders, summary]);
 
   const activeOrdersCount = useMemo(() => {
+    if (summary) {
+      return summary.activeOrdersCount;
+    }
+
     return orders.filter((order) => {
       return order.status !== "DELIVERED" && order.status !== "CANCELLED";
     }).length;
-  }, [orders]);
+  }, [orders, summary]);
+
+  const totalOrdersCount = summary?.totalOrders ?? orders.length;
 
   function getStatusLabel(status: string) {
     return t.orders.statuses[status] ?? formatFallbackLabel(status);
@@ -134,17 +162,32 @@ export function OrdersClient() {
     );
   }
 
-  async function loadOrders() {
-    setIsLoading(true);
+  async function loadOrders(options?: { page?: number; append?: boolean }) {
+    const page = options?.page ?? 1;
+    const append = options?.append ?? false;
+
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+      setOrders([]);
+      setPagination(null);
+      setSummary(null);
+    }
+
     setMessage("");
     setIsAuthRequired(false);
 
     try {
-      const response = await fetch("/api/orders");
+      const response = await fetch(`/api/orders?page=${page}&limit=20`);
       const data = (await response.json()) as OrdersResponse;
 
       if (!response.ok) {
-        setOrders([]);
+        if (!append) {
+          setOrders([]);
+          setPagination(null);
+          setSummary(null);
+        }
 
         if (response.status === 401) {
           setIsAuthRequired(true);
@@ -153,12 +196,28 @@ export function OrdersClient() {
         setMessage(data.message ?? t.orders.failedToLoad);
         return;
       }
-      setOrders(data.orders ?? []);
+
+      const nextOrders = data.orders ?? [];
+
+      setOrders((currentOrders) =>
+        append ? [...currentOrders, ...nextOrders] : nextOrders,
+      );
+      setPagination(data.pagination ?? null);
+      setSummary(data.summary ?? null);
     } catch {
-      setOrders([]);
+      if (!append) {
+        setOrders([]);
+        setPagination(null);
+        setSummary(null);
+      }
+
       setMessage(t.orders.failedToConnect);
     } finally {
-      setIsLoading(false);
+      if (append) {
+        setIsLoadingMore(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   }
 
@@ -287,7 +346,7 @@ export function OrdersClient() {
             {t.orders.totalOrders}
           </p>
           <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
-            {orders.length}
+            {totalOrdersCount}
           </p>
         </div>
 
@@ -535,6 +594,30 @@ export function OrdersClient() {
           );
         })}
       </div>
+
+      {pagination?.hasNextPage ? (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => {
+              if (pagination.nextPage) {
+                void loadOrders({ page: pagination.nextPage, append: true });
+              }
+            }}
+            disabled={isLoadingMore}
+            className="rounded-full border border-zinc-300 px-5 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-950"
+          >
+            {isLoadingMore
+              ? language === "ar"
+                ? "جار التحميل…"
+                : "Loading…"
+              : language === "ar"
+                ? "عرض طلبات أكثر"
+                : "Load more orders"}
+          </button>
+        </div>
+      ) : null}
+
     </section>
   );
 }

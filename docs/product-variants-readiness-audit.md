@@ -353,7 +353,7 @@ Note: `src/lib/validations.ts` was not included in this audit zip, but current a
 - Never trust client-submitted price, stock, size label, color name, or admin permission.
 - Client should submit only ids and form values; server loads trusted product/variant records.
 - Keep CSRF/same-origin checks on cart, order, and admin mutations.
-- Keep rate limiting on cart, order, and admin mutations.
+- Keep rate limiting on public product reads, cart/order mutations, and admin mutations.
 - Keep customer cart/order ownership checks server-side.
 - Keep admin authorization server-side.
 - Keep order snapshots so old orders do not change after product/variant edits.
