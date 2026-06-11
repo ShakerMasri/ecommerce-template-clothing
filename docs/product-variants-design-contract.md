@@ -522,3 +522,25 @@ Do not start the migration branch until these are accepted:
 - [ ] Legacy/simple product fallback strategy accepted.
 - [ ] Test plan accepted.
 - [ ] Rollback/data backup plan accepted.
+
+## Admin-only variant management checkpoint
+
+The admin management checkpoint may safely add CRUD-style variant management before customer-facing ordering, as long as the UI and docs clearly state that variants are not used by checkout yet.
+
+Security requirements for this checkpoint:
+
+- every variant mutation requires server-side `ADMIN` authorization
+- every mutation uses same-origin/CSRF protection
+- every mutation is rate limited as an admin mutation
+- the API validates product IDs and variant IDs server-side
+- variant update/deactivate routes must confirm the variant belongs to the route product before changing it
+- `DELETE` should soft-deactivate variants by setting `isActive=false`; do not hard-delete variants because future cart/order rows may reference them
+- duplicate size/color combinations and duplicate SKUs must return safe validation errors, not raw Prisma errors
+
+User-facing boundary:
+
+```txt
+Admin can prepare variant records.
+Customers still cannot select or order variants.
+Checkout still uses product-level stock until the cart/order migration is implemented.
+```
