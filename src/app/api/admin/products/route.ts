@@ -8,6 +8,33 @@ import { rateLimit } from "~/lib/rate-limit";
 import { validateSameOriginRequest } from "~/lib/csrf";
 import { adminProductsQuerySchema } from "~/server/validations/product";
 
+const adminProductVariantSelect = {
+  id: true,
+  productId: true,
+  sizeLabel: true,
+  colorLabel: true,
+  sizeKey: true,
+  colorKey: true,
+  sku: true,
+  stock: true,
+  isActive: true,
+  sortOrder: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.ProductVariantSelect;
+
+function serializeProductVariant(
+  variant: Prisma.ProductVariantGetPayload<{
+    select: typeof adminProductVariantSelect;
+  }>,
+) {
+  return {
+    ...variant,
+    createdAt: variant.createdAt.toISOString(),
+    updatedAt: variant.updatedAt.toISOString(),
+  };
+}
+
 const adminProductSelect = {
   id: true,
   name: true,
@@ -29,34 +56,24 @@ const adminProductSelect = {
       slug: true,
     },
   },
+  variants: {
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: adminProductVariantSelect,
+  },
 } satisfies Prisma.ProductSelect;
 
-function serializeProduct(product: {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  price: Prisma.Decimal;
-  discountPrice: Prisma.Decimal | null;
-  stock: number;
-  images: string[];
-  isArchived: boolean;
-  isFeatured: boolean;
-  showStock: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  category: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-}) {
+type AdminProduct = Prisma.ProductGetPayload<{
+  select: typeof adminProductSelect;
+}>;
+
+function serializeProduct(product: AdminProduct) {
   return {
     ...product,
     price: product.price.toString(),
     discountPrice: product.discountPrice?.toString() ?? null,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),
+    variants: product.variants.map(serializeProductVariant),
   };
 }
 

@@ -97,6 +97,7 @@ describe("admin product collection route", () => {
           name: "Figures",
           slug: "figures",
         },
+        variants: [],
       },
     ]);
     mocks.prisma.$transaction.mockImplementation(async (operations) =>
@@ -169,6 +170,7 @@ describe("admin product collection route", () => {
         name: "Figures",
         slug: "figures",
       },
+      variants: [],
     });
 
     const response = await POST(

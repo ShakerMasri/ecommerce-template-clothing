@@ -14,6 +14,21 @@ type Category = {
   slug: string;
 };
 
+type ProductVariant = {
+  id: string;
+  productId: string;
+  sizeLabel: string | null;
+  colorLabel: string | null;
+  sizeKey: string;
+  colorKey: string;
+  sku: string | null;
+  stock: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type AdminProduct = {
   id: string;
   name: string;
@@ -29,6 +44,7 @@ type AdminProduct = {
   createdAt: string;
   updatedAt: string;
   category: Category;
+  variants: ProductVariant[];
 };
 
 type ProductForm = {
@@ -42,6 +58,15 @@ type ProductForm = {
   isFeatured: boolean;
   showStock: boolean;
   categoryId: string;
+};
+
+type VariantForm = {
+  sizeLabel: string;
+  colorLabel: string;
+  sku: string;
+  stock: string;
+  isActive: boolean;
+  sortOrder: string;
 };
 
 type Pagination = {
@@ -102,6 +127,13 @@ type UploadResponse = {
   errors?: FieldErrors;
 };
 
+type VariantResponse = {
+  message?: string;
+  variant?: ProductVariant;
+  variants?: ProductVariant[];
+  errors?: FieldErrors;
+};
+
 type MessageType = "success" | "error";
 
 const defaultProductFilters: ProductFilters = {
@@ -156,6 +188,28 @@ function getEmptyProductForm(): ProductForm {
   };
 }
 
+function getEmptyVariantForm(): VariantForm {
+  return {
+    sizeLabel: "",
+    colorLabel: "",
+    sku: "",
+    stock: "0",
+    isActive: true,
+    sortOrder: "0",
+  };
+}
+
+function variantToForm(variant: ProductVariant): VariantForm {
+  return {
+    sizeLabel: variant.sizeLabel ?? "",
+    colorLabel: variant.colorLabel ?? "",
+    sku: variant.sku ?? "",
+    stock: String(variant.stock),
+    isActive: variant.isActive,
+    sortOrder: String(variant.sortOrder),
+  };
+}
+
 function formatPrice(price: string | number) {
   return `$${Number(price).toFixed(2)}`;
 }
@@ -193,6 +247,17 @@ function prepareProductPayload(form: ProductForm) {
     isFeatured: form.isFeatured,
     showStock: form.showStock,
     categoryId: form.categoryId,
+  };
+}
+
+function prepareVariantPayload(form: VariantForm) {
+  return {
+    sizeLabel: form.sizeLabel,
+    colorLabel: form.colorLabel,
+    sku: form.sku,
+    stock: form.stock,
+    isActive: form.isActive,
+    sortOrder: form.sortOrder,
   };
 }
 
@@ -600,6 +665,12 @@ export function AdminProductsClient() {
   const [categorySlug, setCategorySlug] = useState("");
 
   const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
+  const [variantDrafts, setVariantDrafts] = useState<Record<string, VariantForm>>(
+    {},
+  );
+  const [variantEditDrafts, setVariantEditDrafts] = useState<
+    Record<string, VariantForm>
+  >({});
 
   const [productErrors, setProductErrors] = useState<FieldErrors>({});
   const [categoryErrors, setCategoryErrors] = useState<FieldErrors>({});
@@ -610,6 +681,9 @@ export function AdminProductsClient() {
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [isSavingCategory, setIsSavingCategory] = useState(false);
   const [updatingProductId, setUpdatingProductId] = useState<string | null>(
+    null,
+  );
+  const [updatingVariantKey, setUpdatingVariantKey] = useState<string | null>(
     null,
   );
   const [uploadingMode, setUploadingMode] = useState<"create" | "edit" | null>(
@@ -678,6 +752,18 @@ export function AdminProductsClient() {
       setStockDrafts(
         Object.fromEntries(
           nextProducts.map((product) => [product.id, String(product.stock)]),
+        ),
+      );
+      setVariantDrafts(
+        Object.fromEntries(
+          nextProducts.map((product) => [product.id, getEmptyVariantForm()]),
+        ),
+      );
+      setVariantEditDrafts(
+        Object.fromEntries(
+          nextProducts.flatMap((product) =>
+            product.variants.map((variant) => [variant.id, variantToForm(variant)]),
+          ),
         ),
       );
     } catch {
@@ -993,6 +1079,145 @@ export function AdminProductsClient() {
       showMessage("error", labels.failedToConnect);
     } finally {
       setUpdatingProductId(null);
+    }
+  }
+
+  function updateVariantDraft(
+    productId: string,
+    field: keyof VariantForm,
+    value: string | boolean,
+  ) {
+    setVariantDrafts((current) => ({
+      ...current,
+      [productId]: {
+        ...(current[productId] ?? getEmptyVariantForm()),
+        [field]: value,
+      },
+    }));
+  }
+
+  function updateVariantEditDraft(
+    variantId: string,
+    field: keyof VariantForm,
+    value: string | boolean,
+  ) {
+    setVariantEditDrafts((current) => ({
+      ...current,
+      [variantId]: {
+        ...(current[variantId] ?? getEmptyVariantForm()),
+        [field]: value,
+      },
+    }));
+  }
+
+  async function createVariant(productId: string) {
+    const draft = variantDrafts[productId] ?? getEmptyVariantForm();
+    const variantKey = `new:${productId}`;
+
+    setUpdatingVariantKey(variantKey);
+    setProductErrors({});
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/admin/products/${productId}/variants`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(prepareVariantPayload(draft)),
+      });
+
+      const data = (await response.json()) as VariantResponse;
+
+      if (!response.ok) {
+        setProductErrors(data.errors ?? {});
+        showMessage("error", data.message ?? "Failed to create variant.");
+        return;
+      }
+
+      showMessage("success", data.message ?? "Variant created successfully.");
+      setVariantDrafts((current) => ({
+        ...current,
+        [productId]: getEmptyVariantForm(),
+      }));
+      await loadAdminData(productPage, productFilters);
+    } catch {
+      showMessage("error", labels.failedToConnect);
+    } finally {
+      setUpdatingVariantKey(null);
+    }
+  }
+
+  async function updateVariant(productId: string, variantId: string) {
+    const draft = variantEditDrafts[variantId];
+
+    if (!draft) {
+      return;
+    }
+
+    const variantKey = `update:${variantId}`;
+
+    setUpdatingVariantKey(variantKey);
+    setProductErrors({});
+    setMessage("");
+
+    try {
+      const response = await fetch(
+        `/api/admin/products/${productId}/variants/${variantId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(prepareVariantPayload(draft)),
+        },
+      );
+
+      const data = (await response.json()) as VariantResponse;
+
+      if (!response.ok) {
+        setProductErrors(data.errors ?? {});
+        showMessage("error", data.message ?? "Failed to update variant.");
+        return;
+      }
+
+      showMessage("success", data.message ?? "Variant updated successfully.");
+      await loadAdminData(productPage, productFilters);
+    } catch {
+      showMessage("error", labels.failedToConnect);
+    } finally {
+      setUpdatingVariantKey(null);
+    }
+  }
+
+  async function deactivateVariant(productId: string, variantId: string) {
+    const variantKey = `delete:${variantId}`;
+
+    setUpdatingVariantKey(variantKey);
+    setProductErrors({});
+    setMessage("");
+
+    try {
+      const response = await fetch(
+        `/api/admin/products/${productId}/variants/${variantId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      const data = (await response.json()) as VariantResponse;
+
+      if (!response.ok) {
+        showMessage("error", data.message ?? "Failed to deactivate variant.");
+        return;
+      }
+
+      showMessage("success", data.message ?? "Variant deactivated successfully.");
+      await loadAdminData(productPage, productFilters);
+    } catch {
+      showMessage("error", labels.failedToConnect);
+    } finally {
+      setUpdatingVariantKey(null);
     }
   }
 
@@ -1494,6 +1719,10 @@ export function AdminProductsClient() {
             products.map((product) => {
               const image = product.images.at(0);
               const isUpdating = updatingProductId === product.id;
+              const variantDraft =
+                variantDrafts[product.id] ?? getEmptyVariantForm();
+              const isCreatingVariant =
+                updatingVariantKey === `new:${product.id}`;
 
               return (
                 <article
@@ -1627,6 +1856,261 @@ export function AdminProductsClient() {
                         >
                           {isUpdating ? labels.stockSaving : labels.updateStock}
                         </button>
+                      </div>
+
+                      <div className="mt-5 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <h4 className="text-sm font-black text-zinc-950 dark:text-white">
+                              Variants
+                            </h4>
+                            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                              Admin-only setup for now. Customers still checkout
+                              with product-level stock until the cart/order
+                              variant flow is implemented.
+                            </p>
+                          </div>
+                          <span className="w-fit rounded-full bg-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                            {product.variants.length} variants
+                          </span>
+                        </div>
+
+                        {product.variants.length > 0 && (
+                          <div className="mt-4 space-y-3">
+                            {product.variants.map((variant) => {
+                              const draft =
+                                variantEditDrafts[variant.id] ??
+                                variantToForm(variant);
+                              const isSavingVariant =
+                                updatingVariantKey === `update:${variant.id}`;
+                              const isDeactivatingVariant =
+                                updatingVariantKey === `delete:${variant.id}`;
+
+                              return (
+                                <div
+                                  key={variant.id}
+                                  className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
+                                >
+                                  <div className="grid gap-3 md:grid-cols-5">
+                                    <div>
+                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                                        Size
+                                      </label>
+                                      <input
+                                        value={draft.sizeLabel}
+                                        onChange={(event) =>
+                                          updateVariantEditDraft(
+                                            variant.id,
+                                            "sizeLabel",
+                                            event.target.value,
+                                          )
+                                        }
+                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                                        placeholder="M"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                                        Color
+                                      </label>
+                                      <input
+                                        value={draft.colorLabel}
+                                        onChange={(event) =>
+                                          updateVariantEditDraft(
+                                            variant.id,
+                                            "colorLabel",
+                                            event.target.value,
+                                          )
+                                        }
+                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                                        placeholder="Black"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                                        SKU
+                                      </label>
+                                      <input
+                                        value={draft.sku}
+                                        onChange={(event) =>
+                                          updateVariantEditDraft(
+                                            variant.id,
+                                            "sku",
+                                            event.target.value,
+                                          )
+                                        }
+                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                                        placeholder="TSHIRT-M-BLK"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                                        Variant stock
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={draft.stock}
+                                        onChange={(event) =>
+                                          updateVariantEditDraft(
+                                            variant.id,
+                                            "stock",
+                                            event.target.value,
+                                          )
+                                        }
+                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                                        Sort
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={draft.sortOrder}
+                                        onChange={(event) =>
+                                          updateVariantEditDraft(
+                                            variant.id,
+                                            "sortOrder",
+                                            event.target.value,
+                                          )
+                                        }
+                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                                      <input
+                                        type="checkbox"
+                                        checked={draft.isActive}
+                                        onChange={(event) =>
+                                          updateVariantEditDraft(
+                                            variant.id,
+                                            "isActive",
+                                            event.target.checked,
+                                          )
+                                        }
+                                      />
+                                      Active
+                                    </label>
+
+                                    <div className="flex flex-wrap gap-2">
+                                      <button
+                                        type="button"
+                                        disabled={isSavingVariant}
+                                        onClick={() =>
+                                          void updateVariant(product.id, variant.id)
+                                        }
+                                        className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                                      >
+                                        {isSavingVariant ? "Saving..." : "Save variant"}
+                                      </button>
+
+                                      {variant.isActive && (
+                                        <button
+                                          type="button"
+                                          disabled={isDeactivatingVariant}
+                                          onClick={() =>
+                                            void deactivateVariant(
+                                              product.id,
+                                              variant.id,
+                                            )
+                                          }
+                                          className="rounded-full border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950"
+                                        >
+                                          {isDeactivatingVariant
+                                            ? "Deactivating..."
+                                            : "Deactivate"}
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                          <h5 className="text-sm font-black text-zinc-950 dark:text-white">
+                            Add variant
+                          </h5>
+
+                          <div className="mt-3 grid gap-3 md:grid-cols-5">
+                            <input
+                              value={variantDraft.sizeLabel}
+                              onChange={(event) =>
+                                updateVariantDraft(
+                                  product.id,
+                                  "sizeLabel",
+                                  event.target.value,
+                                )
+                              }
+                              className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                              placeholder="Size, e.g. M"
+                            />
+
+                            <input
+                              value={variantDraft.colorLabel}
+                              onChange={(event) =>
+                                updateVariantDraft(
+                                  product.id,
+                                  "colorLabel",
+                                  event.target.value,
+                                )
+                              }
+                              className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                              placeholder="Color, e.g. Black"
+                            />
+
+                            <input
+                              value={variantDraft.sku}
+                              onChange={(event) =>
+                                updateVariantDraft(
+                                  product.id,
+                                  "sku",
+                                  event.target.value,
+                                )
+                              }
+                              className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                              placeholder="Optional SKU"
+                            />
+
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={variantDraft.stock}
+                              onChange={(event) =>
+                                updateVariantDraft(
+                                  product.id,
+                                  "stock",
+                                  event.target.value,
+                                )
+                              }
+                              className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                              placeholder="Stock"
+                            />
+
+                            <button
+                              type="button"
+                              disabled={isCreatingVariant}
+                              onClick={() => void createVariant(product.id)}
+                              className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                            >
+                              {isCreatingVariant ? "Adding..." : "Add variant"}
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

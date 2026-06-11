@@ -17,6 +17,33 @@ const productParamsSchema = z.object({
   id: z.string().min(1, "Product ID is required."),
 });
 
+const adminProductVariantSelect = {
+  id: true,
+  productId: true,
+  sizeLabel: true,
+  colorLabel: true,
+  sizeKey: true,
+  colorKey: true,
+  sku: true,
+  stock: true,
+  isActive: true,
+  sortOrder: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.ProductVariantSelect;
+
+function serializeProductVariant(
+  variant: Prisma.ProductVariantGetPayload<{
+    select: typeof adminProductVariantSelect;
+  }>,
+) {
+  return {
+    ...variant,
+    createdAt: variant.createdAt.toISOString(),
+    updatedAt: variant.updatedAt.toISOString(),
+  };
+}
+
 const adminProductSelect = {
   id: true,
   name: true,
@@ -38,6 +65,10 @@ const adminProductSelect = {
       slug: true,
     },
   },
+  variants: {
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: adminProductVariantSelect,
+  },
 } satisfies Prisma.ProductSelect;
 
 type AdminProduct = Prisma.ProductGetPayload<{
@@ -51,6 +82,7 @@ function serializeProduct(product: AdminProduct) {
     discountPrice: product.discountPrice?.toString() ?? null,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),
+    variants: product.variants.map(serializeProductVariant),
   };
 }
 

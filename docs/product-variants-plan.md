@@ -162,3 +162,28 @@ Before a migration:
 11. Update handoff docs.
 
 Do not combine this with frontend redesign, PWA, payment, POS, or other unrelated features.
+
+## Admin Variant Management Checkpoint
+
+The next implemented checkpoint adds admin-only product variant management. It should remain intentionally separate from customer cart/order support.
+
+Implemented scope for this checkpoint:
+
+- admin-only variant create/update/deactivate APIs
+- server-side validation for size label, color label, SKU, stock, active state, and sort order
+- normalized `sizeKey` / `colorKey` generation in the API layer
+- duplicate size/color combination protection through the database unique constraint
+- SKU uniqueness protection when a SKU is provided
+- admin product responses include variants for management screens
+- admin UI can add, edit, and deactivate variants while clearly warning that checkout still uses product-level stock
+
+Still not implemented after this checkpoint:
+
+- customer variant selector
+- `CartItem.productVariantId`
+- variant-aware checkout validation
+- order item variant snapshots
+- variant stock deduction during admin confirmation
+- variant-aware cancellation/restock behavior
+
+Do not advertise customer-facing size/color ordering until the cart, order, stock-confirmation, and E2E checkpoints are complete.
