@@ -8,21 +8,19 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  ".gitignore",
   "README.md",
-  "TESTING_GUIDE.md",
-  "package.json",
-  "package-lock.json",
-  ".env.example",
-  "docs/asset-license-notes.md",
-  "docs/client-handoff.md",
-  "docs/first-client-setup-checklist.md",
-  "docs/license-review-notes.md",
-  "docs/production-readiness-checklist.md",
   "src/config/store.ts",
-  "src/config/delivery.ts",
   "src/config/contact.ts",
   "src/config/policies.ts",
+  "src/config/delivery.ts",
+  "src/app/page.tsx",
+  "src/app/layout.tsx",
+  "src/components/layout/Header.tsx",
+  "src/components/layout/Footer.tsx",
+  "src/components/products/ProductCard.tsx",
+  "src/components/products/ProductDetailClient.tsx",
+  "src/components/products/ProductListingClient.tsx",
+  "src/lib/translations.ts",
   "public/favicon.svg",
 ];
 

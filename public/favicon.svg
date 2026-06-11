@@ -1,12 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Store Template favicon">
-  <text
-    x="32"
-    y="32"
-    text-anchor="middle"
-    dominant-baseline="central"
-    font-family="Arial, Helvetica, sans-serif"
-    font-size="36"
-    font-weight="800"
-    fill="#ee1405"
-  >ST</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Clothing store template favicon">
+  <rect width="64" height="64" rx="16" fill="#18181b" />
+  <path
+    d="M22 14h7c1.4 2.1 4.6 2.1 6 0h7l9 9-6 7-4-3v23H23V27l-4 3-6-7 9-9Z"
+    fill="#ffffff"
+  />
+  <path
+    d="M28 20c2.5 1.7 5.5 1.7 8 0"
+    fill="none"
+    stroke="#f97316"
+    stroke-linecap="round"
+    stroke-width="3"
+  />
 </svg>

@@ -659,22 +659,22 @@ export const translations: Record<Language, TranslationDictionary> = {
       socialLinks: "Social links",
     },
     home: {
-      badge: "Simple shopping, clear checkout",
-      titleStart: "Find your next pick at",
+      badge: "Everyday clothing, clear checkout",
+      titleStart: "Build your everyday look at",
       titleBrand: englishStoreName,
       description:
-        "Browse products, add what you like to your cart, and place your order with cash on delivery. Fast, simple, and made for real store usage.",
-      flowTitle: "Today's store flow",
+        "Browse clothing items, add what you like to your cart, and place your order with cash on delivery. Simple, mobile-friendly, and made for real store usage.",
+      flowTitle: "Simple clothing order flow",
       highlights: [
         {
           title: "Browse products",
           description:
-            "Explore available items with clear stock and price details.",
+            "Explore available clothing items with clear price and stock details.",
         },
         {
           title: "Add to cart",
           description:
-            "Build your cart before placing a cash-on-delivery order.",
+            "Build your cart before placing a cash-on-delivery clothing order.",
         },
         {
           title: "Track orders",
@@ -704,7 +704,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       badge: "Shop",
       title: "Products",
       description:
-        "Browse available products, filter by category, and open any item to view details before adding it to your cart.",
+        "Browse available clothing items, filter by category, and open any item to view details before adding it to your cart.",
       searchLabel: "Search products",
       searchPlaceholder: "Search by name or category...",
       allProducts: "All products",
@@ -1038,9 +1038,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         createDescription:
           "Add a new category for products. Use a lowercase slug for clean URLs and filters.",
         name: "Name",
-        namePlaceholder: "Accessories",
+        namePlaceholder: "Tops",
         slug: "Slug",
-        slugPlaceholder: "accessories",
+        slugPlaceholder: "tops",
         make: "Make",
         createButton: "Create category",
         creating: "Creating...",
@@ -1187,9 +1187,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         createProductDescription:
           "Add a new product to the store. Product visibility depends on archive state and stock.",
         productName: "Product name",
-        productNamePlaceholder: "Gaming mouse",
+        productNamePlaceholder: "Classic cotton t-shirt",
         slug: "Slug",
-        slugPlaceholder: "gaming-mouse",
+        slugPlaceholder: "classic-cotton-t-shirt",
         make: "Make",
         descriptionLabel: "Description",
         descriptionPlaceholder: "Write a clear customer-facing description.",
@@ -1223,9 +1223,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         saving: "Saving...",
         newCategory: "New category",
         categoryName: "Name",
-        categoryNamePlaceholder: "Accessories",
+        categoryNamePlaceholder: "Tops",
         categorySlug: "Slug",
-        categorySlugPlaceholder: "accessories",
+        categorySlugPlaceholder: "tops",
         createCategory: "Create category",
         creatingCategory: "Creating...",
         categoryList: "Category list",
@@ -1325,20 +1325,20 @@ export const translations: Record<Language, TranslationDictionary> = {
       socialLinks: "روابط التواصل",
     },
     home: {
-      badge: "تسوق بسيط ودفع واضح",
-      titleStart: "اعثر على اختيارك القادم في",
+      badge: "ملابس يومية ودفع واضح",
+      titleStart: "كوّن إطلالتك اليومية من",
       titleBrand: arabicStoreName,
       description:
-        "تصفح المنتجات، أضف ما يعجبك إلى السلة، ثم أكمل طلبك مع الدفع عند الاستلام. تجربة بسيطة وسريعة ومناسبة لمتجر حقيقي.",
+        "تصفح قطع الملابس، أضف ما يعجبك إلى السلة، ثم أكمل طلبك مع الدفع عند الاستلام. تجربة بسيطة ومناسبة للجوال ولمتجر حقيقي.",
       flowTitle: "خطوات الشراء",
       highlights: [
         {
           title: "تصفح المنتجات",
-          description: "استكشف المنتجات المتوفرة مع السعر والمخزون بوضوح.",
+          description: "استكشف قطع الملابس المتوفرة مع السعر والمخزون بوضوح.",
         },
         {
           title: "أضف إلى السلة",
-          description: "جهز سلتك قبل إنشاء طلب الدفع عند الاستلام.",
+          description: "جهز سلتك قبل إنشاء طلب ملابس بنظام الدفع عند الاستلام.",
         },
         {
           title: "تابع الطلبات",
@@ -1367,7 +1367,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       badge: "المتجر",
       title: "المنتجات",
       description:
-        "تصفح المنتجات المتوفرة، فلتر حسب التصنيف، وافتح أي منتج لرؤية التفاصيل قبل إضافته إلى السلة.",
+        "تصفح قطع الملابس المتوفرة، فلتر حسب التصنيف، وافتح أي منتج لرؤية التفاصيل قبل إضافته إلى السلة.",
       searchLabel: "البحث في المنتجات",
       searchPlaceholder: "ابحث بالاسم أو التصنيف...",
       allProducts: "كل المنتجات",
@@ -1695,9 +1695,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         createDescription:
           "أضف تصنيفاً جديداً للمنتجات. استخدم رابطاً مختصراً بحروف إنجليزية صغيرة للفلاتر والروابط.",
         name: "الاسم",
-        namePlaceholder: "إكسسوارات",
+        namePlaceholder: "قمصان",
         slug: "الرابط المختصر",
-        slugPlaceholder: "accessories",
+        slugPlaceholder: "tops",
         make: "إنشاء",
         createButton: "إنشاء التصنيف",
         creating: "جار الإنشاء...",
@@ -1843,9 +1843,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         createProductDescription:
           "أضف منتجاً جديداً إلى المتجر. ظهور المنتج يعتمد على حالة الأرشفة والمخزون.",
         productName: "اسم المنتج",
-        productNamePlaceholder: "فأرة ألعاب",
+        productNamePlaceholder: "تيشيرت قطني كلاسيكي",
         slug: "الرابط المختصر",
-        slugPlaceholder: "gaming-mouse",
+        slugPlaceholder: "classic-cotton-t-shirt",
         make: "إنشاء",
         descriptionLabel: "الوصف",
         descriptionPlaceholder: "اكتب وصفاً واضحاً يظهر للعميل.",
@@ -1879,9 +1879,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         saving: "جار الحفظ...",
         newCategory: "تصنيف جديد",
         categoryName: "الاسم",
-        categoryNamePlaceholder: "إكسسوارات",
+        categoryNamePlaceholder: "قمصان",
         categorySlug: "الرابط المختصر",
-        categorySlugPlaceholder: "accessories",
+        categorySlugPlaceholder: "tops",
         createCategory: "إنشاء التصنيف",
         creatingCategory: "جار الإنشاء...",
         categoryList: "قائمة التصنيفات",
