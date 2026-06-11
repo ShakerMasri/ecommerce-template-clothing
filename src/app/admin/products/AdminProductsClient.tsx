@@ -220,6 +220,12 @@ function getDisplayPrice(
   return product.discountPrice ?? product.price;
 }
 
+function getActiveVariantStockTotal(product: Pick<AdminProduct, "variants">) {
+  return product.variants
+    .filter((variant) => variant.isActive)
+    .reduce((total, variant) => total + variant.stock, 0);
+}
+
 function hasProductDiscount(
   product: Pick<AdminProduct, "discountPrice">,
 ): product is Pick<AdminProduct, "discountPrice"> & { discountPrice: string } {
@@ -631,6 +637,311 @@ function ProductFormFields({
   );
 }
 
+type VariantManagementSectionProps = {
+  product: AdminProduct;
+  variantDraft: VariantForm;
+  variantEditDrafts: Record<string, VariantForm>;
+  updatingVariantKey: string | null;
+  onUpdateVariantDraft: (
+    productId: string,
+    field: keyof VariantForm,
+    value: string | boolean,
+  ) => void;
+  onUpdateVariantEditDraft: (
+    variantId: string,
+    field: keyof VariantForm,
+    value: string | boolean,
+  ) => void;
+  onCreateVariant: (productId: string) => void;
+  onUpdateVariant: (productId: string, variantId: string) => void;
+  onDeactivateVariant: (productId: string, variantId: string) => void;
+};
+
+function VariantManagementSection({
+  product,
+  variantDraft,
+  variantEditDrafts,
+  updatingVariantKey,
+  onUpdateVariantDraft,
+  onUpdateVariantEditDraft,
+  onCreateVariant,
+  onUpdateVariant,
+  onDeactivateVariant,
+}: VariantManagementSectionProps) {
+  const activeVariantStockTotal = getActiveVariantStockTotal(product);
+  const isCreatingVariant = updatingVariantKey === `new:${product.id}`;
+
+  return (
+    <section className="mt-6 rounded-3xl border border-dashed border-zinc-300 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-950">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="text-lg font-black text-zinc-950 dark:text-white">
+            Variants and inventory
+          </h3>
+
+          <p className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            Manage clothing sizes/colors for this product. Variants are still
+            admin-only until the cart and order snapshot flow is implemented.
+          </p>
+        </div>
+
+        <span className="w-fit rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+          {product.variants.length} variants
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+            Current checkout stock
+          </p>
+          <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
+            {product.stock}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+            This is still Product.stock and is what checkout/admin confirmation
+            use right now.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+            Active variant stock total
+          </p>
+          <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
+            {activeVariantStockTotal}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+            Final variant checkout should use this as the displayed product
+            stock summary by summing active variants.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+        Do not treat variant stock as customer-orderable yet. The next checkout
+        checkpoint must move cart rows, order snapshots, and admin stock
+        deduction to variant IDs first.
+      </div>
+
+      {product.variants.length > 0 && (
+        <div className="mt-4 space-y-3">
+          {product.variants.map((variant) => {
+            const draft =
+              variantEditDrafts[variant.id] ?? variantToForm(variant);
+            const isSavingVariant =
+              updatingVariantKey === `update:${variant.id}`;
+            const isDeactivatingVariant =
+              updatingVariantKey === `delete:${variant.id}`;
+
+            return (
+              <div
+                key={variant.id}
+                className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
+              >
+                <div className="grid gap-3 md:grid-cols-5">
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                      Size
+                    </label>
+                    <input
+                      value={draft.sizeLabel}
+                      onChange={(event) =>
+                        onUpdateVariantEditDraft(
+                          variant.id,
+                          "sizeLabel",
+                          event.target.value,
+                        )
+                      }
+                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      placeholder="M"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                      Color
+                    </label>
+                    <input
+                      value={draft.colorLabel}
+                      onChange={(event) =>
+                        onUpdateVariantEditDraft(
+                          variant.id,
+                          "colorLabel",
+                          event.target.value,
+                        )
+                      }
+                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      placeholder="Black"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                      SKU
+                    </label>
+                    <input
+                      value={draft.sku}
+                      onChange={(event) =>
+                        onUpdateVariantEditDraft(
+                          variant.id,
+                          "sku",
+                          event.target.value,
+                        )
+                      }
+                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      placeholder="TSHIRT-M-BLK"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                      Variant stock
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={draft.stock}
+                      onChange={(event) =>
+                        onUpdateVariantEditDraft(
+                          variant.id,
+                          "stock",
+                          event.target.value,
+                        )
+                      }
+                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                      Sort
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={draft.sortOrder}
+                      onChange={(event) =>
+                        onUpdateVariantEditDraft(
+                          variant.id,
+                          "sortOrder",
+                          event.target.value,
+                        )
+                      }
+                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                    <input
+                      type="checkbox"
+                      checked={draft.isActive}
+                      onChange={(event) =>
+                        onUpdateVariantEditDraft(
+                          variant.id,
+                          "isActive",
+                          event.target.checked,
+                        )
+                      }
+                    />
+                    Active
+                  </label>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={isSavingVariant}
+                      onClick={() => onUpdateVariant(product.id, variant.id)}
+                      className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                    >
+                      {isSavingVariant ? "Saving..." : "Save variant"}
+                    </button>
+
+                    {variant.isActive && (
+                      <button
+                        type="button"
+                        disabled={isDeactivatingVariant}
+                        onClick={() =>
+                          onDeactivateVariant(product.id, variant.id)
+                        }
+                        className="rounded-full border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950"
+                      >
+                        {isDeactivatingVariant
+                          ? "Deactivating..."
+                          : "Deactivate"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+        <h4 className="text-sm font-black text-zinc-950 dark:text-white">
+          Add variant
+        </h4>
+
+        <div className="mt-3 grid gap-3 md:grid-cols-5">
+          <input
+            value={variantDraft.sizeLabel}
+            onChange={(event) =>
+              onUpdateVariantDraft(product.id, "sizeLabel", event.target.value)
+            }
+            className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+            placeholder="Size, e.g. M"
+          />
+
+          <input
+            value={variantDraft.colorLabel}
+            onChange={(event) =>
+              onUpdateVariantDraft(product.id, "colorLabel", event.target.value)
+            }
+            className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+            placeholder="Color, e.g. Black"
+          />
+
+          <input
+            value={variantDraft.sku}
+            onChange={(event) =>
+              onUpdateVariantDraft(product.id, "sku", event.target.value)
+            }
+            className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+            placeholder="Optional SKU"
+          />
+
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={variantDraft.stock}
+            onChange={(event) =>
+              onUpdateVariantDraft(product.id, "stock", event.target.value)
+            }
+            className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+            placeholder="Stock"
+          />
+
+          <button
+            type="button"
+            disabled={isCreatingVariant}
+            onClick={() => onCreateVariant(product.id)}
+            className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+          >
+            {isCreatingVariant ? "Adding..." : "Add variant"}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function AdminProductsClient() {
   const { t } = useAppPreferences();
   const labels = t.admin.products;
@@ -665,9 +976,9 @@ export function AdminProductsClient() {
   const [categorySlug, setCategorySlug] = useState("");
 
   const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
-  const [variantDrafts, setVariantDrafts] = useState<Record<string, VariantForm>>(
-    {},
-  );
+  const [variantDrafts, setVariantDrafts] = useState<
+    Record<string, VariantForm>
+  >({});
   const [variantEditDrafts, setVariantEditDrafts] = useState<
     Record<string, VariantForm>
   >({});
@@ -762,7 +1073,10 @@ export function AdminProductsClient() {
       setVariantEditDrafts(
         Object.fromEntries(
           nextProducts.flatMap((product) =>
-            product.variants.map((variant) => [variant.id, variantToForm(variant)]),
+            product.variants.map((variant) => [
+              variant.id,
+              variantToForm(variant),
+            ]),
           ),
         ),
       );
@@ -1119,13 +1433,16 @@ export function AdminProductsClient() {
     setMessage("");
 
     try {
-      const response = await fetch(`/api/admin/products/${productId}/variants`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/admin/products/${productId}/variants`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(prepareVariantPayload(draft)),
         },
-        body: JSON.stringify(prepareVariantPayload(draft)),
-      });
+      );
 
       const data = (await response.json()) as VariantResponse;
 
@@ -1212,7 +1529,10 @@ export function AdminProductsClient() {
         return;
       }
 
-      showMessage("success", data.message ?? "Variant deactivated successfully.");
+      showMessage(
+        "success",
+        data.message ?? "Variant deactivated successfully.",
+      );
       await loadAdminData(productPage, productFilters);
     } catch {
       showMessage("error", labels.failedToConnect);
@@ -1280,6 +1600,10 @@ export function AdminProductsClient() {
       setIsSavingCategory(false);
     }
   }
+
+  const selectedEditProduct = editProductId
+    ? (products.find((product) => product.id === editProductId) ?? null)
+    : null;
 
   if (isLoading) {
     return (
@@ -1444,6 +1768,27 @@ export function AdminProductsClient() {
                   labels={labels}
                 />
               </div>
+
+              {selectedEditProduct && (
+                <VariantManagementSection
+                  product={selectedEditProduct}
+                  variantDraft={
+                    variantDrafts[selectedEditProduct.id] ??
+                    getEmptyVariantForm()
+                  }
+                  variantEditDrafts={variantEditDrafts}
+                  updatingVariantKey={updatingVariantKey}
+                  onUpdateVariantDraft={updateVariantDraft}
+                  onUpdateVariantEditDraft={updateVariantEditDraft}
+                  onCreateVariant={(productId) => void createVariant(productId)}
+                  onUpdateVariant={(productId, variantId) =>
+                    void updateVariant(productId, variantId)
+                  }
+                  onDeactivateVariant={(productId, variantId) =>
+                    void deactivateVariant(productId, variantId)
+                  }
+                />
+              )}
 
               <button
                 type="submit"
@@ -1719,11 +2064,6 @@ export function AdminProductsClient() {
             products.map((product) => {
               const image = product.images.at(0);
               const isUpdating = updatingProductId === product.id;
-              const variantDraft =
-                variantDrafts[product.id] ?? getEmptyVariantForm();
-              const isCreatingVariant =
-                updatingVariantKey === `new:${product.id}`;
-
               return (
                 <article
                   key={product.id}
@@ -1856,261 +2196,6 @@ export function AdminProductsClient() {
                         >
                           {isUpdating ? labels.stockSaving : labels.updateStock}
                         </button>
-                      </div>
-
-                      <div className="mt-5 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                          <div>
-                            <h4 className="text-sm font-black text-zinc-950 dark:text-white">
-                              Variants
-                            </h4>
-                            <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                              Admin-only setup for now. Customers still checkout
-                              with product-level stock until the cart/order
-                              variant flow is implemented.
-                            </p>
-                          </div>
-                          <span className="w-fit rounded-full bg-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                            {product.variants.length} variants
-                          </span>
-                        </div>
-
-                        {product.variants.length > 0 && (
-                          <div className="mt-4 space-y-3">
-                            {product.variants.map((variant) => {
-                              const draft =
-                                variantEditDrafts[variant.id] ??
-                                variantToForm(variant);
-                              const isSavingVariant =
-                                updatingVariantKey === `update:${variant.id}`;
-                              const isDeactivatingVariant =
-                                updatingVariantKey === `delete:${variant.id}`;
-
-                              return (
-                                <div
-                                  key={variant.id}
-                                  className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
-                                >
-                                  <div className="grid gap-3 md:grid-cols-5">
-                                    <div>
-                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                                        Size
-                                      </label>
-                                      <input
-                                        value={draft.sizeLabel}
-                                        onChange={(event) =>
-                                          updateVariantEditDraft(
-                                            variant.id,
-                                            "sizeLabel",
-                                            event.target.value,
-                                          )
-                                        }
-                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                                        placeholder="M"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                                        Color
-                                      </label>
-                                      <input
-                                        value={draft.colorLabel}
-                                        onChange={(event) =>
-                                          updateVariantEditDraft(
-                                            variant.id,
-                                            "colorLabel",
-                                            event.target.value,
-                                          )
-                                        }
-                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                                        placeholder="Black"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                                        SKU
-                                      </label>
-                                      <input
-                                        value={draft.sku}
-                                        onChange={(event) =>
-                                          updateVariantEditDraft(
-                                            variant.id,
-                                            "sku",
-                                            event.target.value,
-                                          )
-                                        }
-                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                                        placeholder="TSHIRT-M-BLK"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                                        Variant stock
-                                      </label>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        value={draft.stock}
-                                        onChange={(event) =>
-                                          updateVariantEditDraft(
-                                            variant.id,
-                                            "stock",
-                                            event.target.value,
-                                          )
-                                        }
-                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                                        Sort
-                                      </label>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        value={draft.sortOrder}
-                                        onChange={(event) =>
-                                          updateVariantEditDraft(
-                                            variant.id,
-                                            "sortOrder",
-                                            event.target.value,
-                                          )
-                                        }
-                                        className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                                      <input
-                                        type="checkbox"
-                                        checked={draft.isActive}
-                                        onChange={(event) =>
-                                          updateVariantEditDraft(
-                                            variant.id,
-                                            "isActive",
-                                            event.target.checked,
-                                          )
-                                        }
-                                      />
-                                      Active
-                                    </label>
-
-                                    <div className="flex flex-wrap gap-2">
-                                      <button
-                                        type="button"
-                                        disabled={isSavingVariant}
-                                        onClick={() =>
-                                          void updateVariant(product.id, variant.id)
-                                        }
-                                        className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-                                      >
-                                        {isSavingVariant ? "Saving..." : "Save variant"}
-                                      </button>
-
-                                      {variant.isActive && (
-                                        <button
-                                          type="button"
-                                          disabled={isDeactivatingVariant}
-                                          onClick={() =>
-                                            void deactivateVariant(
-                                              product.id,
-                                              variant.id,
-                                            )
-                                          }
-                                          className="rounded-full border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950"
-                                        >
-                                          {isDeactivatingVariant
-                                            ? "Deactivating..."
-                                            : "Deactivate"}
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-                          <h5 className="text-sm font-black text-zinc-950 dark:text-white">
-                            Add variant
-                          </h5>
-
-                          <div className="mt-3 grid gap-3 md:grid-cols-5">
-                            <input
-                              value={variantDraft.sizeLabel}
-                              onChange={(event) =>
-                                updateVariantDraft(
-                                  product.id,
-                                  "sizeLabel",
-                                  event.target.value,
-                                )
-                              }
-                              className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                              placeholder="Size, e.g. M"
-                            />
-
-                            <input
-                              value={variantDraft.colorLabel}
-                              onChange={(event) =>
-                                updateVariantDraft(
-                                  product.id,
-                                  "colorLabel",
-                                  event.target.value,
-                                )
-                              }
-                              className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                              placeholder="Color, e.g. Black"
-                            />
-
-                            <input
-                              value={variantDraft.sku}
-                              onChange={(event) =>
-                                updateVariantDraft(
-                                  product.id,
-                                  "sku",
-                                  event.target.value,
-                                )
-                              }
-                              className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                              placeholder="Optional SKU"
-                            />
-
-                            <input
-                              type="number"
-                              min="0"
-                              step="1"
-                              value={variantDraft.stock}
-                              onChange={(event) =>
-                                updateVariantDraft(
-                                  product.id,
-                                  "stock",
-                                  event.target.value,
-                                )
-                              }
-                              className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                              placeholder="Stock"
-                            />
-
-                            <button
-                              type="button"
-                              disabled={isCreatingVariant}
-                              onClick={() => void createVariant(product.id)}
-                              className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-                            >
-                              {isCreatingVariant ? "Adding..." : "Add variant"}
-                            </button>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>

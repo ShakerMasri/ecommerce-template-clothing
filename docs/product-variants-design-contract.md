@@ -544,3 +544,27 @@ Admin can prepare variant records.
 Customers still cannot select or order variants.
 Checkout still uses product-level stock until the cart/order migration is implemented.
 ```
+
+
+## Admin edit-panel UX decision
+
+Variant management belongs in the selected product edit panel, not inside every product row/card in the product list. This keeps the paginated product list lightweight and makes variant changes feel tied to one explicit product context.
+
+During the transition period there are two stock numbers:
+
+```txt
+Product.stock
+  Current checkout/admin-confirmation stock source.
+
+Sum(active ProductVariant.stock)
+  Future clothing inventory summary for variant-enabled products.
+```
+
+Do not auto-sync these values yet. Auto-syncing variant stock into `Product.stock` before cart/order/admin confirmation are variant-aware can hide bugs and make stock deductions ambiguous.
+
+Final accepted direction:
+
+- simple products may continue using `Product.stock`
+- variant-enabled products should display stock from the sum of active variants
+- checkout must validate and reserve/deduct against `ProductVariant.stock` through the reviewed admin-confirmation flow
+- product-level stock should be hidden or treated as legacy/simple-product stock once variant checkout is complete
