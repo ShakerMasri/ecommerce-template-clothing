@@ -2,6 +2,17 @@
 
 Product variants are planned for clothing sizes/colors, but they are not implemented yet. This document exists so the feature is designed safely before any Prisma migration, checkout change, or admin UI change.
 
+
+## Design Contract
+
+The first safe implementation contract is documented in:
+
+```txt
+docs/product-variants-design-contract.md
+```
+
+Treat that contract as the source of truth before starting any Prisma migration or runtime code change. The contract currently chooses a boring v1 direction: one `ProductVariant` per purchasable size/color combination, product-level pricing for v1, variant-level stock, cart rows keyed by selected variant, and order item snapshots for selected variant labels.
+
 ## Current Status
 
 Current products use product-level stock. A customer adds a product to the cart without choosing a size or color. Orders snapshot product name and effective product price, but they do not snapshot selected size/color because variants do not exist yet.
