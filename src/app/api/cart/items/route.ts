@@ -1,9 +1,52 @@
 import { NextResponse } from "next/server";
+import { validateSameOriginRequest } from "~/lib/csrf";
 import { prisma } from "~/lib/prisma";
+import { rateLimit } from "~/lib/rate-limit";
 import { auth } from "~/server/auth";
 import { addCartItemSchema } from "~/server/validations/cart";
-import { rateLimit } from "~/lib/rate-limit";
-import { validateSameOriginRequest } from "~/lib/csrf";
+
+function getCartLineKey(productId: string, productVariantId: string | null) {
+  return productVariantId ? `variant:${productVariantId}` : `product:${productId}`;
+}
+
+function cartItemErrorResponse(error: unknown) {
+  if (error instanceof Error && error.message === "PRODUCT_NOT_AVAILABLE") {
+    return NextResponse.json(
+      { message: "Product is not available." },
+      { status: 404 },
+    );
+  }
+
+  if (error instanceof Error && error.message === "VARIANT_REQUIRED") {
+    return NextResponse.json(
+      { message: "Please choose a size or color before adding this product." },
+      { status: 400 },
+    );
+  }
+
+  if (error instanceof Error && error.message === "VARIANT_NOT_ALLOWED") {
+    return NextResponse.json(
+      { message: "This product does not use selectable variants." },
+      { status: 400 },
+    );
+  }
+
+  if (error instanceof Error && error.message === "VARIANT_NOT_AVAILABLE") {
+    return NextResponse.json(
+      { message: "The selected size or color is not available." },
+      { status: 400 },
+    );
+  }
+
+  if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") {
+    return NextResponse.json(
+      { message: "Not enough stock available." },
+      { status: 400 },
+    );
+  }
+
+  return null;
+}
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -38,7 +81,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { productId, quantity } = parsed.data;
+  const { productId, productVariantId, quantity } = parsed.data;
 
   try {
     const cartItem = await prisma.$transaction(async (tx) => {
@@ -50,6 +93,15 @@ export async function POST(request: Request) {
           id: true,
           stock: true,
           isArchived: true,
+          variants: {
+            where: {
+              isActive: true,
+            },
+            select: {
+              id: true,
+              stock: true,
+            },
+          },
         },
       });
 
@@ -57,15 +109,36 @@ export async function POST(request: Request) {
         throw new Error("PRODUCT_NOT_AVAILABLE");
       }
 
-      if (quantity > product.stock) {
+      const hasActiveVariants = product.variants.length > 0;
+      const selectedVariant = productVariantId
+        ? product.variants.find((variant) => variant.id === productVariantId)
+        : null;
+
+      if (hasActiveVariants && !productVariantId) {
+        throw new Error("VARIANT_REQUIRED");
+      }
+
+      if (!hasActiveVariants && productVariantId) {
+        throw new Error("VARIANT_NOT_ALLOWED");
+      }
+
+      if (hasActiveVariants && !selectedVariant) {
+        throw new Error("VARIANT_NOT_AVAILABLE");
+      }
+
+      const availableStock = selectedVariant?.stock ?? product.stock;
+
+      if (quantity > availableStock) {
         throw new Error("INSUFFICIENT_STOCK");
       }
 
+      const cartLineKey = getCartLineKey(product.id, selectedVariant?.id ?? null);
+
       const existingCartItem = await tx.cartItem.findUnique({
         where: {
-          userId_productId: {
+          userId_cartLineKey: {
             userId,
-            productId,
+            cartLineKey,
           },
         },
       });
@@ -73,7 +146,7 @@ export async function POST(request: Request) {
       if (existingCartItem) {
         const nextQuantity = existingCartItem.quantity + quantity;
 
-        if (nextQuantity > product.stock) {
+        if (nextQuantity > availableStock) {
           throw new Error("INSUFFICIENT_STOCK");
         }
 
@@ -91,6 +164,8 @@ export async function POST(request: Request) {
         data: {
           userId,
           productId,
+          productVariantId: selectedVariant?.id ?? null,
+          cartLineKey,
           quantity,
         },
       });
@@ -101,18 +176,10 @@ export async function POST(request: Request) {
       cartItem,
     });
   } catch (error) {
-    if (error instanceof Error && error.message === "PRODUCT_NOT_AVAILABLE") {
-      return NextResponse.json(
-        { message: "Product is not available." },
-        { status: 404 },
-      );
-    }
+    const response = cartItemErrorResponse(error);
 
-    if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") {
-      return NextResponse.json(
-        { message: "Not enough stock available." },
-        { status: 400 },
-      );
+    if (response) {
+      return response;
     }
 
     return NextResponse.json(

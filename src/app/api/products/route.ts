@@ -44,6 +44,14 @@ export async function GET(request: Request) {
           images: true,
           isFeatured: true,
           showStock: true,
+          variants: {
+            where: {
+              isActive: true,
+            },
+            select: {
+              stock: true,
+            },
+          },
           category: {
             select: {
               id: true,
@@ -66,11 +74,27 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const safeProducts = products.map((product) => ({
-      ...product,
-      price: product.price.toString(),
-      discountPrice: product.discountPrice?.toString() ?? null,
-    }));
+    const safeProducts = products.map((product) => {
+      const variantStock = product.variants.reduce(
+        (sum, variant) => sum + variant.stock,
+        0,
+      );
+      const hasVariants = product.variants.length > 0;
+
+      return {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        stock: hasVariants ? variantStock : product.stock,
+        images: product.images,
+        isFeatured: product.isFeatured,
+        showStock: product.showStock,
+        category: product.category,
+        hasVariants,
+        price: product.price.toString(),
+        discountPrice: product.discountPrice?.toString() ?? null,
+      };
+    });
 
     return NextResponse.json({
       products: safeProducts,

@@ -2,6 +2,12 @@ import { z } from "zod";
 
 export const addCartItemSchema = z.object({
   productId: z.string().cuid("Invalid product ID."),
+  productVariantId: z
+    .string()
+    .cuid("Invalid product variant ID.")
+    .nullable()
+    .optional()
+    .transform((value) => value ?? null),
   quantity: z.number().int().min(1).max(99),
 });
 

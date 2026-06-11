@@ -13,6 +13,9 @@ const mocks = vi.hoisted(() => {
     product: {
       updateMany: vi.fn(),
     },
+    productVariant: {
+      updateMany: vi.fn(),
+    },
   };
 
   return {
@@ -98,6 +101,7 @@ describe("admin order status route", () => {
     );
 
     mocks.tx.product.updateMany.mockResolvedValue({ count: 1 });
+    mocks.tx.productVariant.updateMany.mockResolvedValue({ count: 1 });
     mocks.tx.order.updateMany.mockResolvedValue({ count: 1 });
   });
 
@@ -109,6 +113,7 @@ describe("admin order status route", () => {
       items: [
         {
           productId: "product-1",
+          productVariantId: null,
           quantity: 2,
         },
       ],
@@ -126,6 +131,7 @@ describe("admin order status route", () => {
 
     expect(response.status).toBe(200);
     expect(body.order.status).toBe(OrderStatus.PROCESSING);
+    expect(mocks.tx.productVariant.updateMany).not.toHaveBeenCalled();
     expect(mocks.tx.product.updateMany).toHaveBeenCalledWith({
       where: {
         id: "product-1",
@@ -153,6 +159,47 @@ describe("admin order status route", () => {
     });
   });
 
+  it("deducts variant stock when confirming an order item with a selected variant", async () => {
+    mocks.tx.order.findUnique.mockResolvedValue({
+      id: validOrderId,
+      status: OrderStatus.PENDING,
+      stockDeductedAt: null,
+      items: [
+        {
+          productId: "product-1",
+          productVariantId: "variant-1",
+          quantity: 2,
+        },
+      ],
+    });
+
+    mocks.tx.order.findUniqueOrThrow.mockResolvedValue(
+      createSavedOrder(OrderStatus.PROCESSING),
+    );
+
+    const response = await PATCH(
+      createRequest(OrderStatus.PROCESSING),
+      createRouteContext(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.tx.product.updateMany).not.toHaveBeenCalled();
+    expect(mocks.tx.productVariant.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: "variant-1",
+        isActive: true,
+        stock: {
+          gte: 2,
+        },
+      },
+      data: {
+        stock: {
+          decrement: 2,
+        },
+      },
+    });
+  });
+
   it("does not deduct stock again for old pending orders already marked as deducted", async () => {
     mocks.tx.order.findUnique.mockResolvedValue({
       id: validOrderId,
@@ -161,6 +208,7 @@ describe("admin order status route", () => {
       items: [
         {
           productId: "product-1",
+          productVariantId: null,
           quantity: 2,
         },
       ],
@@ -196,6 +244,7 @@ describe("admin order status route", () => {
       items: [
         {
           productId: "product-1",
+          productVariantId: null,
           quantity: 3,
         },
       ],
@@ -222,6 +271,7 @@ describe("admin order status route", () => {
       items: [
         {
           productId: "product-1",
+          productVariantId: null,
           quantity: 1,
         },
       ],
@@ -257,6 +307,7 @@ describe("admin order status route", () => {
       items: [
         {
           productId: "product-1",
+          productVariantId: null,
           quantity: 1,
         },
       ],
@@ -290,6 +341,43 @@ describe("admin order status route", () => {
       data: {
         status: OrderStatus.CANCELLED,
         stockDeductedAt: null,
+      },
+    });
+  });
+
+  it("restocks variant inventory when cancelling an order that deducted variant stock", async () => {
+    mocks.tx.order.findUnique.mockResolvedValue({
+      id: validOrderId,
+      status: OrderStatus.PROCESSING,
+      stockDeductedAt: new Date("2026-05-24T10:00:00.000Z"),
+      items: [
+        {
+          productId: "product-1",
+          productVariantId: "variant-1",
+          quantity: 1,
+        },
+      ],
+    });
+
+    mocks.tx.order.findUniqueOrThrow.mockResolvedValue(
+      createSavedOrder(OrderStatus.CANCELLED),
+    );
+
+    const response = await PATCH(
+      createRequest(OrderStatus.CANCELLED),
+      createRouteContext(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.tx.product.updateMany).not.toHaveBeenCalled();
+    expect(mocks.tx.productVariant.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: "variant-1",
+      },
+      data: {
+        stock: {
+          increment: 1,
+        },
       },
     });
   });

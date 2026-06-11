@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type AddToCartControlsProps = {
   productId: string;
+  productVariantId?: string | null;
   stock: number;
+  disabledReason?: string | null;
 };
 
 type AddCartResponse = {
@@ -14,7 +16,9 @@ type AddCartResponse = {
 
 export function AddToCartControls({
   productId,
+  productVariantId = null,
   stock,
+  disabledReason = null,
 }: AddToCartControlsProps) {
   const router = useRouter();
 
@@ -27,6 +31,13 @@ export function AddToCartControls({
   const isOutOfStock = stock <= 0;
   const isLoading = status === "loading";
 
+  useEffect(() => {
+    setQuantity((currentQuantity) => {
+      return Math.min(Math.max(1, currentQuantity), Math.max(1, stock));
+    });
+  }, [productVariantId, stock]);
+  const isDisabled = isLoading || isOutOfStock || Boolean(disabledReason);
+
   function decreaseQuantity() {
     setQuantity((currentQuantity) => Math.max(1, currentQuantity - 1));
   }
@@ -36,7 +47,14 @@ export function AddToCartControls({
   }
 
   async function handleAddToCart() {
-    if (isLoading || isOutOfStock) return;
+    if (isDisabled) {
+      if (disabledReason) {
+        setStatus("error");
+        setMessage(disabledReason);
+      }
+
+      return;
+    }
 
     setStatus("loading");
     setMessage("");
@@ -49,6 +67,7 @@ export function AddToCartControls({
         },
         body: JSON.stringify({
           productId,
+          productVariantId,
           quantity,
         }),
       });
@@ -92,7 +111,7 @@ export function AddToCartControls({
         <button
           type="button"
           onClick={increaseQuantity}
-          disabled={isLoading || quantity >= stock}
+          disabled={isLoading || quantity >= stock || isDisabled}
           className="rounded border border-gray-300 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           +
@@ -102,14 +121,16 @@ export function AddToCartControls({
       <button
         type="button"
         onClick={handleAddToCart}
-        disabled={isLoading || isOutOfStock}
+        disabled={isDisabled}
         className="rounded bg-black px-6 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLoading
           ? "Adding..."
-          : isOutOfStock
-            ? "Out of stock"
-            : "Add to cart"}
+          : disabledReason
+            ? "Choose an option"
+            : isOutOfStock
+              ? "Out of stock"
+              : "Add to cart"}
       </button>
 
       <a

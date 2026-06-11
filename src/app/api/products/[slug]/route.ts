@@ -45,6 +45,19 @@ export async function GET(_request: Request, { params }: ProductRouteProps) {
             slug: true,
           },
         },
+        variants: {
+          where: {
+            isActive: true,
+          },
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+          select: {
+            id: true,
+            sizeLabel: true,
+            colorLabel: true,
+            stock: true,
+            sortOrder: true,
+          },
+        },
       },
     });
 
@@ -55,9 +68,17 @@ export async function GET(_request: Request, { params }: ProductRouteProps) {
       );
     }
 
+    const variantStock = product.variants.reduce(
+      (sum, variant) => sum + variant.stock,
+      0,
+    );
+    const hasVariants = product.variants.length > 0;
+
     return NextResponse.json({
       product: {
         ...product,
+        stock: hasVariants ? variantStock : product.stock,
+        hasVariants,
         price: product.price.toString(),
         discountPrice: product.discountPrice?.toString() ?? null,
       },

@@ -6,20 +6,49 @@ import {
 } from "./cart";
 
 const validCuid = "clh1q2w3e000008l4a5b6c7d8";
+const validVariantCuid = "clh1q2w3e000008l4a5b6c7d9";
 
 describe("cart validations", () => {
-  it("accepts valid add cart item input", () => {
+  it("accepts valid simple-product add cart input", () => {
     const result = addCartItemSchema.safeParse({
       productId: validCuid,
       quantity: 1,
     });
 
     expect(result.success).toBe(true);
+
+    if (result.success) {
+      expect(result.data.productVariantId).toBeNull();
+    }
+  });
+
+  it("accepts valid variant add cart input", () => {
+    const result = addCartItemSchema.safeParse({
+      productId: validCuid,
+      productVariantId: validVariantCuid,
+      quantity: 1,
+    });
+
+    expect(result.success).toBe(true);
+
+    if (result.success) {
+      expect(result.data.productVariantId).toBe(validVariantCuid);
+    }
   });
 
   it("rejects invalid product ID", () => {
     const result = addCartItemSchema.safeParse({
       productId: "bad-id",
+      quantity: 1,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid product variant ID", () => {
+    const result = addCartItemSchema.safeParse({
+      productId: validCuid,
+      productVariantId: "bad-id",
       quantity: 1,
     });
 

@@ -18,6 +18,8 @@ type CartItemRouteProps = {
 const cartItemSelect = {
   id: true,
   productId: true,
+  productVariantId: true,
+  cartLineKey: true,
   quantity: true,
 } satisfies Prisma.CartItemSelect;
 
@@ -32,6 +34,20 @@ function cartItemErrorResponse(error: unknown) {
   if (error instanceof Error && error.message === "PRODUCT_NOT_AVAILABLE") {
     return NextResponse.json(
       { message: "This product is no longer available." },
+      { status: 400 },
+    );
+  }
+
+  if (error instanceof Error && error.message === "VARIANT_REQUIRED") {
+    return NextResponse.json(
+      { message: "Please remove this item and choose a size or color again." },
+      { status: 400 },
+    );
+  }
+
+  if (error instanceof Error && error.message === "VARIANT_NOT_AVAILABLE") {
+    return NextResponse.json(
+      { message: "The selected size or color is no longer available." },
       { status: 400 },
     );
   }
@@ -99,10 +115,26 @@ export async function PATCH(request: Request, { params }: CartItemRouteProps) {
         },
         select: {
           id: true,
+          productVariantId: true,
           product: {
             select: {
               stock: true,
               isArchived: true,
+              variants: {
+                where: {
+                  isActive: true,
+                },
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+          productVariant: {
+            select: {
+              id: true,
+              stock: true,
+              isActive: true,
             },
           },
         },
@@ -116,7 +148,24 @@ export async function PATCH(request: Request, { params }: CartItemRouteProps) {
         throw new Error("PRODUCT_NOT_AVAILABLE");
       }
 
-      if (quantity > existingCartItem.product.stock) {
+      const hasActiveVariants = existingCartItem.product.variants.length > 0;
+
+      if (hasActiveVariants && !existingCartItem.productVariantId) {
+        throw new Error("VARIANT_REQUIRED");
+      }
+
+      if (
+        existingCartItem.productVariantId &&
+        !existingCartItem.productVariant?.isActive
+      ) {
+        throw new Error("VARIANT_NOT_AVAILABLE");
+      }
+
+      const availableStock =
+        existingCartItem.productVariant?.stock ??
+        existingCartItem.product.stock;
+
+      if (quantity > availableStock) {
         throw new Error("INSUFFICIENT_STOCK");
       }
 

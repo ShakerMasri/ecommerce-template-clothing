@@ -6,6 +6,14 @@ import { AddToCartControls } from "~/components/cart/AddToCartControls";
 import { useAppPreferences } from "~/components/providers/AppPreferencesProvider";
 import { OptimizedImage } from "~/components/ui/OptimizedImage";
 
+type ProductVariant = {
+  id: string;
+  sizeLabel: string | null;
+  colorLabel: string | null;
+  stock: number;
+  sortOrder: number;
+};
+
 type Product = {
   id: string;
   name: string;
@@ -17,6 +25,8 @@ type Product = {
   showStock: boolean;
   images: string[];
   isFeatured: boolean;
+  hasVariants: boolean;
+  variants: ProductVariant[];
   createdAt: string;
   category: {
     id: string;
@@ -42,11 +52,18 @@ function getDisplayPrice(product: Product) {
   return product.discountPrice ?? product.price;
 }
 
+function formatVariantLabel(variant: ProductVariant) {
+  return [variant.sizeLabel, variant.colorLabel].filter(Boolean).join(" / ");
+}
+
 export function ProductDetailClient({ slug }: ProductDetailClientProps) {
   const { t, language } = useAppPreferences();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState("");
 
@@ -75,6 +92,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
 
         setProduct(data.product);
         setSelectedImage(data.product.images.at(0) ?? null);
+        setSelectedVariantId(null);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
@@ -142,11 +160,19 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
     );
   }
 
+  const selectedVariant = product.variants.find(
+    (variant) => variant.id === selectedVariantId,
+  );
+  const selectedStock =
+    selectedVariant?.stock ?? (product.hasVariants ? 0 : product.stock);
   const isOutOfStock = product.stock <= 0;
   const hasDiscount = product.discountPrice !== null;
   const selectedImageIndex = selectedImage
     ? product.images.findIndex((image) => image === selectedImage)
     : -1;
+  const variantSelectionMessage = product.hasVariants
+    ? "Please choose a size or color."
+    : null;
 
   return (
     <section className="space-y-8">
@@ -264,7 +290,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
               ) : (
                 <span className="rounded-full bg-green-50 px-3 py-1 text-sm font-semibold text-green-700 dark:bg-green-950 dark:text-green-300">
                   {product.showStock
-                    ? `${product.stock} ${t.products.inStock}`
+                    ? `${selectedVariant ? selectedStock : product.stock} ${t.products.inStock}`
                     : t.products.inStock}
                 </span>
               )}
@@ -282,8 +308,62 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
               </p>
             </div>
 
+            {product.hasVariants ? (
+              <div className="rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
+                <h2 className="text-sm font-bold text-zinc-950 dark:text-white">
+                  Choose size / color
+                </h2>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {product.variants.map((variant) => {
+                    const isSelected = selectedVariantId === variant.id;
+                    const isVariantOutOfStock = variant.stock <= 0;
+
+                    return (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        onClick={() => setSelectedVariantId(variant.id)}
+                        disabled={isVariantOutOfStock}
+                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                          isSelected
+                            ? "border-orange-600 bg-orange-50 text-orange-700 dark:border-orange-400 dark:bg-orange-950 dark:text-orange-200"
+                            : "border-zinc-300 text-zinc-700 hover:border-orange-400 dark:border-zinc-700 dark:text-zinc-200"
+                        }`}
+                      >
+                        {formatVariantLabel(variant)}
+                        {isVariantOutOfStock ? " · Out" : ""}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedVariant ? (
+                  <p className="mt-3 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                    Selected: {formatVariantLabel(selectedVariant)}
+                    {product.showStock
+                      ? ` · ${selectedVariant.stock} available`
+                      : ""}
+                  </p>
+                ) : (
+                  <p className="mt-3 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                    Select an available size/color before adding to cart.
+                  </p>
+                )}
+              </div>
+            ) : null}
+
             <div className="border-t border-zinc-200 pt-5 dark:border-zinc-800">
-              <AddToCartControls productId={product.id} stock={product.stock} />
+              <AddToCartControls
+                productId={product.id}
+                productVariantId={selectedVariant?.id ?? null}
+                stock={selectedStock}
+                disabledReason={
+                  product.hasVariants && !selectedVariant
+                    ? variantSelectionMessage
+                    : null
+                }
+              />
 
               <p className="mt-3 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
                 {t.products.stockNote}

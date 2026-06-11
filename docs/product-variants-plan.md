@@ -201,3 +201,17 @@ This checkpoint keeps variants admin-only but improves the admin mental model:
 - do not auto-sync `Product.stock` from variants yet because cart/order/admin confirmation are not variant-aware
 
 Final clothing variant behavior should use the sum of active variant stock as the displayed product stock summary for variant-enabled products, while stock deduction happens on the selected `ProductVariant`. That should happen only after cart rows, order snapshots, checkout validation, and admin confirmation all store/use `productVariantId`.
+
+## Customer variant ordering checkpoint
+
+Customer ordering is now intended to be variant-aware:
+
+- Simple products continue to use `Product.stock`.
+- Products with active variants require the customer to choose a variant before adding to cart.
+- Variant products use `ProductVariant.stock` as the checkout/admin-confirmation stock source.
+- Public product listing/detail stock should display the sum of active variant stock when a product has variants.
+- Cart rows are keyed by a stable `cartLineKey` so the same product can appear as separate size/color lines.
+- Order items snapshot selected size, color, and SKU so historical orders stay accurate after variant edits.
+- Admin confirmation deducts `ProductVariant.stock` for variant order items and still deducts `Product.stock` for simple products.
+
+This checkpoint still keeps product-level pricing only. Variant-specific prices, image-per-variant, CSV import, POS, payments, coupons, SMS, and PWA remain out of scope.

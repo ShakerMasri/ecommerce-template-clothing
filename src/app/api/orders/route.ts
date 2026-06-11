@@ -31,6 +31,10 @@ const orderSelect = {
       productNameAtPurchase: true,
       productSlugAtPurchase: true,
       productImagesAtPurchase: true,
+      productVariantId: true,
+      selectedSizeLabel: true,
+      selectedColorLabel: true,
+      selectedSku: true,
     },
   },
 } satisfies Prisma.OrderSelect;
@@ -196,6 +200,18 @@ export async function POST(request: Request) {
           id: true,
           quantity: true,
           productId: true,
+          productVariantId: true,
+          productVariant: {
+            select: {
+              id: true,
+              productId: true,
+              sizeLabel: true,
+              colorLabel: true,
+              sku: true,
+              stock: true,
+              isActive: true,
+            },
+          },
           product: {
             select: {
               id: true,
@@ -206,6 +222,14 @@ export async function POST(request: Request) {
               stock: true,
               images: true,
               isArchived: true,
+              variants: {
+                where: {
+                  isActive: true,
+                },
+                select: {
+                  id: true,
+                },
+              },
             },
           },
         },
@@ -218,6 +242,32 @@ export async function POST(request: Request) {
       for (const item of cartItems) {
         if (item.product.isArchived) {
           throw new Error("PRODUCT_NOT_AVAILABLE");
+        }
+
+        const hasActiveVariants = item.product.variants.length > 0;
+
+        if (hasActiveVariants) {
+          if (!item.productVariantId) {
+            throw new Error("VARIANT_REQUIRED");
+          }
+
+          if (
+            !item.productVariant ||
+            !item.productVariant.isActive ||
+            item.productVariant.productId !== item.product.id
+          ) {
+            throw new Error("VARIANT_NOT_AVAILABLE");
+          }
+
+          if (item.quantity > item.productVariant.stock) {
+            throw new Error("INSUFFICIENT_STOCK");
+          }
+
+          continue;
+        }
+
+        if (item.productVariantId) {
+          throw new Error("VARIANT_NOT_ALLOWED");
         }
 
         if (item.quantity > item.product.stock) {
@@ -258,12 +308,16 @@ export async function POST(request: Request) {
 
               return {
                 productId: item.productId,
+                productVariantId: item.productVariant?.id ?? null,
                 quantity: item.quantity,
                 priceAtPurchase: effectivePrice,
                 subtotalAmount: effectivePrice.mul(item.quantity),
                 productNameAtPurchase: item.product.name,
                 productSlugAtPurchase: item.product.slug,
                 productImagesAtPurchase: item.product.images,
+                selectedSizeLabel: item.productVariant?.sizeLabel ?? null,
+                selectedColorLabel: item.productVariant?.colorLabel ?? null,
+                selectedSku: item.productVariant?.sku ?? null,
               };
             }),
           },
@@ -317,6 +371,24 @@ export async function POST(request: Request) {
     if (error instanceof Error && error.message === "PRODUCT_NOT_AVAILABLE") {
       return NextResponse.json(
         { message: "One or more products are no longer available." },
+        { status: 400 },
+      );
+    }
+
+    if (error instanceof Error && error.message === "VARIANT_REQUIRED") {
+      return NextResponse.json(
+        { message: "One or more products need a selected size or color." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      error instanceof Error &&
+      (error.message === "VARIANT_NOT_ALLOWED" ||
+        error.message === "VARIANT_NOT_AVAILABLE")
+    ) {
+      return NextResponse.json(
+        { message: "One or more selected sizes or colors are no longer available." },
         { status: 400 },
       );
     }
