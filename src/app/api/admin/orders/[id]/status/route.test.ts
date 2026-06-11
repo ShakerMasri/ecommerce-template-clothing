@@ -105,11 +105,11 @@ describe("admin order status route", () => {
     mocks.tx.order.updateMany.mockResolvedValue({ count: 1 });
   });
 
-  it("deducts stock when an admin confirms a new pending order", async () => {
+  it("confirms a reserved pending order without deducting stock again", async () => {
     mocks.tx.order.findUnique.mockResolvedValue({
       id: validOrderId,
       status: OrderStatus.PENDING,
-      stockDeductedAt: null,
+      stockDeductedAt: new Date("2026-05-24T09:00:00.000Z"),
       items: [
         {
           productId: "product-1",
@@ -132,38 +132,23 @@ describe("admin order status route", () => {
     expect(response.status).toBe(200);
     expect(body.order.status).toBe(OrderStatus.PROCESSING);
     expect(mocks.tx.productVariant.updateMany).not.toHaveBeenCalled();
-    expect(mocks.tx.product.updateMany).toHaveBeenCalledWith({
-      where: {
-        id: "product-1",
-        isArchived: false,
-        stock: {
-          gte: 2,
-        },
-      },
-      data: {
-        stock: {
-          decrement: 2,
-        },
-      },
-    });
+    expect(mocks.tx.product.updateMany).not.toHaveBeenCalled();
     expect(mocks.tx.order.updateMany).toHaveBeenCalledWith({
       where: {
         id: validOrderId,
         status: OrderStatus.PENDING,
-        stockDeductedAt: null,
       },
       data: {
         status: OrderStatus.PROCESSING,
-        stockDeductedAt: expect.any(Date),
       },
     });
   });
 
-  it("deducts variant stock when confirming an order item with a selected variant", async () => {
+  it("confirms a reserved variant order without deducting variant stock again", async () => {
     mocks.tx.order.findUnique.mockResolvedValue({
       id: validOrderId,
       status: OrderStatus.PENDING,
-      stockDeductedAt: null,
+      stockDeductedAt: new Date("2026-05-24T09:00:00.000Z"),
       items: [
         {
           productId: "product-1",
@@ -184,23 +169,19 @@ describe("admin order status route", () => {
 
     expect(response.status).toBe(200);
     expect(mocks.tx.product.updateMany).not.toHaveBeenCalled();
-    expect(mocks.tx.productVariant.updateMany).toHaveBeenCalledWith({
+    expect(mocks.tx.productVariant.updateMany).not.toHaveBeenCalled();
+    expect(mocks.tx.order.updateMany).toHaveBeenCalledWith({
       where: {
-        id: "variant-1",
-        isActive: true,
-        stock: {
-          gte: 2,
-        },
+        id: validOrderId,
+        status: OrderStatus.PENDING,
       },
       data: {
-        stock: {
-          decrement: 2,
-        },
+        status: OrderStatus.PROCESSING,
       },
     });
   });
 
-  it("does not deduct stock again for old pending orders already marked as deducted", async () => {
+  it("does not deduct stock for any pending order during admin confirmation", async () => {
     mocks.tx.order.findUnique.mockResolvedValue({
       id: validOrderId,
       status: OrderStatus.PENDING,
@@ -236,11 +217,40 @@ describe("admin order status route", () => {
     });
   });
 
-  it("fails confirmation without changing the order when stock is not enough", async () => {
+  it("blocks confirming an older pending order that did not reserve stock", async () => {
     mocks.tx.order.findUnique.mockResolvedValue({
       id: validOrderId,
       status: OrderStatus.PENDING,
       stockDeductedAt: null,
+      items: [
+        {
+          productId: "product-1",
+          productVariantId: null,
+          quantity: 2,
+        },
+      ],
+    });
+
+    const response = await PATCH(
+      createRequest(OrderStatus.PROCESSING),
+      createRouteContext(),
+    );
+    const body = (await response.json()) as { message: string };
+
+    expect(response.status).toBe(409);
+    expect(body.message).toContain(
+      "created before checkout stock reservation",
+    );
+    expect(mocks.tx.product.updateMany).not.toHaveBeenCalled();
+    expect(mocks.tx.productVariant.updateMany).not.toHaveBeenCalled();
+    expect(mocks.tx.order.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("fails safely when another request already changed the order status", async () => {
+    mocks.tx.order.findUnique.mockResolvedValue({
+      id: validOrderId,
+      status: OrderStatus.PENDING,
+      stockDeductedAt: new Date("2026-05-24T09:00:00.000Z"),
       items: [
         {
           productId: "product-1",
@@ -250,7 +260,7 @@ describe("admin order status route", () => {
       ],
     });
 
-    mocks.tx.product.updateMany.mockResolvedValue({ count: 0 });
+    mocks.tx.order.updateMany.mockResolvedValue({ count: 0 });
 
     const response = await PATCH(
       createRequest(OrderStatus.PROCESSING),
@@ -259,11 +269,11 @@ describe("admin order status route", () => {
     const body = (await response.json()) as { message: string };
 
     expect(response.status).toBe(409);
-    expect(body.message).toContain("do not have enough stock");
-    expect(mocks.tx.order.updateMany).not.toHaveBeenCalled();
+    expect(body.message).toContain("updated by another request");
+    expect(mocks.tx.product.updateMany).not.toHaveBeenCalled();
   });
 
-  it("does not restock when cancelling a new pending order that did not deduct stock", async () => {
+  it("does not restock when cancelling an older unreserved pending order", async () => {
     mocks.tx.order.findUnique.mockResolvedValue({
       id: validOrderId,
       status: OrderStatus.PENDING,
@@ -299,7 +309,7 @@ describe("admin order status route", () => {
     });
   });
 
-  it("restocks when cancelling an order that already deducted stock", async () => {
+  it("restocks simple product inventory when cancelling a reserved order", async () => {
     mocks.tx.order.findUnique.mockResolvedValue({
       id: validOrderId,
       status: OrderStatus.PROCESSING,
@@ -345,7 +355,7 @@ describe("admin order status route", () => {
     });
   });
 
-  it("restocks variant inventory when cancelling an order that deducted variant stock", async () => {
+  it("restocks variant inventory when cancelling a reserved variant order", async () => {
     mocks.tx.order.findUnique.mockResolvedValue({
       id: validOrderId,
       status: OrderStatus.PROCESSING,

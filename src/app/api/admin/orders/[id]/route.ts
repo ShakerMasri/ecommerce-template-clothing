@@ -41,6 +41,10 @@ const adminOrderDetailSelect = {
       productSlugAtPurchase: true,
       productImagesAtPurchase: true,
       productId: true,
+      productVariantId: true,
+      selectedSizeLabel: true,
+      selectedColorLabel: true,
+      selectedSku: true,
     },
     orderBy: {
       id: "asc",

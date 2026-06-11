@@ -17,6 +17,9 @@ const mocks = vi.hoisted(() => {
     product: {
       updateMany: vi.fn(),
     },
+    productVariant: {
+      updateMany: vi.fn(),
+    },
   };
 
   return {
@@ -168,10 +171,12 @@ describe("customer order route", () => {
       ],
     });
 
+    mocks.tx.product.updateMany.mockResolvedValue({ count: 1 });
+    mocks.tx.productVariant.updateMany.mockResolvedValue({ count: 1 });
     mocks.tx.cartItem.deleteMany.mockResolvedValue({ count: 1 });
   });
 
-  it("creates a pending order without deducting stock", async () => {
+  it("creates a pending order and reserves simple product stock", async () => {
     const response = await POST(createRequest(createOrderInput()));
     const body = (await response.json()) as {
       message: string;
@@ -183,11 +188,26 @@ describe("customer order route", () => {
     expect(response.status).toBe(200);
     expect(body.order.status).toBe("PENDING");
     expect(body.message).toContain("confirm it by WhatsApp or phone");
-    expect(mocks.tx.product.updateMany).not.toHaveBeenCalled();
+    expect(mocks.tx.productVariant.updateMany).not.toHaveBeenCalled();
+    expect(mocks.tx.product.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: "product-1",
+        isArchived: false,
+        stock: {
+          gte: 2,
+        },
+      },
+      data: {
+        stock: {
+          decrement: 2,
+        },
+      },
+    });
     expect(mocks.tx.order.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           deliveryAreaKey: "west_bank_cities",
+          stockDeductedAt: expect.any(Date),
           items: expect.objectContaining({
             create: [
               expect.objectContaining({
@@ -245,6 +265,22 @@ describe("customer order route", () => {
     const response = await POST(createRequest(createOrderInput()));
 
     expect(response.status).toBe(200);
+    expect(mocks.tx.product.updateMany).not.toHaveBeenCalled();
+    expect(mocks.tx.productVariant.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: "variant-1",
+        productId: "product-1",
+        isActive: true,
+        stock: {
+          gte: 2,
+        },
+      },
+      data: {
+        stock: {
+          decrement: 2,
+        },
+      },
+    });
     expect(mocks.tx.order.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -292,6 +328,58 @@ describe("customer order route", () => {
     expect(response.status).toBe(400);
     expect(body.message).toContain("selected size or color");
     expect(mocks.tx.order.create).not.toHaveBeenCalled();
+  });
+
+  it("does not create an order when simple product reservation fails", async () => {
+    mocks.tx.product.updateMany.mockResolvedValue({ count: 0 });
+
+    const response = await POST(createRequest(createOrderInput()));
+    const body = (await response.json()) as { message: string };
+
+    expect(response.status).toBe(400);
+    expect(body.message).toContain("do not have enough stock");
+    expect(mocks.tx.order.create).not.toHaveBeenCalled();
+    expect(mocks.tx.cartItem.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("does not create an order when variant reservation fails", async () => {
+    mocks.tx.cartItem.findMany.mockResolvedValue([
+      {
+        id: "cart-item-1",
+        quantity: 2,
+        productId: "product-1",
+        productVariantId: "variant-1",
+        productVariant: {
+          id: "variant-1",
+          productId: "product-1",
+          sizeLabel: "M",
+          colorLabel: "Black",
+          sku: "shirt-black-m",
+          stock: 1,
+          isActive: true,
+        },
+        product: {
+          id: "product-1",
+          name: "Classic cotton t-shirt",
+          slug: "classic-cotton-t-shirt",
+          price: new Prisma.Decimal("50.00"),
+          discountPrice: null,
+          stock: 0,
+          images: [],
+          isArchived: false,
+          variants: [{ id: "variant-1" }],
+        },
+      },
+    ]);
+    mocks.tx.productVariant.updateMany.mockResolvedValue({ count: 0 });
+
+    const response = await POST(createRequest(createOrderInput()));
+    const body = (await response.json()) as { message: string };
+
+    expect(response.status).toBe(400);
+    expect(body.message).toContain("do not have enough stock");
+    expect(mocks.tx.order.create).not.toHaveBeenCalled();
+    expect(mocks.tx.cartItem.deleteMany).not.toHaveBeenCalled();
   });
 
   it("rejects client-supplied delivery prices", async () => {

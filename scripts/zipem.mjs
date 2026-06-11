@@ -8,15 +8,51 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  "src/app/admin/products/AdminProductsClient.tsx",
-  "src/app/api/admin/products/route.ts",
-  "src/app/api/admin/products/[id]/route.ts",
-  "src/app/api/admin/products/[id]/variants/route.ts",
-  "src/app/api/admin/products/[id]/variants/[variantId]/route.ts",
-  "src/server/validations/product-variant.ts",
-  "src/lib/translations.ts",
+  "prisma/schema.prisma",
+  "prisma/migrations/20260524010000_add_order_stock_deducted_marker/migration.sql",
+  "prisma/migrations/20260611010000_add_product_variants/migration.sql",
+  "prisma/migrations/20260611020000_add_customer_variant_ordering/migration.sql",
+
+  "src/app/api/orders/route.ts",
+  "src/app/api/orders/route.test.ts",
+
+  "src/app/api/admin/orders/route.ts",
+  "src/app/api/admin/orders/route.test.ts",
+
+  "src/app/api/admin/orders/[id]/route.ts",
+  "src/app/api/admin/orders/[id]/route.test.ts",
+
+  "src/app/api/admin/orders/[id]/status/route.ts",
+  "src/app/api/admin/orders/[id]/status/route.test.ts",
+
+  "src/server/validations/order.ts",
+  "src/server/validations/order.test.ts",
+  "src/server/validations/admin-order.ts",
+  "src/server/validations/admin-order.test.ts",
+  "src/server/validations/cart.ts",
+  "src/server/validations/cart.test.ts",
+
+  "src/server/pricing.ts",
+  "src/server/pricing.test.ts",
+
+  "src/lib/csrf.ts",
+  "src/lib/admin.ts",
+  "src/lib/logger.ts",
+  "src/server/db.ts",
+
+  "src/components/admin/AdminOrdersClient.tsx",
+  "src/components/orders/OrdersClient.tsx",
+
+  "tests/e2e/customer-order.e2e.ts",
+  "tests/e2e/customer-cart.e2e.ts",
+  "tests/e2e/helpers/cart.ts",
+  "tests/e2e/helpers/products.ts",
+
   "docs/product-variants-plan.md",
   "docs/product-variants-design-contract.md",
+  "docs/production-readiness-checklist.md",
+  "README.md",
+  "package.json",
 ];
 
 function fail(message) {

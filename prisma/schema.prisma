@@ -262,7 +262,7 @@ model OrderItem {
 // ─── CartItem ────────────────────────────────────────────────────────────────
 // Logged-in customer cart.
 // Adding to cart does not reduce stock.
-// Stock is checked during checkout and reduced only after admin confirmation.
+// Stock is checked and reserved during checkout in the order transaction.
 
 model CartItem {
   id       String @id @default(cuid())

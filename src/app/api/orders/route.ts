@@ -252,14 +252,29 @@ export async function POST(request: Request) {
           }
 
           if (
-            !item.productVariant ||
-            !item.productVariant.isActive ||
+            !item.productVariant?.isActive ||
             item.productVariant.productId !== item.product.id
           ) {
             throw new Error("VARIANT_NOT_AVAILABLE");
           }
 
-          if (item.quantity > item.productVariant.stock) {
+          const updateVariantResult = await tx.productVariant.updateMany({
+            where: {
+              id: item.productVariant.id,
+              productId: item.product.id,
+              isActive: true,
+              stock: {
+                gte: item.quantity,
+              },
+            },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          });
+
+          if (updateVariantResult.count !== 1) {
             throw new Error("INSUFFICIENT_STOCK");
           }
 
@@ -270,7 +285,22 @@ export async function POST(request: Request) {
           throw new Error("VARIANT_NOT_ALLOWED");
         }
 
-        if (item.quantity > item.product.stock) {
+        const updateProductResult = await tx.product.updateMany({
+          where: {
+            id: item.product.id,
+            isArchived: false,
+            stock: {
+              gte: item.quantity,
+            },
+          },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
+        });
+
+        if (updateProductResult.count !== 1) {
           throw new Error("INSUFFICIENT_STOCK");
         }
       }
@@ -297,6 +327,7 @@ export async function POST(request: Request) {
           deliveryAddress: deliveryAddress || null,
           deliveryNotes: deliveryNotes || null,
           pickupAgreementAccepted,
+          stockDeductedAt: new Date(),
           paymentMethod: "CASH_ON_DELIVERY",
           paymentStatus: "UNPAID",
           customerNameAtPurchase: customer.name,
@@ -388,7 +419,10 @@ export async function POST(request: Request) {
         error.message === "VARIANT_NOT_AVAILABLE")
     ) {
       return NextResponse.json(
-        { message: "One or more selected sizes or colors are no longer available." },
+        {
+          message:
+            "One or more selected sizes or colors are no longer available.",
+        },
         { status: 400 },
       );
     }

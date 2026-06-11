@@ -57,6 +57,7 @@ test("customer can place a controlled test order", async ({ page }) => {
   const productPath = getRequiredE2EPath("E2E_ORDER_PRODUCT_PATH");
   const product = await getPublicProductByPath(page.request, productPath);
   const expectedUnitPrice = getEffectiveProductPrice(product);
+  const stockBeforeOrder = product.stock;
 
   await clearCart(page);
 
@@ -136,6 +137,13 @@ test("customer can place a controlled test order", async ({ page }) => {
       expectedUnitPrice + deliveryPrice,
       "order total",
     );
+
+    const productAfterOrder = await getPublicProductByPath(
+      page.request,
+      productPath,
+    );
+
+    expect(productAfterOrder.stock).toBe(stockBeforeOrder - 1);
 
     await expect(page.locator("body")).toContainText(orderId);
     await expect(page.locator("body")).toContainText(

@@ -50,8 +50,8 @@ Completed:
 - Playwright E2E testing setup
 - Staging-safe E2E tests for public pages, customer auth, cart, orders, product display, admin access, admin guards, and admin filter smoke behavior
 - Playwright auth-state reuse for stable customer/admin E2E tests
-- Admin-confirmed stock flow: customer checkout creates a pending order, and stock decreases only when admin confirms the order
-- Transaction-safe admin order confirmation with insufficient-stock handling and protection against double stock deduction
+- Checkout-time stock reservation: customer checkout creates a pending order and immediately reserves/decreases stock in the order transaction
+- Transaction-safe checkout stock reservation with protection against double reservation, plus cancellation restock protection
 - Admin orders page with server-side filters, capped pagination, order cards, details/edit panel, skeleton loading, and mobile-friendly details scrolling
 - Order archiving/deletion was intentionally removed so order history remains auditable
 - Admin products page with server-side filters, capped pagination, sorting, and edit-form scroll behavior
@@ -67,11 +67,11 @@ Completed:
 - Customer product pages can require selecting size/color variants when a product has active variants
 - Cart rows can distinguish the same product with different selected variants
 - Order items can snapshot selected size/color and internal SKU details for historical accuracy
-- Variant-aware admin order confirmation can deduct `ProductVariant.stock` for variant order items while simple products still use `Product.stock`
+- Variant-aware checkout reservation deducts `ProductVariant.stock` for variant order items while simple products still use `Product.stock`
 
 Not started yet:
 
-- Checkout-time stock reservation. Current variant-aware order confirmation still deducts stock when the admin confirms the order.
+- Full post-reservation security audit after checkout-time stock reservation is reviewed.
 - Full post-variant security audit.
 - Caching.
 
@@ -90,15 +90,15 @@ Not supported in this clothing template yet:
 
 Postponed intentionally:
 
-- Checkout-time stock reservation. This is the next planned hardening checkpoint for simple-product and variant-product orders.
+- Full post-reservation security audit. Checkout-time reservation should be reviewed before production/client handoff.
 - Admin-editable delivery pricing dashboard. Delivery areas/prices remain code-managed for now, and existing orders keep delivery snapshots for audit safety.
 - PWA support. If considered later, it should be a minimal installable-app checkpoint and must not cache auth, cart, order, profile, stock-sensitive, price-sensitive, or admin data unsafely.
 
 Planned next checkpoints:
 
-- Implement checkout-time stock reservation so checkout immediately reserves/decreases stock in a transaction.
-- Change admin confirmation into an approval step that does not deduct stock again.
-- Restore reserved stock exactly once when an order is cancelled.
+- Review checkout-time stock reservation on staging with simple and variant products.
+- Verify admin confirmation is only an approval/status change and does not deduct stock again.
+- Verify cancellation restores reserved stock exactly once.
 - Run a full security review after the stock-reservation flow is stable.
 - Complete production readiness and client handoff review.
 - Review caching/performance only after core business rules are stable and real usage or smoke-load results show a need.
@@ -143,7 +143,7 @@ Planned next checkpoints:
 - View customer orders with contact and delivery details
 - Filter and paginate admin orders server-side
 - View order cards and open a details/edit panel for each order
-- Confirm pending orders and deduct stock during admin confirmation in the current flow
+- Confirm pending orders as an approval/status step without deducting stock again
 - Update order status
 - Update payment status
 - Add internal order notes
@@ -174,7 +174,7 @@ This project follows these rules:
 - Product prices and stock decisions must be calculated on the server, not trusted from client-submitted values.
 - Discount pricing must be validated server-side and order items must store price snapshots.
 - Hiding stock counts from customers is display-only; backend stock validation must still run.
-- Stock deduction must be protected against double deduction. The current flow deducts stock during admin confirmation; the next planned hardening checkpoint is checkout-time stock reservation.
+- Stock reservation/deduction must be protected against double deduction. Checkout reserves stock immediately; admin confirmation must not deduct stock again.
 - Important business records such as orders should not be hard-deleted unless a separate retention/audit policy is reviewed.
 
 ## Requirements
@@ -737,14 +737,14 @@ Important production rules:
 - [ ] Checkout creates an order once.
 - [ ] Checkout requires delivery area/details where applicable.
 - [ ] Checkout confirmation dialog shows product total, delivery price, and final total.
-- [ ] Current flow creates a pending order and deducts stock during admin confirmation.
-- [ ] After the next stock-reservation checkpoint, checkout reserves stock immediately and admin confirmation does not deduct again.
+- [ ] Checkout creates a pending order and reserves stock immediately.
+- [ ] Admin confirmation approves the order without deducting stock again.
 - [ ] Checkout/order item price snapshots use the server-calculated effective product price.
 - [ ] Order items snapshot selected size/color and internal SKU for variant orders.
 - [ ] Customer sees the WhatsApp/phone confirmation message after placing an order.
-- [ ] In the current flow, admin can confirm a pending order and stock decreases once.
-- [ ] In the current flow, admin confirmation fails clearly if stock is no longer enough.
-- [ ] Cancelling an order handles stock safely according to whether stock was already deducted.
+- [ ] Admin can confirm a pending order without changing stock again.
+- [ ] Checkout fails clearly if stock is no longer enough.
+- [ ] Cancelling an order restores reserved stock exactly once when stock was reserved.
 - [ ] Duplicate checkout protection works.
 - [ ] Customer orders page only shows the current user's orders.
 - [ ] Customer orders page shows delivery details for the user's own orders.
@@ -851,26 +851,24 @@ Current delivery options:
 
 Orders store a snapshot of the selected delivery area, delivery price, city/address/details, notes, and pickup agreement status. This is intentional so old orders remain historically accurate even if delivery prices change later.
 
-### Current Stock Confirmation Flow
+### Current Stock Reservation Flow
 
 The current order flow is:
 
 1. Customer places an order.
-2. The order is created as pending/unconfirmed.
-3. The store owner confirms the order by WhatsApp or phone.
-4. Stock decreases when the admin confirms the order.
+2. Checkout validates product, variant, stock, delivery, and pricing server-side inside a database transaction.
+3. The order is created as `PENDING`.
+4. Checkout immediately reserves/decreases stock.
 5. Simple-product orders deduct `Product.stock`.
 6. Variant-product orders deduct the selected `ProductVariant.stock`.
-7. If stock is no longer available when the admin confirms, the app blocks confirmation and shows a clear admin error.
+7. The store owner confirms the order by WhatsApp or phone and moves it to processing without deducting stock again.
+8. If the order is cancelled, the same stock source is restored exactly once when stock was reserved.
 
-Stock deduction is tracked so the same order is not deducted twice, and cancellation/restock logic must restore the same stock source that was deducted.
+Stock reservation is tracked with `stockDeductedAt`, which now means inventory has already been reduced for the order. This marker prevents double deduction and controls whether cancellation should restock.
 
 Known next hardening checkpoint:
 
-- Checkout should reserve/decrease stock immediately in a database transaction.
-- Admin confirmation should approve the order without deducting stock again.
-- Admin cancellation should restore reserved stock exactly once.
-- This is not complete until the checkout-time stock reservation patch and tests are reviewed.
+- Run a full security audit after the checkout-time stock reservation patch and tests are reviewed.
 
 ### Admin Filtering and Pagination
 
@@ -903,7 +901,7 @@ Implemented:
 - Cart rows can identify the selected variant, so the same product can appear as separate size/color lines.
 - Checkout validates product/variant availability server-side.
 - Order items snapshot selected size/color and internal SKU values so historical orders remain accurate after variant edits.
-- Admin order confirmation can deduct from `ProductVariant.stock` for variant order items and `Product.stock` for simple products.
+- Checkout-time reservation deducts from `ProductVariant.stock` for variant order items and `Product.stock` for simple products.
 
 Customer-facing rule:
 
@@ -916,12 +914,11 @@ Stock-source rule:
 - Products with active variants use `ProductVariant.stock` as the source of truth.
 - Customer-facing stock for variant products should be based on active variant stock.
 
-Known next hardening checkpoint:
+Current stock-reservation rule:
 
-- Move stock deduction from admin confirmation to checkout-time reservation.
-- Checkout should reserve stock immediately in a transaction.
-- Admin confirmation should not deduct stock again.
-- Admin cancellation should restore reserved stock exactly once.
+- Checkout reserves stock immediately in a transaction.
+- Admin confirmation does not deduct stock again.
+- Admin cancellation restores reserved stock exactly once.
 
 See `docs/product-variants-plan.md` and `docs/product-variants-design-contract.md` before changing variant/order behavior.
 
@@ -1071,13 +1068,13 @@ Before commercial delivery:
 
 ## Project Notes
 
-This app is still being hardened for production as a clothing-store template. It has passed the typed store/delivery/contact/policy config, checkout delivery, admin category, admin order confirmation, admin filtering, customer stock visibility, product discount, Google sign-in, product variant foundation, admin variant management, customer variant ordering, critical E2E coverage, production-safe API logging, and route error boundary checkpoints, but it should not be treated as fully production-ready until checkout-time stock reservation, a full security review, the production environment, launch checklist, staging tests, and client review are complete.
+This app is still being hardened for production as a clothing-store template. It has passed the typed store/delivery/contact/policy config, checkout delivery, admin category, checkout-time stock reservation, admin order approval, admin filtering, customer stock visibility, product discount, Google sign-in, product variant foundation, admin variant management, customer variant ordering, critical E2E coverage, production-safe API logging, and route error boundary checkpoints, but it should not be treated as fully production-ready until a full security review, the production environment, launch checklist, staging tests, and client review are complete.
 
 Next safest checkpoints:
 
-1. Implement checkout-time stock reservation for simple and variant orders.
-2. Change admin confirmation into an approval step that does not deduct stock again.
-3. Restore reserved stock exactly once when an order is cancelled.
+1. Review checkout-time stock reservation for simple and variant orders on staging.
+2. Verify admin confirmation is an approval step that does not deduct stock again.
+3. Verify reserved stock is restored exactly once when an order is cancelled.
 4. Run a full security review after the stock-reservation flow is stable.
 5. Verify Google sign-in on staging/production with exact callback URLs and separate environment secrets if OAuth is enabled for the client.
 6. Complete the production readiness checklist and client handoff guide.

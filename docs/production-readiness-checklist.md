@@ -87,7 +87,7 @@ Verify:
 - [ ] Customer APIs are scoped to the logged-in user.
 - [ ] Cart and order mutations validate input server-side.
 - [ ] Product prices and discount logic are calculated server-side.
-- [ ] Stock deduction happens only through the reviewed admin confirmation flow.
+- [ ] Stock reservation happens only through the reviewed checkout transaction flow.
 - [ ] CSRF/same-origin checks protect cookie-based mutation routes.
 - [ ] Rate limiting works with production Redis.
 - [ ] API errors do not leak stack traces, raw database errors, tokens, cookies, or secrets.
@@ -131,7 +131,7 @@ On staging or production candidate:
 - [ ] Admin can view contact and delivery details.
 - [ ] Admin can confirm a pending order.
 - [ ] Stock decreases exactly once after confirmation.
-- [ ] Double confirmation does not double-deduct stock.
+- [ ] Duplicate checkout/admin confirmation does not double-deduct stock.
 - [ ] Insufficient-stock confirmation fails safely.
 - [ ] Admin can update payment status and internal notes.
 
