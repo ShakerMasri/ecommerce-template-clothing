@@ -95,7 +95,7 @@ This needs careful migration planning because the current cart/order flow is pro
 3. API calculates product totals and delivery totals server-side.
 4. API creates order and order items in a transaction.
 5. Order items snapshot product name, selected size/color labels, unit price, and quantity.
-6. Stock should still decrease only during the reviewed admin confirmation flow unless the business rule is intentionally changed.
+6. Stock should decrease during checkout-time reservation, and admin confirmation must not deduct stock again.
 
 ### Admin Confirmation
 
@@ -103,7 +103,7 @@ This needs careful migration planning because the current cart/order flow is pro
 2. Transaction checks each variant stock.
 3. Stock decreases per variant exactly once.
 4. If stock is insufficient, confirmation fails clearly.
-5. Double confirmation must not double-deduct stock.
+5. Duplicate checkout/admin confirmation must not double-deduct stock.
 
 ## Security Requirements
 
@@ -124,7 +124,7 @@ Unit/API tests should cover:
 - cart uniqueness is per selected variant
 - checkout rejects stale/unavailable variants
 - order snapshots include selected size/color labels
-- admin confirmation deducts correct variant stock
+- checkout reservation deducts correct variant stock
 - double confirmation does not double-deduct
 - insufficient stock blocks confirmation
 - non-admin users cannot manage variants
@@ -134,7 +134,7 @@ E2E tests should cover the critical happy path and one or two failure paths:
 - customer selects size/color and adds to cart
 - customer checks out with selected variant
 - customer order page shows selected size/color
-- admin confirms order and stock decreases once
+- customer places order and stock decreases once; admin confirmation does not change stock again
 - unavailable variant cannot be ordered
 
 ## Migration Safety
@@ -156,7 +156,7 @@ Before a migration:
 5. Update cart API and cart UI to require selected variants where needed.
 6. Update checkout/order API and order item snapshots.
 7. Update admin product UI for variant management.
-8. Update admin confirmation/cancellation stock logic for variants.
+8. Update checkout reservation and admin cancellation stock logic for variants.
 9. Add unit/API tests.
 10. Add focused E2E tests.
 11. Update handoff docs.
@@ -183,7 +183,7 @@ Still not implemented after this checkpoint:
 - `CartItem.productVariantId`
 - variant-aware checkout validation
 - order item variant snapshots
-- variant stock deduction during admin confirmation
+- variant stock deduction during checkout reservation
 - variant-aware cancellation/restock behavior
 
 Do not advertise customer-facing size/color ordering until the cart, order, stock-confirmation, and E2E checkpoints are complete.
@@ -198,9 +198,9 @@ This checkpoint keeps variants admin-only but improves the admin mental model:
 - click **Edit** on a product before managing its variants
 - show current `Product.stock` as the stock source still used by checkout today
 - show active variant stock total as the future clothing inventory summary
-- do not auto-sync `Product.stock` from variants yet because cart/order/admin confirmation are not variant-aware
+- do not auto-sync `Product.stock` from variants yet because variant products use selected `ProductVariant.stock` as the source of truth
 
-Final clothing variant behavior should use the sum of active variant stock as the displayed product stock summary for variant-enabled products, while stock deduction happens on the selected `ProductVariant`. That should happen only after cart rows, order snapshots, checkout validation, and admin confirmation all store/use `productVariantId`.
+Final clothing variant behavior should use the sum of active variant stock as the displayed product stock summary for variant-enabled products, while stock reservation happens on the selected `ProductVariant`. That should happen only after cart rows, order snapshots, checkout validation, and admin cancellation all store/use `productVariantId` safely.
 
 ## Customer variant ordering checkpoint
 
@@ -208,10 +208,10 @@ Customer ordering is now intended to be variant-aware:
 
 - Simple products continue to use `Product.stock`.
 - Products with active variants require the customer to choose a variant before adding to cart.
-- Variant products use `ProductVariant.stock` as the checkout/admin-confirmation stock source.
+- Variant products use `ProductVariant.stock` as the checkout reservation and cancellation stock source.
 - Public product listing/detail stock should display the sum of active variant stock when a product has variants.
 - Cart rows are keyed by a stable `cartLineKey` so the same product can appear as separate size/color lines.
 - Order items snapshot selected size, color, and SKU so historical orders stay accurate after variant edits.
-- Admin confirmation deducts `ProductVariant.stock` for variant order items and still deducts `Product.stock` for simple products.
+- Checkout reservation deducts `ProductVariant.stock` for variant order items and still deducts `Product.stock` for simple products.
 
 This checkpoint still keeps product-level pricing only. Variant-specific prices, image-per-variant, CSV import, POS, payments, coupons, SMS, and PWA remain out of scope.

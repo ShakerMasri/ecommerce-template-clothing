@@ -140,98 +140,19 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         nextStatus === OrderStatus.PROCESSING;
 
       if (isAdminConfirmation && !order.stockDeductedAt) {
+        throw new Error("ORDER_STOCK_NOT_RESERVED");
+      }
+
+      const updateData: Prisma.OrderUpdateManyMutationInput = {
+        status: nextStatus,
+      };
+
+      if (nextStatus === OrderStatus.CANCELLED && order.stockDeductedAt) {
         for (const item of order.items) {
           if (item.productVariantId) {
-            const updateVariantResult = await tx.productVariant.updateMany({
+            await tx.productVariant.updateMany({
               where: {
                 id: item.productVariantId,
-                isActive: true,
-                stock: {
-                  gte: item.quantity,
-                },
-              },
-              data: {
-                stock: {
-                  decrement: item.quantity,
-                },
-              },
-            });
-
-            if (updateVariantResult.count !== 1) {
-              throw new Error("INSUFFICIENT_STOCK");
-            }
-
-            continue;
-          }
-
-          if (!item.productId) {
-            throw new Error("PRODUCT_LINK_MISSING");
-          }
-
-          const updateProductResult = await tx.product.updateMany({
-            where: {
-              id: item.productId,
-              isArchived: false,
-              stock: {
-                gte: item.quantity,
-              },
-            },
-            data: {
-              stock: {
-                decrement: item.quantity,
-              },
-            },
-          });
-
-          if (updateProductResult.count !== 1) {
-            throw new Error("INSUFFICIENT_STOCK");
-          }
-        }
-
-        const updateOrderResult = await tx.order.updateMany({
-          where: {
-            id: order.id,
-            status: order.status,
-            stockDeductedAt: null,
-          },
-          data: {
-            status: nextStatus,
-            stockDeductedAt: new Date(),
-          },
-        });
-
-        if (updateOrderResult.count !== 1) {
-          throw new Error("ORDER_STATUS_CHANGED");
-        }
-      } else {
-        const updateData: Prisma.OrderUpdateManyMutationInput = {
-          status: nextStatus,
-        };
-
-        if (nextStatus === OrderStatus.CANCELLED && order.stockDeductedAt) {
-          for (const item of order.items) {
-            if (item.productVariantId) {
-              await tx.productVariant.updateMany({
-                where: {
-                  id: item.productVariantId,
-                },
-                data: {
-                  stock: {
-                    increment: item.quantity,
-                  },
-                },
-              });
-
-              continue;
-            }
-
-            if (!item.productId) {
-              continue;
-            }
-
-            await tx.product.updateMany({
-              where: {
-                id: item.productId,
               },
               data: {
                 stock: {
@@ -239,22 +160,39 @@ export async function PATCH(request: Request, { params }: RouteContext) {
                 },
               },
             });
+
+            continue;
           }
 
-          updateData.stockDeductedAt = null;
+          if (!item.productId) {
+            continue;
+          }
+
+          await tx.product.updateMany({
+            where: {
+              id: item.productId,
+            },
+            data: {
+              stock: {
+                increment: item.quantity,
+              },
+            },
+          });
         }
 
-        const updateOrderResult = await tx.order.updateMany({
-          where: {
-            id: order.id,
-            status: order.status,
-          },
-          data: updateData,
-        });
+        updateData.stockDeductedAt = null;
+      }
 
-        if (updateOrderResult.count !== 1) {
-          throw new Error("ORDER_STATUS_CHANGED");
-        }
+      const updateOrderResult = await tx.order.updateMany({
+        where: {
+          id: order.id,
+          status: order.status,
+        },
+        data: updateData,
+      });
+
+      if (updateOrderResult.count !== 1) {
+        throw new Error("ORDER_STATUS_CHANGED");
       }
 
       const savedOrder = await tx.order.findUniqueOrThrow({
@@ -299,21 +237,14 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       );
     }
 
-    if (error instanceof Error && error.message === "PRODUCT_LINK_MISSING") {
+    if (
+      error instanceof Error &&
+      error.message === "ORDER_STOCK_NOT_RESERVED"
+    ) {
       return NextResponse.json(
         {
           message:
-            "One or more order items are no longer linked to products. Cancel this order or handle it manually.",
-        },
-        { status: 409 },
-      );
-    }
-
-    if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") {
-      return NextResponse.json(
-        {
-          message:
-            "One or more products are unavailable or do not have enough stock to confirm this order.",
+            "This pending order was created before checkout stock reservation. Cancel it and ask the customer to place it again, or reconcile stock manually before processing.",
         },
         { status: 409 },
       );

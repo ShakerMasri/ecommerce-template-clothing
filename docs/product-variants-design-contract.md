@@ -14,7 +14,7 @@ For the first production-safe clothing variant checkpoint:
 - Cart rows reference the selected `ProductVariant`.
 - Order items snapshot selected variant details forever.
 - Product-level pricing remains the source of price for v1 unless we explicitly approve variant-level pricing later.
-- Stock is still deducted only when an admin confirms the order, not when the customer places the order.
+- Checkout reserves/decreases stock immediately; admin confirmation is only an approval/status step.
 - Existing simple products need a compatibility/migration path; old orders must remain readable.
 
 ## Non-goals for v1
@@ -44,8 +44,8 @@ The current code is safe for simple products, but it is product-level:
 - `CartItem` is unique by `userId + productId`.
 - `OrderItem` snapshots product name, slug, image list, unit price, and subtotal.
 - `OrderItem` does not snapshot size, color, SKU, or variant label.
-- Admin confirmation deducts `Product.stock`.
-- Cancelling an already-confirmed order restores `Product.stock`.
+- Checkout reservation deducts `Product.stock` for simple products.
+- Cancelling an order restores the same stock source exactly once when stock was reserved.
 
 Those rules cannot support clothing variants safely because a customer must be able to order multiple options of the same product, such as:
 
@@ -290,7 +290,7 @@ For each cart item:
 6. Calculate the effective product price server-side.
 7. Create `OrderItem` snapshots with product and selected variant labels.
 8. Clear the cart only after the order is created successfully.
-9. Do not deduct stock yet.
+9. Reserve/decrease the correct stock source with a guarded update before creating the order.
 
 Recommended order item snapshot fields:
 
@@ -318,35 +318,44 @@ Default
 
 Old order items without variant fields must still render safely.
 
-## Admin confirmation stock contract
+## Checkout reservation and admin confirmation stock contract
 
-Admin confirmation currently deducts stock when an order moves from `PENDING` to `PROCESSING`. Keep that business rule for v1.
+Checkout now reserves stock when the order is placed. Admin confirmation moves an order from `PENDING` to `PROCESSING` but must not deduct stock again.
 
-For variant order items:
+For checkout reservation:
 
-1. Require server-side admin authorization.
+1. Require a logged-in customer.
 2. Validate same-origin/CSRF protection.
 3. Rate limit the mutation.
-4. Load the order and item variant IDs inside a transaction.
-5. Confirm only legal status transitions.
+4. Load cart items, products, and selected variants inside a transaction.
+5. Reject archived products, inactive variants, mismatched variants, and invalid simple-product/variant-product combinations.
 6. For each variant item, decrement `ProductVariant.stock` with a guarded `updateMany` condition:
 
 ```txt
 id = item.productVariantId
+productId = item.productId
 isActive = true
 stock >= item.quantity
 ```
 
-7. If any decrement fails, abort the transaction and show a clear admin error.
-8. Set `stockDeductedAt` once.
-9. Prevent double deduction if two admin requests race.
+7. For each simple item, decrement `Product.stock` with a guarded `updateMany` condition:
 
-Cancellation after confirmation should increment the same `ProductVariant.stock` back when `stockDeductedAt` is set.
+```txt
+id = item.productId
+isArchived = false
+stock >= item.quantity
+```
+
+8. If any reservation fails, abort the transaction and show a clear customer error.
+9. Create the order as `PENDING` and set `stockDeductedAt` to mark that inventory was already reduced.
+10. Clear the cart only after the order is created successfully.
+
+Cancellation should increment the same stock source back when `stockDeductedAt` is set, then clear the marker so the same order cannot restock twice.
 
 Compatibility rule:
 
 ```txt
-Old/simple order items without productVariantId may continue using product-level stock restoration/deduction until all simple products are migrated or intentionally supported.
+Simple order items without productVariantId use product-level stock reservation/restoration. Variant order items use ProductVariant.stock.
 ```
 
 ## Admin product management contract
@@ -452,10 +461,10 @@ Add tests for:
 - checkout snapshots size/color/SKU labels
 - checkout total still uses server-calculated product effective price
 - customer order response includes selected variant snapshot
-- admin confirmation decrements variant stock once
-- admin confirmation blocks insufficient variant stock
-- duplicate/racing confirmation does not double-deduct
-- cancellation after confirmation restores variant stock once
+- checkout reservation decrements variant stock once
+- checkout reservation blocks insufficient variant stock
+- duplicate/racing checkout or confirmation does not double-deduct
+- cancellation after reservation restores variant stock once
 - non-admin users cannot manage variants
 - public API does not expose exact variant stock when `showStock` is false, if that rule is adopted
 
@@ -469,7 +478,7 @@ Add focused E2E coverage for:
 - customer places an order with selected variant
 - customer orders page shows selected size/color snapshot
 - unavailable/out-of-stock variant cannot be ordered
-- admin confirms a variant order and stock decreases once
+- checkout places a variant order and stock decreases once
 
 Keep E2E staging-safe:
 
@@ -488,7 +497,7 @@ Before applying a variant migration to staging/production:
 - test local migration and rollback path
 - seed or create test products with multiple variants
 - run unit tests, typecheck, lint, build, and focused E2E
-- manually test customer cart/order and admin confirmation
+- manually test customer cart/order, admin confirmation, and cancellation restock
 
 Rollback warning:
 
@@ -541,8 +550,8 @@ User-facing boundary:
 
 ```txt
 Admin can prepare variant records.
-Customers still cannot select or order variants.
-Checkout still uses product-level stock until the cart/order migration is implemented.
+Customers can select active in-stock variants.
+Checkout reserves the selected stock source server-side.
 ```
 
 
@@ -554,19 +563,21 @@ During the transition period there are two stock numbers:
 
 ```txt
 Product.stock
-  Current checkout/admin-confirmation stock source.
+  Current checkout reservation/restock source for simple products.
 
 Sum(active ProductVariant.stock)
-  Future clothing inventory summary for variant-enabled products.
+  Clothing inventory summary for variant-enabled products.
 ```
 
-Do not auto-sync these values yet. Auto-syncing variant stock into `Product.stock` before cart/order/admin confirmation are variant-aware can hide bugs and make stock deductions ambiguous.
+Do not auto-sync these values. Auto-syncing variant stock into `Product.stock` can hide bugs and make stock reservation/restoration ambiguous.
 
 Final accepted direction:
 
 - simple products may continue using `Product.stock`
 - variant-enabled products should display stock from the sum of active variants
-- checkout must validate and reserve/deduct against `ProductVariant.stock` through the reviewed admin-confirmation flow
+- checkout must validate and reserve/deduct against the selected `ProductVariant.stock`
+- admin confirmation must not deduct stock again
+- cancellation must restore the same source exactly once when stock was reserved
 - product-level stock should be hidden or treated as legacy/simple-product stock once variant checkout is complete
 
 ## Implemented customer ordering contract
@@ -580,7 +591,7 @@ The customer ordering flow follows this contract:
 5. Cart uniqueness uses `userId + cartLineKey` instead of `userId + productId`, so multiple sizes/colors of the same product can exist as separate cart lines.
 6. Checkout revalidates product/variant availability and stock server-side before creating the order.
 7. Order items store immutable variant snapshots: selected size label, color label, and SKU.
-8. Admin confirmation deducts from `ProductVariant.stock` when an order item has a variant, otherwise it deducts from `Product.stock`.
-9. Cancelling an already-confirmed order restocks the same inventory source that was deducted.
+8. Checkout reservation deducts from `ProductVariant.stock` when an order item has a variant, otherwise it deducts from `Product.stock`.
+9. Cancelling a reserved order restocks the same inventory source that was deducted exactly once.
 
 `Product.stock` remains for simple products and legacy compatibility. For products with active variants, the displayed total stock is derived from active variant stock instead of syncing `Product.stock` in the database.
