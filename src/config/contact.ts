@@ -65,8 +65,8 @@ export const contactConfig = {
   },
   contactPage: {
     description: {
-      en: "Contact the store about orders, support, returns, or general questions.",
-      ar: "تواصل مع المتجر بخصوص الطلبات، الدعم، الإرجاع، أو الاستفسارات العامة.",
+      en: "Contact the store about clothing orders, delivery, returns, or general questions.",
+      ar: "تواصل مع المتجر بخصوص طلبات الملابس، التوصيل، الإرجاع، أو الاستفسارات العامة.",
     },
   },
   footer: {
