@@ -1,12 +1,18 @@
 import { expect, test } from "@playwright/test";
 import { getRequiredE2EPath } from "./helpers/auth";
 import { clearCart } from "./helpers/cart";
+import {
+  getPublicProductByPath,
+  selectFirstAvailableProductOption,
+} from "./helpers/products";
 
 test("customer can add a known product to cart", async ({ page }) => {
   const productPath = getRequiredE2EPath("E2E_PRODUCT_PATH");
+  const product = await getPublicProductByPath(page.request, productPath);
 
   await clearCart(page);
   await page.goto(productPath);
+  await selectFirstAvailableProductOption(page, product);
 
   try {
     const addToCartButton = page

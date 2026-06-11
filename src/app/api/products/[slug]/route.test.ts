@@ -27,7 +27,8 @@ type ProductResponse = {
     description: string;
     price: string;
     discountPrice: string | null;
-    stock: number;
+    stock: number | null;
+    isInStock: boolean;
     showStock: boolean;
     images: string[];
     isFeatured: boolean;
@@ -36,7 +37,8 @@ type ProductResponse = {
       id: string;
       sizeLabel: string | null;
       colorLabel: string | null;
-      stock: number;
+      stock: number | null;
+      isInStock: boolean;
       sortOrder: number;
     }>;
     category: ProductCategory;
@@ -75,11 +77,21 @@ describe("GET /api/products/[slug]", () => {
     discountPrice: {
       toString: () => "79.99",
     },
-    stock: 10,
     showStock: false,
+    _count: {
+      variants: 1,
+    },
     images: ["https://res.cloudinary.com/demo/image/upload/test.jpg"],
     isFeatured: true,
-    variants: [],
+    variants: [
+      {
+        id: "variant-1",
+        sizeLabel: "M",
+        colorLabel: "Black",
+        stock: 5,
+        sortOrder: 0,
+      },
+    ],
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     category,
   };
@@ -101,8 +113,38 @@ describe("GET /api/products/[slug]", () => {
     expect(body.product.slug).toBe("test-product");
     expect(body.product.price).toBe("99.99");
     expect(body.product.discountPrice).toBe("79.99");
+    expect(body.product.stock).toBeNull();
+    expect(body.product.isInStock).toBe(true);
+    expect(body.product.variants[0]?.stock).toBeNull();
+    expect(body.product.variants[0]?.isInStock).toBe(true);
     expect(body.product.showStock).toBe(false);
-    expect(body.product.hasVariants).toBe(false);
+    expect(body.product.hasVariants).toBe(true);
+  });
+
+  it("returns exact option stock only when stock visibility is enabled", async () => {
+    mocks.productFindFirst.mockResolvedValue({
+      ...product,
+      showStock: true,
+      variants: [
+        {
+          id: "variant-1",
+          sizeLabel: "M",
+          colorLabel: "Black",
+          stock: 5,
+          sortOrder: 0,
+        },
+      ],
+    });
+
+    const response = await GET(
+      createRequest("/api/products/test-product"),
+      createSlugParams("test-product"),
+    );
+    const body = (await response.json()) as ProductResponse;
+
+    expect(response.status).toBe(200);
+    expect(body.product.stock).toBe(5);
+    expect(body.product.variants[0]?.stock).toBe(5);
   });
 
   it("only returns non-archived product with matching slug", async () => {
@@ -120,6 +162,7 @@ describe("GET /api/products/[slug]", () => {
         select: expect.objectContaining({
           discountPrice: true,
           showStock: true,
+          _count: expect.any(Object),
           variants: expect.any(Object),
         }),
       }),

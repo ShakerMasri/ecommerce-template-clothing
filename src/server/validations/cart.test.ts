@@ -9,17 +9,13 @@ const validCuid = "clh1q2w3e000008l4a5b6c7d8";
 const validVariantCuid = "clh1q2w3e000008l4a5b6c7d9";
 
 describe("cart validations", () => {
-  it("accepts valid simple-product add cart input", () => {
+  it("requires a product variant when adding to cart", () => {
     const result = addCartItemSchema.safeParse({
       productId: validCuid,
       quantity: 1,
     });
 
-    expect(result.success).toBe(true);
-
-    if (result.success) {
-      expect(result.data.productVariantId).toBeNull();
-    }
+    expect(result.success).toBe(false);
   });
 
   it("accepts valid variant add cart input", () => {

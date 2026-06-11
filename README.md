@@ -4,7 +4,7 @@ Clothing Ecommerce Template is a reusable private full-stack e-commerce starter 
 
 This project was forked from an existing hardened ecommerce starter and is now maintained as a separate clothing-store template. It is being prepared as a real client-ready application, not just a demo. The backend, authentication, authorization, environment configuration, deployment flow, and production safety checks should be treated seriously before launch.
 
-This clothing template now includes the foundation for size/color product variants, admin variant management, and customer-side variant selection/cart/order snapshots. The next hardening checkpoint is checkout-time stock reservation, so the template should still be reviewed before production/client handoff.
+This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, and checkout-time stock reservation. The next hardening checkpoint is final post-reservation review before production/client handoff.
 
 ## Tech Stack
 
@@ -67,7 +67,7 @@ Completed:
 - Customer product pages can require selecting size/color variants when a product has active variants
 - Cart rows can distinguish the same product with different selected variants
 - Order items can snapshot selected size/color details for historical accuracy
-- Variant-aware checkout reservation deducts `ProductVariant.stock` for variant order items while simple products still use `Product.stock`
+- Variant-first checkout reservation deducts selected `ProductVariant.stock`; customer-orderable product stock is derived from active variant stock
 
 Not started yet:
 
@@ -96,7 +96,7 @@ Postponed intentionally:
 
 Planned next checkpoints:
 
-- Review checkout-time stock reservation on staging with simple and variant products.
+- Review checkout-time stock reservation on staging with variant/option products.
 - Verify admin confirmation is only an approval/status change and does not deduct stock again.
 - Verify cancellation restores reserved stock exactly once.
 - Run a full security review after the stock-reservation flow is stable.
@@ -114,7 +114,7 @@ Planned next checkpoints:
 - Select available size/color variants when a product has active variants
 - See discounted product prices when an admin discount is active
 - See exact stock counts only when the admin enables customer stock visibility for that product
-- Add simple products or selected product variants to cart
+- Add products to cart after selecting an available size/color option
 - Update cart item quantities
 - Remove cart items
 - Place cash-on-delivery orders
@@ -132,7 +132,7 @@ Planned next checkpoints:
 - Filter, sort, and paginate admin products server-side
 - Upload product images
 - Archive and restore products
-- Manage product-level stock for simple products
+- Manage stock on size/color options; product stock is derived from active option stock
 - Choose whether customers can see exact stock counts per product
 - Manage product variants for clothing size/color combinations inside the product edit panel
 - Manage variant-level stock for size/color options
@@ -859,8 +859,8 @@ The current order flow is:
 2. Checkout validates product, variant, stock, delivery, and pricing server-side inside a database transaction.
 3. The order is created as `PENDING`.
 4. Checkout immediately reserves/decreases stock.
-5. Simple-product orders deduct `Product.stock`.
-6. Variant-product orders deduct the selected `ProductVariant.stock`.
+5. Orders deduct the selected `ProductVariant.stock`.
+6. Product-level stock is not customer-orderable; public product stock is derived from active variant stock.
 7. The store owner confirms the order by WhatsApp or phone and moves it to processing without deducting stock again.
 8. If the order is cancelled, the same stock source is restored exactly once when stock was reserved.
 
@@ -880,7 +880,7 @@ Cancelled orders are not hard-deleted or archived by default. Keeping order hist
 
 ### Stock Visibility Control
 
-Admins can choose whether customers can see exact stock counts per product. This is a display choice only; backend stock validation still runs regardless of whether the count is visible to customers. For products with active variants, customer-facing availability should be based on active variant stock, while exact counts should still respect the stock-visibility setting.
+Admins can choose whether customers can see exact stock counts per product. This is a display choice only; backend stock validation still runs regardless of whether the count is visible to customers. Public APIs must not expose exact product or variant stock when stock visibility is disabled; they should expose availability booleans instead.
 
 ### Product Discounts
 
@@ -901,7 +901,7 @@ Implemented:
 - Cart rows can identify the selected variant, so the same product can appear as separate size/color lines.
 - Checkout validates product/variant availability server-side.
 - Order items snapshot selected size/color values so historical orders remain accurate after variant edits.
-- Checkout-time reservation deducts from `ProductVariant.stock` for variant order items and `Product.stock` for simple products.
+- Checkout-time reservation deducts from the selected `ProductVariant.stock`.
 
 Customer-facing rule:
 
@@ -909,9 +909,9 @@ Customer-facing rule:
 
 Stock-source rule:
 
-- Simple products use `Product.stock`.
-- Products with active variants use `ProductVariant.stock` as the source of truth.
-- Customer-facing stock for variant products should be based on active variant stock.
+- Customer-orderable stock uses `ProductVariant.stock` as the source of truth.
+- Product-level stock is derived from active variant stock for storefront display.
+- Products need at least one active in-stock option before customers can order them.
 
 Current stock-reservation rule:
 
@@ -1071,7 +1071,7 @@ This app is still being hardened for production as a clothing-store template. It
 
 Next safest checkpoints:
 
-1. Review checkout-time stock reservation for simple and variant orders on staging.
+1. Review checkout-time stock reservation for variant/option orders on staging.
 2. Verify admin confirmation is an approval step that does not deduct stock again.
 3. Verify reserved stock is restored exactly once when an order is cancelled.
 4. Run a full security review after the stock-reservation flow is stable.

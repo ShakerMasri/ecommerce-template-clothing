@@ -125,18 +125,24 @@ describe("customer order route", () => {
         id: "cart-item-1",
         quantity: 2,
         productId: "product-1",
-        productVariantId: null,
-        productVariant: null,
+        productVariantId: "variant-1",
+        productVariant: {
+          id: "variant-1",
+          productId: "product-1",
+          sizeLabel: "M",
+          colorLabel: "Black",
+          stock: 5,
+          isActive: true,
+        },
         product: {
           id: "product-1",
-          name: "Figure",
-          slug: "figure",
+          name: "Classic cotton t-shirt",
+          slug: "classic-cotton-t-shirt",
           price: new Prisma.Decimal("50.00"),
           discountPrice: new Prisma.Decimal("40.00"),
-          stock: 5,
           images: ["https://example.com/image.jpg"],
           isArchived: false,
-          variants: [],
+          variants: [{ id: "variant-1" }],
         },
       },
     ]);
@@ -160,12 +166,12 @@ describe("customer order route", () => {
           quantity: 2,
           priceAtPurchase: new Prisma.Decimal("40.00"),
           subtotalAmount: new Prisma.Decimal("80.00"),
-          productNameAtPurchase: "Figure",
-          productSlugAtPurchase: "figure",
+          productNameAtPurchase: "Classic cotton t-shirt",
+          productSlugAtPurchase: "classic-cotton-t-shirt",
           productImagesAtPurchase: ["https://example.com/image.jpg"],
-          productVariantId: null,
-          selectedSizeLabel: null,
-          selectedColorLabel: null,
+          productVariantId: "variant-1",
+          selectedSizeLabel: "M",
+          selectedColorLabel: "Black",
         },
       ],
     });
@@ -175,7 +181,7 @@ describe("customer order route", () => {
     mocks.tx.cartItem.deleteMany.mockResolvedValue({ count: 1 });
   });
 
-  it("creates a pending order and reserves simple product stock", async () => {
+  it("creates a pending order and reserves selected option stock", async () => {
     const response = await POST(createRequest(createOrderInput()));
     const body = (await response.json()) as {
       message: string;
@@ -187,11 +193,12 @@ describe("customer order route", () => {
     expect(response.status).toBe(200);
     expect(body.order.status).toBe("PENDING");
     expect(body.message).toContain("confirm it by WhatsApp or phone");
-    expect(mocks.tx.productVariant.updateMany).not.toHaveBeenCalled();
-    expect(mocks.tx.product.updateMany).toHaveBeenCalledWith({
+    expect(mocks.tx.product.updateMany).not.toHaveBeenCalled();
+    expect(mocks.tx.productVariant.updateMany).toHaveBeenCalledWith({
       where: {
-        id: "product-1",
-        isArchived: false,
+        id: "variant-1",
+        productId: "product-1",
+        isActive: true,
         stock: {
           gte: 2,
         },
@@ -211,12 +218,12 @@ describe("customer order route", () => {
             create: [
               expect.objectContaining({
                 productId: "product-1",
-                productVariantId: null,
+                productVariantId: "variant-1",
                 quantity: 2,
                 priceAtPurchase: new Prisma.Decimal("40.00"),
                 subtotalAmount: new Prisma.Decimal("80.00"),
-                selectedSizeLabel: null,
-                selectedColorLabel: null,
+                selectedSizeLabel: "M",
+                selectedColorLabel: "Black",
               }),
             ],
           }),
@@ -251,7 +258,6 @@ describe("customer order route", () => {
           slug: "classic-cotton-t-shirt",
           price: new Prisma.Decimal("50.00"),
           discountPrice: new Prisma.Decimal("40.00"),
-          stock: 0,
           images: ["https://example.com/image.jpg"],
           isArchived: false,
           variants: [{ id: "variant-1" }],
@@ -296,7 +302,7 @@ describe("customer order route", () => {
     );
   });
 
-  it("requires a variant when the product has active variants", async () => {
+  it("requires a selected option for checkout inventory", async () => {
     mocks.tx.cartItem.findMany.mockResolvedValue([
       {
         id: "cart-item-1",
@@ -310,7 +316,6 @@ describe("customer order route", () => {
           slug: "classic-cotton-t-shirt",
           price: new Prisma.Decimal("50.00"),
           discountPrice: null,
-          stock: 10,
           images: [],
           isArchived: false,
           variants: [{ id: "variant-1" }],
@@ -324,18 +329,6 @@ describe("customer order route", () => {
     expect(response.status).toBe(400);
     expect(body.message).toContain("selected size or color");
     expect(mocks.tx.order.create).not.toHaveBeenCalled();
-  });
-
-  it("does not create an order when simple product reservation fails", async () => {
-    mocks.tx.product.updateMany.mockResolvedValue({ count: 0 });
-
-    const response = await POST(createRequest(createOrderInput()));
-    const body = (await response.json()) as { message: string };
-
-    expect(response.status).toBe(400);
-    expect(body.message).toContain("do not have enough stock");
-    expect(mocks.tx.order.create).not.toHaveBeenCalled();
-    expect(mocks.tx.cartItem.deleteMany).not.toHaveBeenCalled();
   });
 
   it("does not create an order when variant reservation fails", async () => {
@@ -359,7 +352,6 @@ describe("customer order route", () => {
           slug: "classic-cotton-t-shirt",
           price: new Prisma.Decimal("50.00"),
           discountPrice: null,
-          stock: 0,
           images: [],
           isArchived: false,
           variants: [{ id: "variant-1" }],

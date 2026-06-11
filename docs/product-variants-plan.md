@@ -204,12 +204,12 @@ Final clothing variant behavior should use the sum of active variant stock as th
 
 Customer ordering is now intended to be variant-aware:
 
-- Simple products continue to use `Product.stock`.
+- Customer-orderable products should use `ProductVariant.stock`; `Product.stock` is legacy/display-only during transition.
 - Products with active variants require the customer to choose a variant before adding to cart.
 - Variant products use `ProductVariant.stock` as the checkout reservation and cancellation stock source.
 - Public product listing/detail stock should display the sum of active variant stock when a product has variants.
 - Cart rows are keyed by a stable `cartLineKey` so the same product can appear as separate size/color lines.
 - Order items snapshot selected size and color so historical orders stay accurate after variant edits.
-- Checkout reservation deducts `ProductVariant.stock` for variant order items and still deducts `Product.stock` for simple products.
+- Checkout reservation deducts the selected `ProductVariant.stock`; product-level stock is not a customer checkout source.
 
 This checkpoint still keeps product-level pricing only. Variant-specific prices, image-per-variant, CSV import, POS, payments, coupons, SMS, and PWA remain out of scope.

@@ -472,25 +472,16 @@ function ProductFormFields({
           <FieldError message={errors.discountPrice?.[0]} />
         </div>
 
-        <div>
-          <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-            {labels.stock}
-          </label>
+        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+          <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+            Stock
+          </p>
 
-          <input
-            type="number"
-            min="0"
-            step="1"
-            value={form.stock}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                stock: event.target.value,
-              }))
-            }
-            className="mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-950 transition outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-orange-400 dark:focus:ring-orange-950"
-            placeholder="10"
-          />
+          <p className="mt-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+            Product stock is calculated from the size/color options you add
+            below. Add at least one active option with stock before customers can
+            order this product.
+          </p>
 
           <FieldError message={errors.stock?.[0]} />
         </div>
@@ -675,8 +666,8 @@ function VariantManagementSection({
           </h3>
 
           <p className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            Manage clothing sizes/colors for this product. Variants are still
-            admin-only until the cart and order snapshot flow is implemented.
+            Manage clothing sizes/colors and stock for this product. Customer
+            availability is calculated from active option stock.
           </p>
         </div>
 
@@ -688,35 +679,29 @@ function VariantManagementSection({
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-            Current checkout stock
+            Legacy product stock
           </p>
           <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
             {product.stock}
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-            This is still Product.stock and is what checkout/admin confirmation
-            use right now.
+            This field is kept only for old data. New customer checkout uses
+            option stock.
           </p>
         </div>
 
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-            Active variant stock total
+            Active option stock total
           </p>
           <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
             {activeVariantStockTotal}
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-            Final variant checkout should use this as the displayed product
-            stock summary by summing active variants.
+            This is the customer-facing product stock total when exact stock
+            visibility is enabled.
           </p>
         </div>
-      </div>
-
-      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-        Do not treat variant stock as customer-orderable yet. The next checkout
-        checkpoint must move cart rows, order snapshots, and admin stock
-        deduction to variant IDs first.
       </div>
 
       {product.variants.length > 0 && (
@@ -774,7 +759,7 @@ function VariantManagementSection({
 
                   <div>
                     <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                      Variant stock
+Option stock
                     </label>
                     <input
                       type="number"
@@ -863,7 +848,7 @@ function VariantManagementSection({
 
       <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
         <h4 className="text-sm font-black text-zinc-950 dark:text-white">
-          Add variant
+Add option
         </h4>
 
         <div className="mt-3 grid gap-3 md:grid-cols-4">
@@ -945,7 +930,6 @@ export function AdminProductsClient() {
   const [categoryName, setCategoryName] = useState("");
   const [categorySlug, setCategorySlug] = useState("");
 
-  const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
   const [variantDrafts, setVariantDrafts] = useState<
     Record<string, VariantForm>
   >({});
@@ -1030,11 +1014,6 @@ export function AdminProductsClient() {
         productsData.summary ?? { activeProducts: 0, archivedProducts: 0 },
       );
       setCategories(categoriesData.categories ?? []);
-      setStockDrafts(
-        Object.fromEntries(
-          nextProducts.map((product) => [product.id, String(product.stock)]),
-        ),
-      );
       setVariantDrafts(
         Object.fromEntries(
           nextProducts.map((product) => [product.id, getEmptyVariantForm()]),
@@ -1327,37 +1306,6 @@ export function AdminProductsClient() {
       }
 
       showMessage("success", data.message ?? labels.productRestored);
-      await loadAdminData(productPage, productFilters);
-    } catch {
-      showMessage("error", labels.failedToConnect);
-    } finally {
-      setUpdatingProductId(null);
-    }
-  }
-
-  async function updateStock(productId: string) {
-    setUpdatingProductId(productId);
-    setMessage("");
-
-    try {
-      const response = await fetch(`/api/admin/products/${productId}/stock`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          stock: stockDrafts[productId] ?? "0",
-        }),
-      });
-
-      const data = (await response.json()) as ProductsResponse;
-
-      if (!response.ok) {
-        showMessage("error", data.message ?? labels.failedToUpdateStock);
-        return;
-      }
-
-      showMessage("success", data.message ?? labels.stockUpdated);
       await loadAdminData(productPage, productFilters);
     } catch {
       showMessage("error", labels.failedToConnect);
@@ -2135,37 +2083,17 @@ export function AdminProductsClient() {
                         </div>
                       </div>
 
-                      <div className="mt-4 grid gap-3 sm:grid-cols-[180px_auto] sm:items-end">
-                        <div>
-                          <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-                            {labels.stock}
-                          </label>
-
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={
-                              stockDrafts[product.id] ?? String(product.stock)
-                            }
-                            onChange={(event) =>
-                              setStockDrafts((current) => ({
-                                ...current,
-                                [product.id]: event.target.value,
-                              }))
-                            }
-                            className="mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-950 transition outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-orange-400 dark:focus:ring-orange-950"
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          disabled={isUpdating}
-                          onClick={() => void updateStock(product.id)}
-                          className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-                        >
-                          {isUpdating ? labels.stockSaving : labels.updateStock}
-                        </button>
+                      <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+                        <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+                          Active option stock
+                        </p>
+                        <p className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">
+                          {getActiveVariantStockTotal(product)}
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                          Product stock is calculated from active size/color options.
+                          Edit stock inside the product options below.
+                        </p>
                       </div>
                     </div>
                   </div>

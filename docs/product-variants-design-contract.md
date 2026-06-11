@@ -351,7 +351,7 @@ Cancellation should increment the same stock source back when `stockDeductedAt` 
 Compatibility rule:
 
 ```txt
-Simple order items without productVariantId use product-level stock reservation/restoration. Variant order items use ProductVariant.stock.
+New customer orders must include a selected productVariantId and use ProductVariant.stock. Legacy order items without productVariantId may still need product-level restoration support for old reserved orders.
 ```
 
 ## Admin product management contract
@@ -392,7 +392,7 @@ Add `ProductVariant` and the `Product.variants` relation only.
 
 Do not add `CartItem.productVariantId` or `OrderItem.productVariantId` in this first checkpoint. Those fields require coordinated API, UI, stock-confirmation, and snapshot changes.
 
-Do not remove `Product.stock` yet. Runtime behavior should continue using product-level stock until the variant-aware checkpoints are implemented and tested.
+Do not remove `Product.stock` yet, but new customer-orderable runtime behavior should use selected variant stock after the variant-aware checkout checkpoint is implemented and tested.
 
 ### Phase 2: backfill/default variants
 
@@ -404,7 +404,7 @@ Possible default:
 sizeLabel = null
 colorLabel = null
 variantLabel = "Default"
-stock = Product.stock
+stock = Sum(active ProductVariant.stock)
 isActive = true
 ```
 
@@ -567,7 +567,7 @@ Do not auto-sync these values. Auto-syncing variant stock into `Product.stock` c
 
 Final accepted direction:
 
-- simple products may continue using `Product.stock`
+- legacy product-level stock must not be used for new customer checkout
 - variant-enabled products should display stock from the sum of active variants
 - checkout must validate and reserve/deduct against the selected `ProductVariant.stock`
 - admin confirmation must not deduct stock again
@@ -585,7 +585,7 @@ The customer ordering flow follows this contract:
 5. Cart uniqueness uses `userId + cartLineKey` instead of `userId + productId`, so multiple sizes/colors of the same product can exist as separate cart lines.
 6. Checkout revalidates product/variant availability and stock server-side before creating the order.
 7. Order items store immutable variant snapshots: selected size label and color label.
-8. Checkout reservation deducts from `ProductVariant.stock` when an order item has a variant, otherwise it deducts from `Product.stock`.
+8. Checkout reservation deducts from the selected `ProductVariant.stock`.
 9. Cancelling a reserved order restocks the same inventory source that was deducted exactly once.
 
-`Product.stock` remains for simple products and legacy compatibility. For products with active variants, the displayed total stock is derived from active variant stock instead of syncing `Product.stock` in the database.
+`Product.stock` remains only for legacy compatibility during transition. Storefront product stock is derived from active variant stock instead of syncing `Product.stock` in the database.

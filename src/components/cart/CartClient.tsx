@@ -18,9 +18,11 @@ type CartProduct = {
   slug: string;
   price: string;
   discountPrice: string | null;
-  stock: number;
+  stock: number | null;
+  isInStock: boolean;
   images: string[];
   isArchived: boolean;
+  showStock: boolean;
   hasVariants: boolean;
   category: {
     id: string;
@@ -33,7 +35,8 @@ type CartVariant = {
   id: string;
   sizeLabel: string | null;
   colorLabel: string | null;
-  stock: number;
+  stock: number | null;
+  isInStock: boolean;
   isActive: boolean;
 };
 
@@ -42,7 +45,9 @@ type CartItem = {
   quantity: number;
   productVariantId: string | null;
   productVariant: CartVariant | null;
-  availableStock: number;
+  availableStock: number | null;
+  isAvailable: boolean;
+  hasEnoughStock: boolean;
   product: CartProduct;
 };
 
@@ -169,11 +174,7 @@ export function CartClient() {
   }, [cartItems]);
 
   const hasUnavailableItems = cartItems.some((item) => {
-    return (
-      item.product.isArchived ||
-      item.availableStock <= 0 ||
-      item.quantity > item.availableStock
-    );
+    return item.product.isArchived || !item.isAvailable || !item.hasEnoughStock;
   });
 
   const loadCart = useCallback(
@@ -632,8 +633,8 @@ export function CartClient() {
           {cartItems.map((item) => {
             const image = item.product.images.at(0);
             const isArchived = item.product.isArchived;
-            const isOutOfStock = item.availableStock <= 0;
-            const exceedsStock = item.quantity > item.availableStock;
+            const isOutOfStock = !item.isAvailable;
+            const exceedsStock = !item.hasEnoughStock;
             const variantLabel = formatVariantLabel(item.productVariant);
             const isUnavailable = isArchived || isOutOfStock || exceedsStock;
             const isUpdating = updatingItemId === item.id;
@@ -717,10 +718,12 @@ export function CartClient() {
                           ? t.cart.productArchived
                           : isOutOfStock
                             ? t.cart.productOutOfStock
-                            : t.cart.onlyLeft.replace(
-                                "{stock}",
-                                String(item.availableStock),
-                              )}
+                            : item.availableStock !== null
+                              ? t.cart.onlyLeft.replace(
+                                  "{stock}",
+                                  String(item.availableStock),
+                                )
+                              : t.cart.productOutOfStock}
                       </p>
                     )}
 
@@ -747,7 +750,9 @@ export function CartClient() {
                         <button
                           type="button"
                           disabled={
-                            item.quantity >= item.availableStock ||
+                            (item.availableStock !== null &&
+                              item.quantity >= item.availableStock) ||
+                            item.quantity >= 99 ||
                             isArchived ||
                             isOutOfStock ||
                             isUpdating ||

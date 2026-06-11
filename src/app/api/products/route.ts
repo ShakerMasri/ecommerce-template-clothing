@@ -40,10 +40,14 @@ export async function GET(request: Request) {
           slug: true,
           price: true,
           discountPrice: true,
-          stock: true,
           images: true,
           isFeatured: true,
           showStock: true,
+          _count: {
+            select: {
+              variants: true,
+            },
+          },
           variants: {
             where: {
               isActive: true,
@@ -75,17 +79,18 @@ export async function GET(request: Request) {
     ]);
 
     const safeProducts = products.map((product) => {
-      const variantStock = product.variants.reduce(
+      const activeVariantStock = product.variants.reduce(
         (sum, variant) => sum + variant.stock,
         0,
       );
-      const hasVariants = product.variants.length > 0;
+      const hasVariants = product._count.variants > 0;
 
       return {
         id: product.id,
         name: product.name,
         slug: product.slug,
-        stock: hasVariants ? variantStock : product.stock,
+        stock: product.showStock ? activeVariantStock : null,
+        isInStock: activeVariantStock > 0,
         images: product.images,
         isFeatured: product.isFeatured,
         showStock: product.showStock,

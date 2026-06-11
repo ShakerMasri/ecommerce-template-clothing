@@ -217,13 +217,9 @@ export async function POST(request: Request) {
               slug: true,
               price: true,
               discountPrice: true,
-              stock: true,
               images: true,
               isArchived: true,
               variants: {
-                where: {
-                  isActive: true,
-                },
                 select: {
                   id: true,
                 },
@@ -242,51 +238,22 @@ export async function POST(request: Request) {
           throw new Error("PRODUCT_NOT_AVAILABLE");
         }
 
-        const hasActiveVariants = item.product.variants.length > 0;
-
-        if (hasActiveVariants) {
-          if (!item.productVariantId) {
-            throw new Error("VARIANT_REQUIRED");
-          }
-
-          if (
-            !item.productVariant?.isActive ||
-            item.productVariant.productId !== item.product.id
-          ) {
-            throw new Error("VARIANT_NOT_AVAILABLE");
-          }
-
-          const updateVariantResult = await tx.productVariant.updateMany({
-            where: {
-              id: item.productVariant.id,
-              productId: item.product.id,
-              isActive: true,
-              stock: {
-                gte: item.quantity,
-              },
-            },
-            data: {
-              stock: {
-                decrement: item.quantity,
-              },
-            },
-          });
-
-          if (updateVariantResult.count !== 1) {
-            throw new Error("INSUFFICIENT_STOCK");
-          }
-
-          continue;
+        if (!item.productVariantId) {
+          throw new Error("VARIANT_REQUIRED");
         }
 
-        if (item.productVariantId) {
-          throw new Error("VARIANT_NOT_ALLOWED");
+        if (
+          !item.productVariant?.isActive ||
+          item.productVariant.productId !== item.product.id
+        ) {
+          throw new Error("VARIANT_NOT_AVAILABLE");
         }
 
-        const updateProductResult = await tx.product.updateMany({
+        const updateVariantResult = await tx.productVariant.updateMany({
           where: {
-            id: item.product.id,
-            isArchived: false,
+            id: item.productVariant.id,
+            productId: item.product.id,
+            isActive: true,
             stock: {
               gte: item.quantity,
             },
@@ -298,7 +265,7 @@ export async function POST(request: Request) {
           },
         });
 
-        if (updateProductResult.count !== 1) {
+        if (updateVariantResult.count !== 1) {
           throw new Error("INSUFFICIENT_STOCK");
         }
       }

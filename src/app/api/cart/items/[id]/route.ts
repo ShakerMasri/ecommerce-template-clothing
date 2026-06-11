@@ -118,21 +118,14 @@ export async function PATCH(request: Request, { params }: CartItemRouteProps) {
           productVariantId: true,
           product: {
             select: {
-              stock: true,
+              id: true,
               isArchived: true,
-              variants: {
-                where: {
-                  isActive: true,
-                },
-                select: {
-                  id: true,
-                },
-              },
             },
           },
           productVariant: {
             select: {
               id: true,
+              productId: true,
               stock: true,
               isActive: true,
             },
@@ -148,22 +141,18 @@ export async function PATCH(request: Request, { params }: CartItemRouteProps) {
         throw new Error("PRODUCT_NOT_AVAILABLE");
       }
 
-      const hasActiveVariants = existingCartItem.product.variants.length > 0;
-
-      if (hasActiveVariants && !existingCartItem.productVariantId) {
+      if (!existingCartItem.productVariantId) {
         throw new Error("VARIANT_REQUIRED");
       }
 
       if (
-        existingCartItem.productVariantId &&
-        !existingCartItem.productVariant?.isActive
+        !existingCartItem.productVariant?.isActive ||
+        existingCartItem.productVariant.productId !== existingCartItem.product.id
       ) {
         throw new Error("VARIANT_NOT_AVAILABLE");
       }
 
-      const availableStock =
-        existingCartItem.productVariant?.stock ??
-        existingCartItem.product.stock;
+      const availableStock = existingCartItem.productVariant.stock;
 
       if (quantity > availableStock) {
         throw new Error("INSUFFICIENT_STOCK");
