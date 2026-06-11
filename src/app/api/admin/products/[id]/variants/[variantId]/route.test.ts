@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -78,7 +77,6 @@ function createVariant(overrides: Record<string, unknown> = {}) {
     colorLabel: "Black",
     sizeKey: "m",
     colorKey: "black",
-    sku: "shirt-m-black",
     stock: 5,
     isActive: true,
     sortOrder: 0,
@@ -155,25 +153,6 @@ describe("admin single product variant route", () => {
     expect(response.status).toBe(404);
     expect(body.message).toBe("Not found.");
     expect(mocks.prisma.productVariant.update).not.toHaveBeenCalled();
-  });
-
-  it("returns SKU uniqueness errors clearly", async () => {
-    mocks.prisma.productVariant.update.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError("duplicate", {
-        code: "P2002",
-        clientVersion: "test",
-        meta: { target: ["sku"] },
-      }),
-    );
-
-    const response = await PATCH(
-      createPatchRequest({ sku: "duplicate-sku" }),
-      routeParams,
-    );
-    const body = (await response.json()) as { errors: Record<string, string[]> };
-
-    expect(response.status).toBe(400);
-    expect(body.errors.sku?.[0]).toContain("already used");
   });
 
   it("soft-deactivates a variant instead of hard-deleting it", async () => {

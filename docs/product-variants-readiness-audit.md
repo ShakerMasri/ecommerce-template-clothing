@@ -12,7 +12,7 @@ The current app is product-level, not variant-level:
 - `CartItem` stores `productId` and `quantity`.
 - `CartItem` is unique by `userId + productId`, so the same product can only appear once per customer cart.
 - `OrderItem` snapshots product name, slug, images, unit price, and subtotal.
-- `OrderItem` does not snapshot selected size, selected color, SKU, or variant label.
+- `OrderItem` does not snapshot selected size, selected color, or variant label.
 - Admin stock updates edit `Product.stock` directly.
 - Admin order confirmation decrements `Product.stock` when an order moves from `PENDING` to `PROCESSING`.
 
@@ -136,7 +136,6 @@ model ProductVariant {
   sizeLabel String
   colorName String
   colorHex  String?
-  sku       String?
 
   stock     Int     @default(0)
   isActive  Boolean @default(true)
@@ -150,7 +149,6 @@ model ProductVariant {
 
   @@unique([productId, sizeLabel, colorName])
   @@index([productId])
-  @@index([sku])
 }
 ```
 
@@ -205,10 +203,9 @@ variantLabelAtPurchase
 sizeLabelAtPurchase
 colorNameAtPurchase
 colorHexAtPurchase nullable
-skuAtPurchase nullable
 ```
 
-The nullable `productVariantId` relation allows old orders to remain readable if a variant is later deleted or deactivated. Snapshot fields keep old orders accurate even if the admin renames a size/color or changes SKU later.
+The nullable `productVariantId` relation allows old orders to remain readable if a variant is later deleted or deactivated. Snapshot fields keep old orders accurate even if the admin renames a size/color later.
 
 ### Public product API direction
 
@@ -257,7 +254,7 @@ Minimum safe admin requirements:
 - Admin can set stock per variant.
 - Admin can see which variants are active/inactive.
 - Admin cannot create duplicate size/color combinations for the same product.
-- Admin gets clear validation errors for invalid color hex, negative stock, duplicate SKU, or duplicate size/color combination.
+- Admin gets clear validation errors for invalid color hex, negative stock, or duplicate size/color combination.
 - Product-level stock editing should be hidden or clearly disabled once variant-level stock is active.
 
 Do not add bulk CSV import in the first variant release.
@@ -333,7 +330,7 @@ Note: `src/lib/validations.ts` was not included in this audit zip, but current a
 - Checkout rejects stale cart rows where variant became inactive.
 - Checkout rejects stale cart rows where product became archived.
 - Checkout rejects insufficient selected variant stock.
-- Checkout snapshots size/color/SKU/variant label.
+- Checkout snapshots size/color/variant label.
 - Checkout calculates product prices server-side and does not trust client price.
 - Admin confirmation decrements selected variant stock once.
 - Admin confirmation fails if selected variant stock is insufficient.
@@ -353,10 +350,10 @@ Note: `src/lib/validations.ts` was not included in this audit zip, but current a
 
 ## Security rules to preserve
 
-- Never trust client-submitted price, stock, size label, color name, SKU, or admin permission.
+- Never trust client-submitted price, stock, size label, color name, or admin permission.
 - Client should submit only ids and form values; server loads trusted product/variant records.
 - Keep CSRF/same-origin checks on cart, order, and admin mutations.
-- Keep rate limiting on cart, order, and admin mutations.
+- Keep rate limiting on public product reads, cart/order mutations, and admin mutations.
 - Keep customer cart/order ownership checks server-side.
 - Keep admin authorization server-side.
 - Keep order snapshots so old orders do not change after product/variant edits.

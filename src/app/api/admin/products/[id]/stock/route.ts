@@ -82,9 +82,37 @@ export async function PATCH(request: Request, { params }: StockRouteProps) {
   }
 
   try {
-    const product = await prisma.product.update({
+    const existingProduct = await prisma.product.findUnique({
       where: {
         id: parsedParams.data.id,
+      },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            variants: true,
+          },
+        },
+      },
+    });
+
+    if (!existingProduct) {
+      return NextResponse.json({ message: "Not found." }, { status: 404 });
+    }
+
+    if (existingProduct._count.variants > 0) {
+      return NextResponse.json(
+        {
+          message:
+            "Product stock is calculated from its options. Update option stock instead.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const product = await prisma.product.update({
+      where: {
+        id: existingProduct.id,
       },
       data: {
         stock: parsedBody.data.stock,

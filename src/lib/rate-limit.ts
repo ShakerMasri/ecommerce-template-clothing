@@ -8,6 +8,7 @@ import { env } from "~/env";
 type RateLimitBucket =
   | "auth"
   | "verificationEmail"
+  | "publicRead"
   | "profileUpdate"
   | "cartMutation"
   | "orderCreate"
@@ -49,6 +50,12 @@ const limiters = redis
         limiter: Ratelimit.slidingWindow(1, "1 m"),
         analytics: true,
         prefix: "ecommerce-template:rate-limit:verification-email",
+      }),
+      publicRead: new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(300, "1 m"),
+        analytics: true,
+        prefix: "ecommerce-template:rate-limit:public-read",
       }),
       profileUpdate: new Ratelimit({
         redis,

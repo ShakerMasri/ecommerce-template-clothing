@@ -57,14 +57,15 @@ test("customer sees exact stock only when product stock visibility is enabled", 
   ).toBe(true);
   expect(
     product.stock,
-    `${productPath} must point to an in-stock product.`,
-  ).toBeGreaterThan(0);
+    `${productPath} must expose exact stock for this E2E test.`,
+  ).not.toBeNull();
+  expect(product.stock ?? 0, `${productPath} must point to an in-stock product.`).toBeGreaterThan(0);
 
   await page.goto(productPath);
 
   await expect(page.getByRole("heading", { name: product.name })).toBeVisible();
   await expect(
-    page.getByText(exactStockLabelPattern(product.stock)).first(),
+    page.getByText(exactStockLabelPattern(product.stock ?? 0)).first(),
   ).toBeVisible();
 });
 
@@ -79,16 +80,16 @@ test("customer does not see exact stock when product stock visibility is disable
     product.showStock,
     `${productPath} must point to a product with showStock disabled.`,
   ).toBe(false);
-  expect(
-    product.stock,
-    `${productPath} must point to an in-stock product.`,
-  ).toBeGreaterThan(0);
+  expect(product.isInStock, `${productPath} must point to an in-stock product.`).toBe(
+    true,
+  );
+  expect(product.stock, `${productPath} must hide exact stock in the API.`).toBeNull();
 
   await page.goto(productPath);
 
   await expect(page.getByRole("heading", { name: product.name })).toBeVisible();
   await expect(page.getByText(availableStockLabelPattern()).first()).toBeVisible();
-  await expect(
-    page.getByText(exactStockLabelPattern(product.stock)),
-  ).toHaveCount(0);
+  await expect(page.getByText(/^[1-9][0-9]*\s+(?:In stock|متوفر)$/i)).toHaveCount(
+    0,
+  );
 });

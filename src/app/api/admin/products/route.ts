@@ -15,7 +15,6 @@ const adminProductVariantSelect = {
   colorLabel: true,
   sizeKey: true,
   colorKey: true,
-  sku: true,
   stock: true,
   isActive: true,
   sortOrder: true,

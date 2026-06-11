@@ -53,6 +53,7 @@ Verify:
 - [ ] SMTP variables are configured for the production email provider.
 - [ ] `EMAIL_DELIVERY_MODE="smtp"` is used only after SMTP is verified.
 - [ ] Upstash Redis variables are configured for rate limiting.
+- [ ] Public product API read rate limiting works in the deployed environment.
 - [ ] Cloudinary variables are configured for product uploads.
 - [ ] No secret uses a `NEXT_PUBLIC_` prefix.
 

@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 type AddToCartControlsProps = {
   productId: string;
   productVariantId?: string | null;
-  stock: number;
+  stock: number | null;
+  isInStock: boolean;
   disabledReason?: string | null;
 };
 
@@ -18,6 +19,7 @@ export function AddToCartControls({
   productId,
   productVariantId = null,
   stock,
+  isInStock,
   disabledReason = null,
 }: AddToCartControlsProps) {
   const router = useRouter();
@@ -28,14 +30,18 @@ export function AddToCartControls({
   >("idle");
   const [message, setMessage] = useState("");
 
-  const isOutOfStock = stock <= 0;
+  const maxClientQuantity = stock ?? 99;
+  const isOutOfStock = !isInStock;
   const isLoading = status === "loading";
 
   useEffect(() => {
     setQuantity((currentQuantity) => {
-      return Math.min(Math.max(1, currentQuantity), Math.max(1, stock));
+      return Math.min(
+        Math.max(1, currentQuantity),
+        Math.max(1, maxClientQuantity),
+      );
     });
-  }, [productVariantId, stock]);
+  }, [maxClientQuantity, productVariantId]);
   const isDisabled = isLoading || isOutOfStock || Boolean(disabledReason);
 
   function decreaseQuantity() {
@@ -43,7 +49,7 @@ export function AddToCartControls({
   }
 
   function increaseQuantity() {
-    setQuantity((currentQuantity) => Math.min(stock, currentQuantity + 1));
+    setQuantity((currentQuantity) => Math.min(maxClientQuantity, currentQuantity + 1));
   }
 
   async function handleAddToCart() {
@@ -111,7 +117,7 @@ export function AddToCartControls({
         <button
           type="button"
           onClick={increaseQuantity}
-          disabled={isLoading || quantity >= stock || isDisabled}
+          disabled={isLoading || quantity >= maxClientQuantity || isDisabled}
           className="rounded border border-gray-300 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           +

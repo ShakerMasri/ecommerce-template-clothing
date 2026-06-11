@@ -5,6 +5,7 @@ import {
   formatNisPrice,
   getEffectiveProductPrice,
   getPublicProductByPath,
+  selectFirstAvailableProductOption,
 } from "./helpers/products";
 
 type OrderItemResponse = {
@@ -63,6 +64,7 @@ test("customer can place a controlled test order", async ({ page }) => {
 
   try {
     await page.goto(productPath);
+    await selectFirstAvailableProductOption(page, product);
 
     const addToCartButton = page
       .getByRole("button", { name: /^add to cart$/i })
@@ -143,7 +145,12 @@ test("customer can place a controlled test order", async ({ page }) => {
       productPath,
     );
 
-    expect(productAfterOrder.stock).toBe(stockBeforeOrder - 1);
+    if (stockBeforeOrder !== null && productAfterOrder.stock !== null) {
+      expect(productAfterOrder.stock).toBe(stockBeforeOrder - 1);
+    } else {
+      expect(productAfterOrder.stock).toBeNull();
+      expect(productAfterOrder.isInStock).toBe(true);
+    }
 
     await expect(page.locator("body")).toContainText(orderId);
     await expect(page.locator("body")).toContainText(

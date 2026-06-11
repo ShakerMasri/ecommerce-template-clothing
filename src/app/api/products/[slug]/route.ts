@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
+import { rateLimit } from "~/lib/rate-limit";
 import { productSlugSchema } from "~/server/validations/product";
 
 type ProductRouteProps = {
@@ -8,7 +9,13 @@ type ProductRouteProps = {
   }>;
 };
 
-export async function GET(_request: Request, { params }: ProductRouteProps) {
+export async function GET(request: Request, { params }: ProductRouteProps) {
+  const limited = await rateLimit(request, "publicRead");
+
+  if (!limited.ok) {
+    return limited.response;
+  }
+
   const { slug } = await params;
 
   const parsed = productSlugSchema.safeParse({ slug });
@@ -33,11 +40,15 @@ export async function GET(_request: Request, { params }: ProductRouteProps) {
         description: true,
         price: true,
         discountPrice: true,
-        stock: true,
         images: true,
         isFeatured: true,
         showStock: true,
         createdAt: true,
+        _count: {
+          select: {
+            variants: true,
+          },
+        },
         category: {
           select: {
             id: true,
@@ -68,19 +79,36 @@ export async function GET(_request: Request, { params }: ProductRouteProps) {
       );
     }
 
-    const variantStock = product.variants.reduce(
+    const activeVariantStock = product.variants.reduce(
       (sum, variant) => sum + variant.stock,
       0,
     );
-    const hasVariants = product.variants.length > 0;
+    const hasVariants = product._count.variants > 0;
 
     return NextResponse.json({
       product: {
-        ...product,
-        stock: hasVariants ? variantStock : product.stock,
-        hasVariants,
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        description: product.description,
         price: product.price.toString(),
         discountPrice: product.discountPrice?.toString() ?? null,
+        stock: product.showStock ? activeVariantStock : null,
+        isInStock: activeVariantStock > 0,
+        images: product.images,
+        isFeatured: product.isFeatured,
+        showStock: product.showStock,
+        createdAt: product.createdAt,
+        category: product.category,
+        hasVariants,
+        variants: product.variants.map((variant) => ({
+          id: variant.id,
+          sizeLabel: variant.sizeLabel,
+          colorLabel: variant.colorLabel,
+          stock: product.showStock ? variant.stock : null,
+          isInStock: variant.stock > 0,
+          sortOrder: variant.sortOrder,
+        })),
       },
     });
   } catch {

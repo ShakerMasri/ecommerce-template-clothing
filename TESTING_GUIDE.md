@@ -119,6 +119,7 @@ Current Playwright coverage includes:
 - customer login
 - customer cart add/cleanup
 - customer authenticated pages
+- capped customer order history API/page behavior
 - controlled customer order creation with delivery checkout confirmation
 - customer order price snapshot checks using the server-calculated effective product price
 - discounted product display checks
@@ -445,7 +446,7 @@ npm run build
 
 ## Next Steps
 
-Product variants are not implemented yet. When variants are added later, testing must cover unavailable variants, per-variant stock changes, cart uniqueness by variant, checkout snapshots, and admin authorization.
+Product variants and checkout-time stock reservation are implemented. Keep testing focused on unavailable variants, per-option stock changes, cart uniqueness by selected option, checkout snapshots, cancellation restock behavior, hidden-stock API responses, public product API rate limiting, customer order pagination, and admin authorization.
 
 
 1. Keep Playwright E2E tests staging-safe.

@@ -75,7 +75,6 @@ function createVariant(overrides: Record<string, unknown> = {}) {
     colorLabel: "Black",
     sizeKey: "m",
     colorKey: "black",
-    sku: "shirt-m-black",
     stock: 5,
     isActive: true,
     sortOrder: 0,
@@ -128,7 +127,6 @@ describe("admin product variants collection route", () => {
       createPostRequest({
         sizeLabel: " Medium ",
         colorLabel: " Black ",
-        sku: " shirt-m-black ",
         stock: "5",
         sortOrder: "0",
         isActive: true,

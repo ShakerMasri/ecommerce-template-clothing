@@ -38,7 +38,7 @@ Do not include these in the first variant implementation unless deliberately app
 
 - POS integration
 - online payments
-- barcode/SKU scanning workflows
+- barcode/scanning workflows
 - supplier inventory sync
 - CSV import
 - advanced bundles
@@ -52,11 +52,10 @@ Before writing a migration, decide:
 
 1. Should a product have many variants where each variant is one size/color combination?
 2. Should size and color be free-text labels, controlled config values, or database-managed options?
-3. Should each variant have its own SKU?
-4. Should each variant have its own stock count? Usually yes.
-5. Should a variant be independently archived/disabled?
-6. Should a product remain orderable if it has no variants?
-7. How will existing product-level stock migrate?
+3. Should each variant have its own stock count? Usually yes.
+4. Should a variant be independently archived/disabled?
+5. Should a product remain orderable if it has no variants?
+6. How will existing product-level stock migrate?
 
 ## Likely Safer First Schema Direction
 
@@ -170,10 +169,9 @@ The next implemented checkpoint adds admin-only product variant management. It s
 Implemented scope for this checkpoint:
 
 - admin-only variant create/update/deactivate APIs
-- server-side validation for size label, color label, SKU, stock, active state, and sort order
+- server-side validation for size label, color label, stock, active state, and sort order
 - normalized `sizeKey` / `colorKey` generation in the API layer
 - duplicate size/color combination protection through the database unique constraint
-- SKU uniqueness protection when a SKU is provided
 - admin product responses include variants for management screens
 - admin UI can add, edit, and deactivate variants while clearly warning that checkout still uses product-level stock
 
@@ -206,12 +204,12 @@ Final clothing variant behavior should use the sum of active variant stock as th
 
 Customer ordering is now intended to be variant-aware:
 
-- Simple products continue to use `Product.stock`.
+- Customer-orderable products should use `ProductVariant.stock`; `Product.stock` is legacy/display-only during transition.
 - Products with active variants require the customer to choose a variant before adding to cart.
 - Variant products use `ProductVariant.stock` as the checkout reservation and cancellation stock source.
 - Public product listing/detail stock should display the sum of active variant stock when a product has variants.
 - Cart rows are keyed by a stable `cartLineKey` so the same product can appear as separate size/color lines.
-- Order items snapshot selected size, color, and SKU so historical orders stay accurate after variant edits.
-- Checkout reservation deducts `ProductVariant.stock` for variant order items and still deducts `Product.stock` for simple products.
+- Order items snapshot selected size and color so historical orders stay accurate after variant edits.
+- Checkout reservation deducts the selected `ProductVariant.stock`; product-level stock is not a customer checkout source.
 
 This checkpoint still keeps product-level pricing only. Variant-specific prices, image-per-variant, CSV import, POS, payments, coupons, SMS, and PWA remain out of scope.

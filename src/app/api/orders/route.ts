@@ -7,7 +7,10 @@ import { getReferenceMessage, logError } from "~/lib/logger";
 import { rateLimit } from "~/lib/rate-limit";
 import { auth } from "~/server/auth";
 import { getEffectiveProductPrice } from "~/server/pricing";
-import { createOrderSchema } from "~/server/validations/order";
+import {
+  createOrderSchema,
+  customerOrdersQuerySchema,
+} from "~/server/validations/order";
 
 const orderSelect = {
   id: true,
@@ -34,7 +37,6 @@ const orderSelect = {
       productVariantId: true,
       selectedSizeLabel: true,
       selectedColorLabel: true,
-      selectedSku: true,
     },
   },
 } satisfies Prisma.OrderSelect;
@@ -57,7 +59,7 @@ function serializeOrder(order: OrderWithItems) {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -68,20 +70,80 @@ export async function GET() {
   }
 
   const userId = session.user.id;
+  const { searchParams } = new URL(request.url);
+
+  const parsedQuery = customerOrdersQuerySchema.safeParse(
+    Object.fromEntries(searchParams.entries()),
+  );
+
+  if (!parsedQuery.success) {
+    return NextResponse.json(
+      { message: "Invalid order query parameters." },
+      { status: 400 },
+    );
+  }
+
+  const { page, limit } = parsedQuery.data;
+  const skip = (page - 1) * limit;
 
   try {
-    const orders = await prisma.order.findMany({
-      where: {
-        userId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: orderSelect,
-    });
+    const [ordersPlusOne, totalOrders, activeOrdersCount, totalSpent] =
+      await Promise.all([
+        prisma.order.findMany({
+          where: {
+            userId,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          skip,
+          take: limit + 1,
+          select: orderSelect,
+        }),
+        prisma.order.count({
+          where: {
+            userId,
+          },
+        }),
+        prisma.order.count({
+          where: {
+            userId,
+            status: {
+              notIn: ["DELIVERED", "CANCELLED"],
+            },
+          },
+        }),
+        prisma.order.aggregate({
+          where: {
+            userId,
+            status: {
+              not: "CANCELLED",
+            },
+          },
+          _sum: {
+            totalAmount: true,
+          },
+        }),
+      ]);
+
+    const hasNextPage = ordersPlusOne.length > limit;
+    const orders = hasNextPage ? ordersPlusOne.slice(0, limit) : ordersPlusOne;
+    const totalSpentAmount =
+      totalSpent._sum.totalAmount ?? new Prisma.Decimal(0);
 
     return NextResponse.json({
       orders: orders.map(serializeOrder),
+      pagination: {
+        page,
+        limit,
+        hasNextPage,
+        nextPage: hasNextPage ? page + 1 : null,
+      },
+      summary: {
+        totalOrders,
+        activeOrdersCount,
+        totalSpent: totalSpentAmount.toString(),
+      },
     });
   } catch (error) {
     const errorId = logError("Failed to load customer orders.", error, {
@@ -207,7 +269,6 @@ export async function POST(request: Request) {
               productId: true,
               sizeLabel: true,
               colorLabel: true,
-              sku: true,
               stock: true,
               isActive: true,
             },
@@ -219,13 +280,9 @@ export async function POST(request: Request) {
               slug: true,
               price: true,
               discountPrice: true,
-              stock: true,
               images: true,
               isArchived: true,
               variants: {
-                where: {
-                  isActive: true,
-                },
                 select: {
                   id: true,
                 },
@@ -244,51 +301,22 @@ export async function POST(request: Request) {
           throw new Error("PRODUCT_NOT_AVAILABLE");
         }
 
-        const hasActiveVariants = item.product.variants.length > 0;
-
-        if (hasActiveVariants) {
-          if (!item.productVariantId) {
-            throw new Error("VARIANT_REQUIRED");
-          }
-
-          if (
-            !item.productVariant?.isActive ||
-            item.productVariant.productId !== item.product.id
-          ) {
-            throw new Error("VARIANT_NOT_AVAILABLE");
-          }
-
-          const updateVariantResult = await tx.productVariant.updateMany({
-            where: {
-              id: item.productVariant.id,
-              productId: item.product.id,
-              isActive: true,
-              stock: {
-                gte: item.quantity,
-              },
-            },
-            data: {
-              stock: {
-                decrement: item.quantity,
-              },
-            },
-          });
-
-          if (updateVariantResult.count !== 1) {
-            throw new Error("INSUFFICIENT_STOCK");
-          }
-
-          continue;
+        if (!item.productVariantId) {
+          throw new Error("VARIANT_REQUIRED");
         }
 
-        if (item.productVariantId) {
-          throw new Error("VARIANT_NOT_ALLOWED");
+        if (
+          !item.productVariant?.isActive ||
+          item.productVariant.productId !== item.product.id
+        ) {
+          throw new Error("VARIANT_NOT_AVAILABLE");
         }
 
-        const updateProductResult = await tx.product.updateMany({
+        const updateVariantResult = await tx.productVariant.updateMany({
           where: {
-            id: item.product.id,
-            isArchived: false,
+            id: item.productVariant.id,
+            productId: item.product.id,
+            isActive: true,
             stock: {
               gte: item.quantity,
             },
@@ -300,7 +328,7 @@ export async function POST(request: Request) {
           },
         });
 
-        if (updateProductResult.count !== 1) {
+        if (updateVariantResult.count !== 1) {
           throw new Error("INSUFFICIENT_STOCK");
         }
       }
@@ -348,7 +376,6 @@ export async function POST(request: Request) {
                 productImagesAtPurchase: item.product.images,
                 selectedSizeLabel: item.productVariant?.sizeLabel ?? null,
                 selectedColorLabel: item.productVariant?.colorLabel ?? null,
-                selectedSku: item.productVariant?.sku ?? null,
               };
             }),
           },

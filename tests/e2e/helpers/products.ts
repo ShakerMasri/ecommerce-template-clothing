@@ -1,9 +1,18 @@
-import { expect, type APIRequestContext } from "@playwright/test";
+import { expect, type APIRequestContext, type Page } from "@playwright/test";
 
 type ProductCategory = {
   id: string;
   name: string;
   slug: string;
+};
+
+export type PublicProductVariant = {
+  id: string;
+  sizeLabel: string | null;
+  colorLabel: string | null;
+  stock: number | null;
+  isInStock: boolean;
+  sortOrder: number;
 };
 
 export type PublicProduct = {
@@ -12,10 +21,13 @@ export type PublicProduct = {
   slug: string;
   price: string;
   discountPrice: string | null;
-  stock: number;
+  stock: number | null;
+  isInStock: boolean;
   showStock: boolean;
   images: string[];
   isFeatured: boolean;
+  hasVariants: boolean;
+  variants: PublicProductVariant[];
   createdAt?: string;
   category: ProductCategory;
 };
@@ -24,6 +36,10 @@ type ProductDetailResponse = {
   product?: PublicProduct;
   message?: unknown;
 };
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export function getProductSlugFromPath(productPath: string): string {
   const pathOnly = productPath.split("?")[0]?.replace(/\/+$/, "") ?? "";
@@ -56,6 +72,39 @@ export async function getPublicProductByPath(
   }
 
   return data.product;
+}
+
+function getVariantLabel(variant: PublicProductVariant): string {
+  return [variant.sizeLabel, variant.colorLabel].filter(Boolean).join(" / ");
+}
+
+export async function selectFirstAvailableProductOption(
+  page: Page,
+  product: PublicProduct,
+): Promise<void> {
+  if (!product.hasVariants) {
+    throw new Error(
+      `${product.slug} has no size/color options. Add an active option before using it in E2E tests.`,
+    );
+  }
+
+  const variant = product.variants.find((item) => item.isInStock);
+
+  if (!variant) {
+    throw new Error(
+      `${product.slug} has no available size/color option for this E2E test.`,
+    );
+  }
+
+  const label = getVariantLabel(variant);
+
+  if (!label) {
+    throw new Error(`${product.slug} has an option without a customer label.`);
+  }
+
+  await page
+    .getByRole("button", { name: new RegExp(escapeRegExp(label), "i") })
+    .click();
 }
 
 export function getEffectiveProductPrice(product: PublicProduct): number {

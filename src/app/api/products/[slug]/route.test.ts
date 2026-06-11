@@ -3,6 +3,7 @@ import { GET } from "./route";
 
 const mocks = vi.hoisted(() => ({
   productFindFirst: vi.fn(),
+  rateLimit: vi.fn(),
 }));
 
 vi.mock("~/lib/prisma", () => ({
@@ -11,6 +12,10 @@ vi.mock("~/lib/prisma", () => ({
       findFirst: mocks.productFindFirst,
     },
   },
+}));
+
+vi.mock("~/lib/rate-limit", () => ({
+  rateLimit: mocks.rateLimit,
 }));
 
 type ProductCategory = {
@@ -27,7 +32,8 @@ type ProductResponse = {
     description: string;
     price: string;
     discountPrice: string | null;
-    stock: number;
+    stock: number | null;
+    isInStock: boolean;
     showStock: boolean;
     images: string[];
     isFeatured: boolean;
@@ -36,7 +42,8 @@ type ProductResponse = {
       id: string;
       sizeLabel: string | null;
       colorLabel: string | null;
-      stock: number;
+      stock: number | null;
+      isInStock: boolean;
       sortOrder: number;
     }>;
     category: ProductCategory;
@@ -75,11 +82,21 @@ describe("GET /api/products/[slug]", () => {
     discountPrice: {
       toString: () => "79.99",
     },
-    stock: 10,
     showStock: false,
+    _count: {
+      variants: 1,
+    },
     images: ["https://res.cloudinary.com/demo/image/upload/test.jpg"],
     isFeatured: true,
-    variants: [],
+    variants: [
+      {
+        id: "variant-1",
+        sizeLabel: "M",
+        colorLabel: "Black",
+        stock: 5,
+        sortOrder: 0,
+      },
+    ],
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     category,
   };
@@ -87,9 +104,63 @@ describe("GET /api/products/[slug]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.productFindFirst.mockResolvedValue(product);
+    mocks.rateLimit.mockResolvedValue({ ok: true });
   });
 
   it("returns product by slug", async () => {
+    const request = createRequest("/api/products/test-product");
+    const response = await GET(request, createSlugParams("test-product"));
+    const body = (await response.json()) as ProductResponse;
+
+    expect(response.status).toBe(200);
+    expect(mocks.rateLimit).toHaveBeenCalledWith(request, "publicRead");
+    expect(body.product.name).toBe("Test Product");
+    expect(body.product.slug).toBe("test-product");
+    expect(body.product.price).toBe("99.99");
+    expect(body.product.discountPrice).toBe("79.99");
+    expect(body.product.stock).toBeNull();
+    expect(body.product.isInStock).toBe(true);
+    expect(body.product.variants[0]?.stock).toBeNull();
+    expect(body.product.variants[0]?.isInStock).toBe(true);
+    expect(body.product.showStock).toBe(false);
+    expect(body.product.hasVariants).toBe(true);
+  });
+
+  it("returns 429 when the public read rate limit is exceeded", async () => {
+    mocks.rateLimit.mockResolvedValue({
+      ok: false,
+      response: Response.json(
+        { message: "Too many requests." },
+        { status: 429 },
+      ),
+    });
+
+    const response = await GET(
+      createRequest("/api/products/test-product"),
+      createSlugParams("test-product"),
+    );
+    const body = (await response.json()) as ErrorResponse;
+
+    expect(response.status).toBe(429);
+    expect(body.message).toBe("Too many requests.");
+    expect(mocks.productFindFirst).not.toHaveBeenCalled();
+  });
+
+  it("returns exact option stock only when stock visibility is enabled", async () => {
+    mocks.productFindFirst.mockResolvedValue({
+      ...product,
+      showStock: true,
+      variants: [
+        {
+          id: "variant-1",
+          sizeLabel: "M",
+          colorLabel: "Black",
+          stock: 5,
+          sortOrder: 0,
+        },
+      ],
+    });
+
     const response = await GET(
       createRequest("/api/products/test-product"),
       createSlugParams("test-product"),
@@ -97,12 +168,8 @@ describe("GET /api/products/[slug]", () => {
     const body = (await response.json()) as ProductResponse;
 
     expect(response.status).toBe(200);
-    expect(body.product.name).toBe("Test Product");
-    expect(body.product.slug).toBe("test-product");
-    expect(body.product.price).toBe("99.99");
-    expect(body.product.discountPrice).toBe("79.99");
-    expect(body.product.showStock).toBe(false);
-    expect(body.product.hasVariants).toBe(false);
+    expect(body.product.stock).toBe(5);
+    expect(body.product.variants[0]?.stock).toBe(5);
   });
 
   it("only returns non-archived product with matching slug", async () => {
@@ -120,6 +187,7 @@ describe("GET /api/products/[slug]", () => {
         select: expect.objectContaining({
           discountPrice: true,
           showStock: true,
+          _count: expect.any(Object),
           variants: expect.any(Object),
         }),
       }),

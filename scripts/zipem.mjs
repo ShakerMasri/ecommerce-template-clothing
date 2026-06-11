@@ -8,51 +8,36 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  "prisma/schema.prisma",
-  "prisma/migrations/20260524010000_add_order_stock_deducted_marker/migration.sql",
-  "prisma/migrations/20260611010000_add_product_variants/migration.sql",
-  "prisma/migrations/20260611020000_add_customer_variant_ordering/migration.sql",
+  "README.md",
+  "TESTING_GUIDE.md",
+
+  "src/app/api/products/route.ts",
+  "src/app/api/products/products.test.ts",
+  "src/app/api/products/[slug]/route.ts",
+  "src/app/api/products/[slug]/route.test.ts",
 
   "src/app/api/orders/route.ts",
   "src/app/api/orders/route.test.ts",
+  "src/app/orders/page.tsx",
+  "src/components/orders/OrdersClient.tsx",
 
-  "src/app/api/admin/orders/route.ts",
-  "src/app/api/admin/orders/route.test.ts",
-
-  "src/app/api/admin/orders/[id]/route.ts",
-  "src/app/api/admin/orders/[id]/route.test.ts",
-
-  "src/app/api/admin/orders/[id]/status/route.ts",
-  "src/app/api/admin/orders/[id]/status/route.test.ts",
+  "src/lib/rate-limit.ts",
+  "src/lib/rate-limit.test.ts",
+  "src/lib/csrf.ts",
+  "src/lib/csrf.test.ts",
+  "src/lib/logger.ts",
 
   "src/server/validations/order.ts",
   "src/server/validations/order.test.ts",
-  "src/server/validations/admin-order.ts",
-  "src/server/validations/admin-order.test.ts",
-  "src/server/validations/cart.ts",
-  "src/server/validations/cart.test.ts",
-
-  "src/server/pricing.ts",
-  "src/server/pricing.test.ts",
-
-  "src/lib/csrf.ts",
-  "src/lib/admin.ts",
-  "src/lib/logger.ts",
-  "src/server/db.ts",
-
-  "src/components/admin/AdminOrdersClient.tsx",
-  "src/components/orders/OrdersClient.tsx",
 
   "tests/e2e/customer-order.e2e.ts",
-  "tests/e2e/customer-cart.e2e.ts",
-  "tests/e2e/helpers/cart.ts",
+  "tests/e2e/customer-product-display.e2e.ts",
   "tests/e2e/helpers/products.ts",
 
-  "docs/product-variants-plan.md",
   "docs/product-variants-design-contract.md",
+  "docs/product-variants-plan.md",
+  "docs/product-variants-readiness-audit.md",
   "docs/production-readiness-checklist.md",
-  "README.md",
-  "package.json",
 ];
 
 function fail(message) {

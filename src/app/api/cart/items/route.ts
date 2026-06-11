@@ -91,7 +91,6 @@ export async function POST(request: Request) {
         },
         select: {
           id: true,
-          stock: true,
           isArchived: true,
           variants: {
             where: {
@@ -109,24 +108,19 @@ export async function POST(request: Request) {
         throw new Error("PRODUCT_NOT_AVAILABLE");
       }
 
-      const hasActiveVariants = product.variants.length > 0;
-      const selectedVariant = productVariantId
-        ? product.variants.find((variant) => variant.id === productVariantId)
-        : null;
-
-      if (hasActiveVariants && !productVariantId) {
+      if (!productVariantId) {
         throw new Error("VARIANT_REQUIRED");
       }
 
-      if (!hasActiveVariants && productVariantId) {
-        throw new Error("VARIANT_NOT_ALLOWED");
-      }
+      const selectedVariant = product.variants.find(
+        (variant) => variant.id === productVariantId,
+      );
 
-      if (hasActiveVariants && !selectedVariant) {
+      if (!selectedVariant) {
         throw new Error("VARIANT_NOT_AVAILABLE");
       }
 
-      const availableStock = selectedVariant?.stock ?? product.stock;
+      const availableStock = selectedVariant.stock;
 
       if (quantity > availableStock) {
         throw new Error("INSUFFICIENT_STOCK");

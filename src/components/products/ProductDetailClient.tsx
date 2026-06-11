@@ -10,7 +10,8 @@ type ProductVariant = {
   id: string;
   sizeLabel: string | null;
   colorLabel: string | null;
-  stock: number;
+  stock: number | null;
+  isInStock: boolean;
   sortOrder: number;
 };
 
@@ -21,7 +22,8 @@ type Product = {
   description: string | null;
   price: string;
   discountPrice: string | null;
-  stock: number;
+  stock: number | null;
+  isInStock: boolean;
   showStock: boolean;
   images: string[];
   isFeatured: boolean;
@@ -163,9 +165,13 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
   const selectedVariant = product.variants.find(
     (variant) => variant.id === selectedVariantId,
   );
-  const selectedStock =
-    selectedVariant?.stock ?? (product.hasVariants ? 0 : product.stock);
-  const isOutOfStock = product.stock <= 0;
+  const selectedStock = selectedVariant?.stock ?? product.stock;
+  const selectedIsInStock = selectedVariant
+    ? selectedVariant.isInStock
+    : product.hasVariants
+      ? false
+      : product.isInStock;
+  const isOutOfStock = !product.isInStock;
   const hasDiscount = product.discountPrice !== null;
   const selectedImageIndex = selectedImage
     ? product.images.findIndex((image) => image === selectedImage)
@@ -289,7 +295,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                 </span>
               ) : (
                 <span className="rounded-full bg-green-50 px-3 py-1 text-sm font-semibold text-green-700 dark:bg-green-950 dark:text-green-300">
-                  {product.showStock
+                  {product.showStock && (selectedVariant ? selectedStock : product.stock) !== null
                     ? `${selectedVariant ? selectedStock : product.stock} ${t.products.inStock}`
                     : t.products.inStock}
                 </span>
@@ -317,7 +323,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                 <div className="mt-3 flex flex-wrap gap-2">
                   {product.variants.map((variant) => {
                     const isSelected = selectedVariantId === variant.id;
-                    const isVariantOutOfStock = variant.stock <= 0;
+                    const isVariantOutOfStock = !variant.isInStock;
 
                     return (
                       <button
@@ -341,7 +347,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                 {selectedVariant ? (
                   <p className="mt-3 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
                     Selected: {formatVariantLabel(selectedVariant)}
-                    {product.showStock
+                    {product.showStock && selectedVariant.stock !== null
                       ? ` · ${selectedVariant.stock} available`
                       : ""}
                   </p>
@@ -358,6 +364,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                 productId={product.id}
                 productVariantId={selectedVariant?.id ?? null}
                 stock={selectedStock}
+                isInStock={selectedIsInStock}
                 disabledReason={
                   product.hasVariants && !selectedVariant
                     ? variantSelectionMessage

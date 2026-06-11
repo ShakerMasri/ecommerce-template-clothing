@@ -8,7 +8,8 @@ type ProductCardProps = {
     slug: string;
     price: string;
     discountPrice: string | null;
-    stock: number;
+    stock: number | null;
+    isInStock?: boolean;
     showStock: boolean;
     images: string[];
     isFeatured?: boolean;
@@ -39,8 +40,11 @@ function getDisplayPrice(product: ProductCardProps["product"]) {
 
 export function ProductCard({ product, labels }: ProductCardProps) {
   const mainImage = product.images.at(0);
-  const isOutOfStock = product.stock <= 0;
-  const shouldShowStockCount = product.showStock;
+  const isOutOfStock =
+    product.isInStock === undefined
+      ? (product.stock ?? 0) <= 0
+      : !product.isInStock;
+  const shouldShowStockCount = product.showStock && product.stock !== null;
   const hasDiscount = product.discountPrice !== null;
 
   return (

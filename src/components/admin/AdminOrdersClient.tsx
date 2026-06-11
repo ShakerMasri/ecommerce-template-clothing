@@ -26,7 +26,6 @@ type OrderItem = {
   productVariantId: string | null;
   selectedSizeLabel: string | null;
   selectedColorLabel: string | null;
-  selectedSku: string | null;
 };
 
 type AdminOrderSummary = {

@@ -109,6 +109,21 @@ describe("rateLimit", () => {
     );
   });
 
+  it("creates a light public read limiter", async () => {
+    const { ratelimitConstructor, slidingWindowMock } = await loadRateLimit({
+      UPSTASH_REDIS_REST_URL: "https://example-upstash.com",
+      UPSTASH_REDIS_REST_TOKEN: "test-token",
+    });
+
+    expect(slidingWindowMock).toHaveBeenCalledWith(300, "1 m");
+    expect(ratelimitConstructor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        analytics: true,
+        prefix: "ecommerce-template:rate-limit:public-read",
+      }),
+    );
+  });
+
   it("allows requests when Upstash limiter succeeds", async () => {
     const limitMock = vi.fn().mockResolvedValue({
       success: true,
