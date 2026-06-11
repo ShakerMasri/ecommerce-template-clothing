@@ -187,3 +187,17 @@ Still not implemented after this checkpoint:
 - variant-aware cancellation/restock behavior
 
 Do not advertise customer-facing size/color ordering until the cart, order, stock-confirmation, and E2E checkpoints are complete.
+
+
+## Admin Variant Edit Panel Cleanup
+
+Variant editing should live inside the selected product edit panel, not inside every product card in the paginated list. The product list should stay lightweight for searching, filtering, archiving/restoring, and quick product-level stock updates during the transition period.
+
+This checkpoint keeps variants admin-only but improves the admin mental model:
+
+- click **Edit** on a product before managing its variants
+- show current `Product.stock` as the stock source still used by checkout today
+- show active variant stock total as the future clothing inventory summary
+- do not auto-sync `Product.stock` from variants yet because cart/order/admin confirmation are not variant-aware
+
+Final clothing variant behavior should use the sum of active variant stock as the displayed product stock summary for variant-enabled products, while stock deduction happens on the selected `ProductVariant`. That should happen only after cart rows, order snapshots, checkout validation, and admin confirmation all store/use `productVariantId`.
