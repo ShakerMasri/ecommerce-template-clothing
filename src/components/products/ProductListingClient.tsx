@@ -22,6 +22,7 @@ type Product = {
   showStock: boolean;
   images: string[];
   isFeatured: boolean;
+  hasVariants: boolean;
   category: Category;
 };
 

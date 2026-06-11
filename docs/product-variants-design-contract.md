@@ -568,3 +568,19 @@ Final accepted direction:
 - variant-enabled products should display stock from the sum of active variants
 - checkout must validate and reserve/deduct against `ProductVariant.stock` through the reviewed admin-confirmation flow
 - product-level stock should be hidden or treated as legacy/simple-product stock once variant checkout is complete
+
+## Implemented customer ordering contract
+
+The customer ordering flow follows this contract:
+
+1. Public product APIs expose only customer-safe active variant data needed for selection.
+2. A product with one or more active variants cannot be added to cart without `productVariantId`.
+3. A product with no active variants must be added as a simple product without `productVariantId`.
+4. The server verifies that the selected variant belongs to the submitted product and is active.
+5. Cart uniqueness uses `userId + cartLineKey` instead of `userId + productId`, so multiple sizes/colors of the same product can exist as separate cart lines.
+6. Checkout revalidates product/variant availability and stock server-side before creating the order.
+7. Order items store immutable variant snapshots: selected size label, color label, and SKU.
+8. Admin confirmation deducts from `ProductVariant.stock` when an order item has a variant, otherwise it deducts from `Product.stock`.
+9. Cancelling an already-confirmed order restocks the same inventory source that was deducted.
+
+`Product.stock` remains for simple products and legacy compatibility. For products with active variants, the displayed total stock is derived from active variant stock instead of syncing `Product.stock` in the database.

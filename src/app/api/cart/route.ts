@@ -42,6 +42,16 @@ export async function GET() {
       select: {
         id: true,
         quantity: true,
+        productVariantId: true,
+        productVariant: {
+          select: {
+            id: true,
+            sizeLabel: true,
+            colorLabel: true,
+            stock: true,
+            isActive: true,
+          },
+        },
         product: {
           select: {
             id: true,
@@ -52,6 +62,15 @@ export async function GET() {
             stock: true,
             images: true,
             isArchived: true,
+            variants: {
+              where: {
+                isActive: true,
+              },
+              select: {
+                id: true,
+                stock: true,
+              },
+            },
             category: {
               select: {
                 id: true,
@@ -64,14 +83,49 @@ export async function GET() {
       },
     });
 
-    const safeCartItems = cartItems.map((item) => ({
-      ...item,
-      product: {
-        ...item.product,
-        price: item.product.price.toString(),
-        discountPrice: item.product.discountPrice?.toString() ?? null,
-      },
-    }));
+    const safeCartItems = cartItems.map((item) => {
+      const hasActiveVariants = item.product.variants.length > 0;
+      const variantStock = item.product.variants.reduce(
+        (sum, variant) => sum + variant.stock,
+        0,
+      );
+      const selectedVariant = item.productVariant?.isActive
+        ? item.productVariant
+        : null;
+      const availableStock = selectedVariant
+        ? selectedVariant.stock
+        : hasActiveVariants
+          ? 0
+          : item.product.stock;
+
+      return {
+        id: item.id,
+        quantity: item.quantity,
+        productVariantId: item.productVariantId,
+        productVariant: selectedVariant
+          ? {
+              id: selectedVariant.id,
+              sizeLabel: selectedVariant.sizeLabel,
+              colorLabel: selectedVariant.colorLabel,
+              stock: selectedVariant.stock,
+              isActive: selectedVariant.isActive,
+            }
+          : null,
+        availableStock,
+        product: {
+          id: item.product.id,
+          name: item.product.name,
+          slug: item.product.slug,
+          price: item.product.price.toString(),
+          discountPrice: item.product.discountPrice?.toString() ?? null,
+          stock: hasActiveVariants ? variantStock : item.product.stock,
+          images: item.product.images,
+          isArchived: item.product.isArchived,
+          hasVariants: hasActiveVariants,
+          category: item.product.category,
+        },
+      };
+    });
 
     return NextResponse.json({ cartItems: safeCartItems, customer });
   } catch {

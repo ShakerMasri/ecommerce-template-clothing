@@ -14,6 +14,10 @@ type OrderItem = {
   productNameAtPurchase: string;
   productSlugAtPurchase: string;
   productImagesAtPurchase: string[];
+  productVariantId: string | null;
+  selectedSizeLabel: string | null;
+  selectedColorLabel: string | null;
+  selectedSku: string | null;
 };
 
 type Order = {
@@ -70,6 +74,12 @@ function formatFallbackLabel(value: string) {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function getVariantSnapshotLabel(item: OrderItem) {
+  return [item.selectedSizeLabel, item.selectedColorLabel]
+    .filter(Boolean)
+    .join(" / ");
 }
 
 export function OrdersClient() {
@@ -491,6 +501,12 @@ export function OrdersClient() {
                         >
                           {item.productNameAtPurchase}
                         </Link>
+
+                        {getVariantSnapshotLabel(item) ? (
+                          <p className="mt-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                            {getVariantSnapshotLabel(item)}
+                          </p>
+                        ) : null}
 
                         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                           {t.orders.quantity}: {item.quantity} ×{" "}

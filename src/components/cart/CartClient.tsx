@@ -21,6 +21,7 @@ type CartProduct = {
   stock: number;
   images: string[];
   isArchived: boolean;
+  hasVariants: boolean;
   category: {
     id: string;
     name: string;
@@ -28,9 +29,20 @@ type CartProduct = {
   };
 };
 
+type CartVariant = {
+  id: string;
+  sizeLabel: string | null;
+  colorLabel: string | null;
+  stock: number;
+  isActive: boolean;
+};
+
 type CartItem = {
   id: string;
   quantity: number;
+  productVariantId: string | null;
+  productVariant: CartVariant | null;
+  availableStock: number;
   product: CartProduct;
 };
 
@@ -55,6 +67,10 @@ type OrderItem = {
   productNameAtPurchase: string;
   productSlugAtPurchase: string;
   productImagesAtPurchase: string[];
+  productVariantId: string | null;
+  selectedSizeLabel: string | null;
+  selectedColorLabel: string | null;
+  selectedSku: string | null;
 };
 
 type Order = {
@@ -106,6 +122,16 @@ function hasCartDiscount(product: CartProduct) {
   return product.discountPrice !== null;
 }
 
+function formatVariantLabel(variant: CartVariant | null) {
+  if (!variant) {
+    return null;
+  }
+
+  const label = [variant.sizeLabel, variant.colorLabel].filter(Boolean).join(" / ");
+
+  return label || null;
+}
+
 export function CartClient() {
   const { t } = useAppPreferences();
 
@@ -146,8 +172,8 @@ export function CartClient() {
   const hasUnavailableItems = cartItems.some((item) => {
     return (
       item.product.isArchived ||
-      item.product.stock <= 0 ||
-      item.quantity > item.product.stock
+      item.availableStock <= 0 ||
+      item.quantity > item.availableStock
     );
   });
 
@@ -607,8 +633,9 @@ export function CartClient() {
           {cartItems.map((item) => {
             const image = item.product.images.at(0);
             const isArchived = item.product.isArchived;
-            const isOutOfStock = item.product.stock <= 0;
-            const exceedsStock = item.quantity > item.product.stock;
+            const isOutOfStock = item.availableStock <= 0;
+            const exceedsStock = item.quantity > item.availableStock;
+            const variantLabel = formatVariantLabel(item.productVariant);
             const isUnavailable = isArchived || isOutOfStock || exceedsStock;
             const isUpdating = updatingItemId === item.id;
             const isRemoving = removingItemId === item.id;
@@ -654,6 +681,12 @@ export function CartClient() {
                           {item.product.name}
                         </Link>
 
+                        {variantLabel ? (
+                          <p className="mt-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                            {variantLabel}
+                          </p>
+                        ) : null}
+
                         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
                           <span className="font-semibold text-zinc-700 dark:text-zinc-200">
                             {formatPrice(itemUnitPrice, t.delivery.currency)}
@@ -687,7 +720,7 @@ export function CartClient() {
                             ? t.cart.productOutOfStock
                             : t.cart.onlyLeft.replace(
                                 "{stock}",
-                                String(item.product.stock),
+                                String(item.availableStock),
                               )}
                       </p>
                     )}
@@ -715,7 +748,7 @@ export function CartClient() {
                         <button
                           type="button"
                           disabled={
-                            item.quantity >= item.product.stock ||
+                            item.quantity >= item.availableStock ||
                             isArchived ||
                             isOutOfStock ||
                             isUpdating ||

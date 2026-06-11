@@ -12,6 +12,7 @@ type ProductCardProps = {
     showStock: boolean;
     images: string[];
     isFeatured?: boolean;
+    hasVariants?: boolean;
     category: {
       id: string;
       name: string;

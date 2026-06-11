@@ -122,6 +122,8 @@ describe("customer order route", () => {
         id: "cart-item-1",
         quantity: 2,
         productId: "product-1",
+        productVariantId: null,
+        productVariant: null,
         product: {
           id: "product-1",
           name: "Figure",
@@ -131,6 +133,7 @@ describe("customer order route", () => {
           stock: 5,
           images: ["https://example.com/image.jpg"],
           isArchived: false,
+          variants: [],
         },
       },
     ]);
@@ -157,6 +160,10 @@ describe("customer order route", () => {
           productNameAtPurchase: "Figure",
           productSlugAtPurchase: "figure",
           productImagesAtPurchase: ["https://example.com/image.jpg"],
+          productVariantId: null,
+          selectedSizeLabel: null,
+          selectedColorLabel: null,
+          selectedSku: null,
         },
       ],
     });
@@ -185,9 +192,13 @@ describe("customer order route", () => {
             create: [
               expect.objectContaining({
                 productId: "product-1",
+                productVariantId: null,
                 quantity: 2,
                 priceAtPurchase: new Prisma.Decimal("40.00"),
                 subtotalAmount: new Prisma.Decimal("80.00"),
+                selectedSizeLabel: null,
+                selectedColorLabel: null,
+                selectedSku: null,
               }),
             ],
           }),
@@ -199,6 +210,88 @@ describe("customer order route", () => {
 
     expect(createPayload?.data.deliveryPrice.toString()).toBe("20");
     expect(createPayload?.data.totalAmount.toString()).toBe("100");
+  });
+
+  it("snapshots selected variant details for variant cart items", async () => {
+    mocks.tx.cartItem.findMany.mockResolvedValue([
+      {
+        id: "cart-item-1",
+        quantity: 2,
+        productId: "product-1",
+        productVariantId: "variant-1",
+        productVariant: {
+          id: "variant-1",
+          productId: "product-1",
+          sizeLabel: "M",
+          colorLabel: "Black",
+          sku: "shirt-black-m",
+          stock: 5,
+          isActive: true,
+        },
+        product: {
+          id: "product-1",
+          name: "Classic cotton t-shirt",
+          slug: "classic-cotton-t-shirt",
+          price: new Prisma.Decimal("50.00"),
+          discountPrice: new Prisma.Decimal("40.00"),
+          stock: 0,
+          images: ["https://example.com/image.jpg"],
+          isArchived: false,
+          variants: [{ id: "variant-1" }],
+        },
+      },
+    ]);
+
+    const response = await POST(createRequest(createOrderInput()));
+
+    expect(response.status).toBe(200);
+    expect(mocks.tx.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          items: expect.objectContaining({
+            create: [
+              expect.objectContaining({
+                productId: "product-1",
+                productVariantId: "variant-1",
+                selectedSizeLabel: "M",
+                selectedColorLabel: "Black",
+                selectedSku: "shirt-black-m",
+              }),
+            ],
+          }),
+        }),
+      }),
+    );
+  });
+
+  it("requires a variant when the product has active variants", async () => {
+    mocks.tx.cartItem.findMany.mockResolvedValue([
+      {
+        id: "cart-item-1",
+        quantity: 1,
+        productId: "product-1",
+        productVariantId: null,
+        productVariant: null,
+        product: {
+          id: "product-1",
+          name: "Classic cotton t-shirt",
+          slug: "classic-cotton-t-shirt",
+          price: new Prisma.Decimal("50.00"),
+          discountPrice: null,
+          stock: 10,
+          images: [],
+          isArchived: false,
+          variants: [{ id: "variant-1" }],
+        },
+      },
+    ]);
+
+    const response = await POST(createRequest(createOrderInput()));
+    const body = (await response.json()) as { message: string };
+
+    expect(response.status).toBe(400);
+    expect(body.message).toContain("selected size or color");
+    expect(mocks.tx.order.create).not.toHaveBeenCalled();
   });
 
   it("rejects client-supplied delivery prices", async () => {

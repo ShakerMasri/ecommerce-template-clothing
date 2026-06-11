@@ -107,6 +107,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           items: {
             select: {
               productId: true,
+              productVariantId: true,
               quantity: true,
             },
           },
@@ -140,6 +141,29 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
       if (isAdminConfirmation && !order.stockDeductedAt) {
         for (const item of order.items) {
+          if (item.productVariantId) {
+            const updateVariantResult = await tx.productVariant.updateMany({
+              where: {
+                id: item.productVariantId,
+                isActive: true,
+                stock: {
+                  gte: item.quantity,
+                },
+              },
+              data: {
+                stock: {
+                  decrement: item.quantity,
+                },
+              },
+            });
+
+            if (updateVariantResult.count !== 1) {
+              throw new Error("INSUFFICIENT_STOCK");
+            }
+
+            continue;
+          }
+
           if (!item.productId) {
             throw new Error("PRODUCT_LINK_MISSING");
           }
@@ -186,6 +210,21 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
         if (nextStatus === OrderStatus.CANCELLED && order.stockDeductedAt) {
           for (const item of order.items) {
+            if (item.productVariantId) {
+              await tx.productVariant.updateMany({
+                where: {
+                  id: item.productVariantId,
+                },
+                data: {
+                  stock: {
+                    increment: item.quantity,
+                  },
+                },
+              });
+
+              continue;
+            }
+
             if (!item.productId) {
               continue;
             }

@@ -31,6 +31,14 @@ type ProductResponse = {
     showStock: boolean;
     images: string[];
     isFeatured: boolean;
+    hasVariants: boolean;
+    variants: Array<{
+      id: string;
+      sizeLabel: string | null;
+      colorLabel: string | null;
+      stock: number;
+      sortOrder: number;
+    }>;
     category: ProductCategory;
   };
 };
@@ -71,6 +79,7 @@ describe("GET /api/products/[slug]", () => {
     showStock: false,
     images: ["https://res.cloudinary.com/demo/image/upload/test.jpg"],
     isFeatured: true,
+    variants: [],
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     category,
   };
@@ -93,6 +102,7 @@ describe("GET /api/products/[slug]", () => {
     expect(body.product.price).toBe("99.99");
     expect(body.product.discountPrice).toBe("79.99");
     expect(body.product.showStock).toBe(false);
+    expect(body.product.hasVariants).toBe(false);
   });
 
   it("only returns non-archived product with matching slug", async () => {
@@ -110,6 +120,7 @@ describe("GET /api/products/[slug]", () => {
         select: expect.objectContaining({
           discountPrice: true,
           showStock: true,
+          variants: expect.any(Object),
         }),
       }),
     );
