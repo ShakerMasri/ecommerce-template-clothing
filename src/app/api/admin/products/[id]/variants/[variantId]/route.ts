@@ -24,7 +24,6 @@ const adminProductVariantSelect = {
   colorLabel: true,
   sizeKey: true,
   colorKey: true,
-  sku: true,
   stock: true,
   isActive: true,
   sortOrder: true,
@@ -48,17 +47,7 @@ function notFoundResponse() {
   return NextResponse.json({ message: "Not found." }, { status: 404 });
 }
 
-function getUniqueVariantError(
-  error: Prisma.PrismaClientKnownRequestError,
-): Record<string, string[]> {
-  const target = Array.isArray(error.meta?.target)
-    ? error.meta.target.join(",")
-    : "";
-
-  if (target.includes("sku")) {
-    return { sku: ["This SKU is already used."] };
-  }
-
+function getUniqueVariantError(): Record<string, string[]> {
   return {
     _form: ["This product already has a variant with the same size and color."],
   };
@@ -168,7 +157,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           message: "Invalid input.",
-          errors: getUniqueVariantError(error),
+          errors: getUniqueVariantError(),
         },
         { status: 400 },
       );

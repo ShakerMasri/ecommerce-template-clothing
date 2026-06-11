@@ -44,7 +44,6 @@ const adminOrderDetailSelect = {
       productVariantId: true,
       selectedSizeLabel: true,
       selectedColorLabel: true,
-      selectedSku: true,
     },
     orderBy: {
       id: "asc",

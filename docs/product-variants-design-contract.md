@@ -43,7 +43,7 @@ The current code is safe for simple products, but it is product-level:
 - `Product.stock` is the only stock source.
 - `CartItem` is unique by `userId + productId`.
 - `OrderItem` snapshots product name, slug, image list, unit price, and subtotal.
-- `OrderItem` does not snapshot size, color, SKU, or variant label.
+- `OrderItem` does not snapshot size, color, or variant label.
 - Checkout reservation deducts `Product.stock` for simple products.
 - Cancelling an order restores the same stock source exactly once when stock was reserved.
 
@@ -74,7 +74,6 @@ model ProductVariant {
   sizeKey  String @default("") @db.VarChar(40)
   colorKey String @default("") @db.VarChar(80)
 
-  sku       String? @unique @db.VarChar(80)
   stock     Int     @default(0)
   isActive  Boolean @default(true)
   sortOrder Int     @default(0)
@@ -123,7 +122,6 @@ model OrderItem {
   variantLabelAtPurchase String?
   sizeLabelAtPurchase    String?
   colorLabelAtPurchase   String?
-  skuAtPurchase          String?
 }
 ```
 
@@ -266,7 +264,6 @@ Cart APIs and UI must display the selected variant details:
 Product name
 Size label
 Color label
-SKU, if present and useful for admin/customer support
 Quantity
 Server-calculated unit price
 Line subtotal
@@ -301,7 +298,6 @@ productImagesAtPurchase
 variantLabelAtPurchase
 sizeLabelAtPurchase
 colorLabelAtPurchase
-skuAtPurchase
 priceAtPurchase
 subtotalAmount
 quantity
@@ -367,7 +363,6 @@ Recommended v1 admin fields per variant:
 ```txt
 Size label
 Color label
-SKU, optional
 Stock
 Active/inactive
 Sort order, optional or hidden initially
@@ -379,7 +374,6 @@ Admin validation rules:
 - variant stock must be a non-negative integer
 - at least one label or a generated default variant should exist for purchasable products
 - no duplicate size/color combination for the same product
-- SKU must be unique when provided
 - inactive variants cannot be added to cart
 - archived products make all variants unavailable for customers
 
@@ -458,7 +452,7 @@ Add tests for:
 - two variants of the same product can exist as separate cart lines
 - cart quantity update validates variant stock
 - checkout rejects stale inactive/missing variant
-- checkout snapshots size/color/SKU labels
+- checkout snapshots size/color labels
 - checkout total still uses server-calculated product effective price
 - customer order response includes selected variant snapshot
 - checkout reservation decrements variant stock once
@@ -544,7 +538,7 @@ Security requirements for this checkpoint:
 - the API validates product IDs and variant IDs server-side
 - variant update/deactivate routes must confirm the variant belongs to the route product before changing it
 - `DELETE` should soft-deactivate variants by setting `isActive=false`; do not hard-delete variants because future cart/order rows may reference them
-- duplicate size/color combinations and duplicate SKUs must return safe validation errors, not raw Prisma errors
+- duplicate size/color combinations must return safe validation errors, not raw Prisma errors
 
 User-facing boundary:
 
@@ -590,7 +584,7 @@ The customer ordering flow follows this contract:
 4. The server verifies that the selected variant belongs to the submitted product and is active.
 5. Cart uniqueness uses `userId + cartLineKey` instead of `userId + productId`, so multiple sizes/colors of the same product can exist as separate cart lines.
 6. Checkout revalidates product/variant availability and stock server-side before creating the order.
-7. Order items store immutable variant snapshots: selected size label, color label, and SKU.
+7. Order items store immutable variant snapshots: selected size label and color label.
 8. Checkout reservation deducts from `ProductVariant.stock` when an order item has a variant, otherwise it deducts from `Product.stock`.
 9. Cancelling a reserved order restocks the same inventory source that was deducted exactly once.
 

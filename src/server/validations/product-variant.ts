@@ -66,26 +66,10 @@ export function normalizeVariantKey(value: string | null | undefined) {
     .slice(0, 80);
 }
 
-const skuSchema = z
-  .preprocess((value) => {
-    if (value === undefined || value === null) {
-      return null;
-    }
-
-    if (typeof value !== "string") {
-      return value;
-    }
-
-    const trimmed = value.trim();
-
-    return trimmed.length > 0 ? trimmed : null;
-  }, z.string().max(80, "SKU is too long.").regex(/^[A-Za-z0-9._-]+$/, "SKU can use letters, numbers, dots, underscores, and hyphens only.").nullable())
-  .default(null);
 
 const variantInputBaseSchema = z.object({
   sizeLabel: nullableTrimmedString(40, "Size label"),
   colorLabel: nullableTrimmedString(80, "Color label"),
-  sku: skuSchema,
   stock: nonNegativeInteger("Stock"),
   isActive: optionalBoolean,
   sortOrder: sortOrderSchema,

@@ -66,7 +66,7 @@ Completed:
 - Admin product variant management inside the product edit panel
 - Customer product pages can require selecting size/color variants when a product has active variants
 - Cart rows can distinguish the same product with different selected variants
-- Order items can snapshot selected size/color and internal SKU details for historical accuracy
+- Order items can snapshot selected size/color details for historical accuracy
 - Variant-aware checkout reservation deducts `ProductVariant.stock` for variant order items while simple products still use `Product.stock`
 
 Not started yet:
@@ -135,7 +135,7 @@ Planned next checkpoints:
 - Manage product-level stock for simple products
 - Choose whether customers can see exact stock counts per product
 - Manage product variants for clothing size/color combinations inside the product edit panel
-- Manage variant-level stock and internal/admin SKU values
+- Manage variant-level stock for size/color options
 - Add optional product discount prices
 - Manage categories
 - Filter, sort, and paginate admin categories server-side
@@ -728,7 +728,7 @@ Important production rules:
 - [ ] Public product listing works.
 - [ ] Public product details work.
 - [ ] Product stock count visibility follows the admin product setting.
-- [ ] Variant products show selectable size/color choices and hide internal SKU from customers.
+- [ ] Variant products show selectable size/color choices without exposing internal inventory-only fields to customers.
 - [ ] Out-of-stock or inactive variants cannot be ordered.
 - [ ] The same product with different selected variants creates separate cart lines.
 - [ ] Discounted products show old and new prices correctly.
@@ -740,7 +740,7 @@ Important production rules:
 - [ ] Checkout creates a pending order and reserves stock immediately.
 - [ ] Admin confirmation approves the order without deducting stock again.
 - [ ] Checkout/order item price snapshots use the server-calculated effective product price.
-- [ ] Order items snapshot selected size/color and internal SKU for variant orders.
+- [ ] Order items snapshot selected size/color for variant orders.
 - [ ] Customer sees the WhatsApp/phone confirmation message after placing an order.
 - [ ] Admin can confirm a pending order without changing stock again.
 - [ ] Checkout fails clearly if stock is no longer enough.
@@ -900,13 +900,12 @@ Implemented:
 - Customer product pages can require variant selection for products with active variants.
 - Cart rows can identify the selected variant, so the same product can appear as separate size/color lines.
 - Checkout validates product/variant availability server-side.
-- Order items snapshot selected size/color and internal SKU values so historical orders remain accurate after variant edits.
+- Order items snapshot selected size/color values so historical orders remain accurate after variant edits.
 - Checkout-time reservation deducts from `ProductVariant.stock` for variant order items and `Product.stock` for simple products.
 
 Customer-facing rule:
 
-- Customers should see size/color and availability, not internal SKU values.
-- SKU is an admin/internal inventory field for management, packing, auditing, and historical snapshots.
+- Customers should see size/color and availability. Barcode-style inventory workflows are intentionally out of scope for this template right now.
 
 Stock-source rule:
 

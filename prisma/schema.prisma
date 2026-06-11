@@ -153,8 +153,7 @@ model Product {
 
 // ─── Product Variant ─────────────────────────────────────────────────────────
 // Clothing variant inventory.
-// Active variants are the stock source for variant products; Product.stock
-// remains the stock source for simple products.
+// Active variants are the sellable stock source for clothing products.
 
 model ProductVariant {
   id String @id @default(cuid())
@@ -170,7 +169,6 @@ model ProductVariant {
   sizeKey  String @default("") @db.VarChar(40)
   colorKey String @default("") @db.VarChar(80)
 
-  sku       String? @unique @db.VarChar(80)
   stock     Int     @default(0)
   isActive  Boolean @default(true)
   sortOrder Int     @default(0)
@@ -252,7 +250,6 @@ model OrderItem {
 
   selectedSizeLabel  String? @db.VarChar(40)
   selectedColorLabel String? @db.VarChar(80)
-  selectedSku        String? @db.VarChar(80)
 
   @@index([orderId])
   @@index([productId])

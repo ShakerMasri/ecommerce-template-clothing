@@ -21,7 +21,6 @@ type ProductVariant = {
   colorLabel: string | null;
   sizeKey: string;
   colorKey: string;
-  sku: string | null;
   stock: number;
   isActive: boolean;
   sortOrder: number;
@@ -63,7 +62,6 @@ type ProductForm = {
 type VariantForm = {
   sizeLabel: string;
   colorLabel: string;
-  sku: string;
   stock: string;
   isActive: boolean;
   sortOrder: string;
@@ -192,7 +190,6 @@ function getEmptyVariantForm(): VariantForm {
   return {
     sizeLabel: "",
     colorLabel: "",
-    sku: "",
     stock: "0",
     isActive: true,
     sortOrder: "0",
@@ -203,7 +200,6 @@ function variantToForm(variant: ProductVariant): VariantForm {
   return {
     sizeLabel: variant.sizeLabel ?? "",
     colorLabel: variant.colorLabel ?? "",
-    sku: variant.sku ?? "",
     stock: String(variant.stock),
     isActive: variant.isActive,
     sortOrder: String(variant.sortOrder),
@@ -260,7 +256,6 @@ function prepareVariantPayload(form: VariantForm) {
   return {
     sizeLabel: form.sizeLabel,
     colorLabel: form.colorLabel,
-    sku: form.sku,
     stock: form.stock,
     isActive: form.isActive,
     sortOrder: form.sortOrder,
@@ -739,7 +734,7 @@ function VariantManagementSection({
                 key={variant.id}
                 className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
               >
-                <div className="grid gap-3 md:grid-cols-5">
+                <div className="grid gap-3 md:grid-cols-4">
                   <div>
                     <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
                       Size
@@ -776,23 +771,6 @@ function VariantManagementSection({
                     />
                   </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                      SKU
-                    </label>
-                    <input
-                      value={draft.sku}
-                      onChange={(event) =>
-                        onUpdateVariantEditDraft(
-                          variant.id,
-                          "sku",
-                          event.target.value,
-                        )
-                      }
-                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-                      placeholder="TSHIRT-M-BLK"
-                    />
-                  </div>
 
                   <div>
                     <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
@@ -888,7 +866,7 @@ function VariantManagementSection({
           Add variant
         </h4>
 
-        <div className="mt-3 grid gap-3 md:grid-cols-5">
+        <div className="mt-3 grid gap-3 md:grid-cols-4">
           <input
             value={variantDraft.sizeLabel}
             onChange={(event) =>
@@ -907,14 +885,6 @@ function VariantManagementSection({
             placeholder="Color, e.g. Black"
           />
 
-          <input
-            value={variantDraft.sku}
-            onChange={(event) =>
-              onUpdateVariantDraft(product.id, "sku", event.target.value)
-            }
-            className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-            placeholder="Optional SKU"
-          />
 
           <input
             type="number"

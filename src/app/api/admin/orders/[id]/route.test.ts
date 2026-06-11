@@ -80,7 +80,6 @@ describe("admin order detail route", () => {
           productVariantId: "variant-1",
           selectedSizeLabel: "M",
           selectedColorLabel: "Black",
-          selectedSku: "shirt-black-m",
         },
       ],
     });
@@ -96,7 +95,6 @@ describe("admin order detail route", () => {
           productVariantId: string | null;
           selectedSizeLabel: string | null;
           selectedColorLabel: string | null;
-          selectedSku: string | null;
         }>;
       };
     };
@@ -107,7 +105,6 @@ describe("admin order detail route", () => {
       productVariantId: "variant-1",
       selectedSizeLabel: "M",
       selectedColorLabel: "Black",
-      selectedSku: "shirt-black-m",
     });
   });
 

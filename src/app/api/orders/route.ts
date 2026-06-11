@@ -34,7 +34,6 @@ const orderSelect = {
       productVariantId: true,
       selectedSizeLabel: true,
       selectedColorLabel: true,
-      selectedSku: true,
     },
   },
 } satisfies Prisma.OrderSelect;
@@ -207,7 +206,6 @@ export async function POST(request: Request) {
               productId: true,
               sizeLabel: true,
               colorLabel: true,
-              sku: true,
               stock: true,
               isActive: true,
             },
@@ -348,7 +346,6 @@ export async function POST(request: Request) {
                 productImagesAtPurchase: item.product.images,
                 selectedSizeLabel: item.productVariant?.sizeLabel ?? null,
                 selectedColorLabel: item.productVariant?.colorLabel ?? null,
-                selectedSku: item.productVariant?.sku ?? null,
               };
             }),
           },

@@ -10,7 +10,6 @@ describe("product variant validations", () => {
     const result = createProductVariantSchema.safeParse({
       sizeLabel: "  Medium  ",
       colorLabel: " Black / White ",
-      sku: " shirt-m-black ",
       stock: "5",
       sortOrder: "2",
       isActive: true,
@@ -23,7 +22,6 @@ describe("product variant validations", () => {
       expect(result.data.colorLabel).toBe("Black / White");
       expect(result.data.sizeKey).toBe("medium");
       expect(result.data.colorKey).toBe("black-white");
-      expect(result.data.sku).toBe("shirt-m-black");
       expect(result.data.stock).toBe(5);
       expect(result.data.sortOrder).toBe(2);
     }
@@ -49,16 +47,6 @@ describe("product variant validations", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects unsafe SKU characters", () => {
-    const result = createProductVariantSchema.safeParse({
-      sizeLabel: "S",
-      colorLabel: "Black",
-      sku: "sku with spaces",
-      stock: "1",
-    });
-
-    expect(result.success).toBe(false);
-  });
 
   it("allows partial updates and only regenerates submitted keys", () => {
     const result = updateProductVariantSchema.safeParse({
