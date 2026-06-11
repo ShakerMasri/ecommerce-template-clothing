@@ -1,4 +1,4 @@
-# First Client Setup Checklist
+# First Clothing Client Setup Checklist
 
 Use this checklist when turning the reusable ecommerce template into a real store project for the first client.
 
@@ -57,7 +57,7 @@ Why this matters: old orders must remain historically accurate even if delivery 
 - [ ] Replace template favicon/logo with client-owned or original assets.
 - [ ] Use only product photos owned by the client, supplier-approved, original, or properly licensed for commercial use.
 - [ ] Remove demo/test product images before launch.
-- [ ] Do not use copied Instagram images, copyrighted product photos, anime/game artwork, brand logos, posters, or character art unless the client has permission.
+- [ ] Do not use copied Instagram images, copyrighted fashion/model/product photos, brand logos, supplier catalog images, influencer photos, or posters unless the client has permission.
 - [ ] Record asset source/permission notes in `docs/asset-license-notes.md` when needed.
 - [ ] Run the asset reference scan from `docs/asset-license-notes.md` after adding assets.
 

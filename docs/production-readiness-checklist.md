@@ -1,4 +1,4 @@
-# Production Readiness Checklist
+# Production Readiness Checklist - Clothing Ecommerce Template
 
 Use this checklist before the first real client launch and before any major production release.
 
@@ -160,7 +160,7 @@ Verify in production mode with the real provider:
 
 Before client delivery:
 
-- [ ] Product images are owned by the client or licensed for commercial use.
+- [ ] Product/model/fashion images are owned by the client or licensed for commercial use.
 - [ ] Icons, fonts, and other assets are allowed for commercial use.
 - [ ] Dependency license inventory has been reviewed.
 - [ ] Legal/customer policy pages are reviewed by the client or a qualified legal reviewer.

@@ -1,4 +1,4 @@
-# Testing Guide - Ecommerce Template
+# Testing Guide - Clothing Ecommerce Template
 
 Your project uses **Vitest** + **React Testing Library** for unit/component tests and **Playwright** for E2E browser tests.
 
@@ -119,7 +119,10 @@ Current Playwright coverage includes:
 - customer login
 - customer cart add/cleanup
 - customer authenticated pages
-- controlled customer order creation
+- controlled customer order creation with delivery checkout confirmation
+- customer order price snapshot checks using the server-calculated effective product price
+- discounted product display checks
+- customer stock visibility display checks
 - guest auth guard behavior
 - admin read-only pages
 - admin orders read-only API/page behavior
@@ -441,6 +444,9 @@ npm run build
 ---
 
 ## Next Steps
+
+Product variants are not implemented yet. When variants are added later, testing must cover unavailable variants, per-variant stock changes, cart uniqueness by variant, checkout snapshots, and admin authorization.
+
 
 1. Keep Playwright E2E tests staging-safe.
 2. Keep generated reports and auth state ignored.

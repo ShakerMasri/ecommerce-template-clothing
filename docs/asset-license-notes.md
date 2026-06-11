@@ -1,6 +1,6 @@
 # Asset License Notes
 
-This file records asset and media license-review notes for this ecommerce template.
+This file records asset and media license-review notes for this clothing ecommerce template.
 
 This is an engineering audit aid, not legal advice.
 
@@ -92,5 +92,5 @@ Before handing the project to a real client or launching production:
 - Verify the font license and keep proof.
 - Verify every real product image uploaded to Cloudinary.
 - Remove temporary, test, or demo product images.
-- Do not use copyrighted figures, anime/game artwork, product photos, logos, posters, or character art without permission.
+- Do not use copyrighted fashion photos, model photos, product photos, brand logos, posters, supplier catalog images, or influencer/customer photos without permission.
 - Keep source/license notes for all commercial assets.
