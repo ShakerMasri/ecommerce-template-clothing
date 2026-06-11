@@ -59,34 +59,37 @@ Classic cotton t-shirt / White / M
 
 The first migration should be additive and compatibility-first.
 
-Proposed new model:
+Proposed foundation model:
 
 ```prisma
 model ProductVariant {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
+
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  sizeLabel  String?
-  colorLabel String?
-  sku        String?
+  sizeLabel  String? @db.VarChar(40)
+  colorLabel String? @db.VarChar(80)
 
-  stock    Int     @default(0)
-  isActive Boolean @default(true)
-  sortOrder Int    @default(0)
+  sizeKey  String @default("") @db.VarChar(40)
+  colorKey String @default("") @db.VarChar(80)
+
+  sku       String? @unique @db.VarChar(80)
+  stock     Int     @default(0)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cartItems  CartItem[]
-  orderItems OrderItem[]
-
-  @@unique([productId, sizeLabel, colorLabel])
-  @@unique([sku])
+  @@unique([productId, sizeKey, colorKey])
   @@index([productId])
   @@index([isActive])
+  @@index([sortOrder])
 }
 ```
+
+`sizeKey` and `colorKey` are normalized keys used for database uniqueness. They avoid PostgreSQL nullable-unique edge cases where multiple `NULL` labels could otherwise allow duplicate default combinations for the same product. Future admin/API code should generate these keys from the submitted labels.
 
 Recommended `Product` addition:
 
@@ -380,11 +383,13 @@ Admin UX rules:
 
 ## Migration phases
 
-### Phase 1: additive schema
+### Phase 1: additive schema foundation
 
-Add `ProductVariant` and nullable references from `CartItem`/`OrderItem` to `ProductVariant`.
+Add `ProductVariant` and the `Product.variants` relation only.
 
-Do not remove `Product.stock` yet.
+Do not add `CartItem.productVariantId` or `OrderItem.productVariantId` in this first checkpoint. Those fields require coordinated API, UI, stock-confirmation, and snapshot changes.
+
+Do not remove `Product.stock` yet. Runtime behavior should continue using product-level stock until the variant-aware checkpoints are implemented and tested.
 
 ### Phase 2: backfill/default variants
 
@@ -402,9 +407,9 @@ isActive = true
 
 This phase allows existing simple products to keep working while the UI learns variants.
 
-### Phase 3: API compatibility layer
+### Phase 3: cart/order references and API compatibility layer
 
-Update product, cart, checkout, order, and admin status APIs to understand variant rows.
+Add nullable `CartItem.productVariantId` and `OrderItem.productVariantId`, then update product, cart, checkout, order, and admin status APIs to understand variant rows.
 
 For new cart items:
 
@@ -508,7 +513,7 @@ Client handoff docs must explain:
 
 Do not start the migration branch until these are accepted:
 
-- [ ] ProductVariant model direction accepted.
+- [x] ProductVariant foundation model direction accepted.
 - [ ] Product-level pricing for v1 accepted.
 - [ ] Plain size/color labels for v1 accepted.
 - [ ] `CartItem` uniqueness migration strategy accepted.

@@ -1,6 +1,6 @@
 # Product Variants Plan
 
-Product variants are planned for clothing sizes/colors, but they are not implemented yet. This document exists so the feature is designed safely before any Prisma migration, checkout change, or admin UI change.
+Product variants are planned for clothing sizes/colors, but they are not customer-facing yet. This document exists so the feature is designed safely before checkout, cart, order, or admin UI changes.
 
 
 ## Design Contract
@@ -15,9 +15,9 @@ Treat that contract as the source of truth before starting any Prisma migration 
 
 ## Current Status
 
-Current products use product-level stock. A customer adds a product to the cart without choosing a size or color. Orders snapshot product name and effective product price, but they do not snapshot selected size/color because variants do not exist yet.
+Current storefront behavior still uses product-level stock. A customer adds a product to the cart without choosing a size or color. Orders snapshot product name and effective product price, but they do not snapshot selected size/color yet.
 
-Do not advertise size/color variants as supported until this plan is implemented, tested, and reviewed.
+The first implementation checkpoint may add the `ProductVariant` database foundation, but variants must still not be advertised as supported until cart, checkout, order snapshots, admin UI, and tests are implemented and reviewed.
 
 ## Goals
 
@@ -150,14 +150,15 @@ Before a migration:
 ## Recommended Implementation Order
 
 1. Finalize schema design in a PR discussion.
-2. Add Prisma migration and generated client.
-3. Add server validation schemas.
-4. Update product APIs to read variants safely.
-5. Update cart API and cart UI.
-6. Update checkout/order API and snapshots.
-7. Update admin product UI for variants.
-8. Add unit tests.
-9. Add focused E2E tests.
-10. Update handoff docs.
+2. Add the additive `ProductVariant` database foundation only.
+3. Add product API read support for active variants.
+4. Add server validation schemas for variant input.
+5. Update cart API and cart UI to require selected variants where needed.
+6. Update checkout/order API and order item snapshots.
+7. Update admin product UI for variant management.
+8. Update admin confirmation/cancellation stock logic for variants.
+9. Add unit/API tests.
+10. Add focused E2E tests.
+11. Update handoff docs.
 
 Do not combine this with frontend redesign, PWA, payment, POS, or other unrelated features.

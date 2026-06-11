@@ -144,9 +144,44 @@ model Product {
 
   orderItems OrderItem[]
   cartItems  CartItem[]
+  variants   ProductVariant[]
 
   @@index([categoryId])
   @@index([slug])
+}
+
+
+// ─── Product Variant ─────────────────────────────────────────────────────────
+// Additive clothing variant foundation.
+// Runtime cart/order/admin flows still use product-level stock until the
+// variant-aware API/UI checkpoints are implemented and tested.
+
+model ProductVariant {
+  id String @id @default(cuid())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  sizeLabel  String? @db.VarChar(40)
+  colorLabel String? @db.VarChar(80)
+
+  // Normalized keys let the database prevent duplicate combinations even when
+  // a display label is missing. Future APIs should generate these from labels.
+  sizeKey  String @default("") @db.VarChar(40)
+  colorKey String @default("") @db.VarChar(80)
+
+  sku       String? @unique @db.VarChar(80)
+  stock     Int     @default(0)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, sizeKey, colorKey])
+  @@index([productId])
+  @@index([isActive])
+  @@index([sortOrder])
 }
 
 // ─── Order ────────────────────────────────────────────────────────────────────
