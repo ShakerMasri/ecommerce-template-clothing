@@ -22,14 +22,19 @@ export function Header() {
     language === "ar" ? storeConfig.locales.ar : storeConfig.locales.en;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="text-lg font-black tracking-tight">
-          <span>{brand.logoStart}</span>
-          <span className="text-orange-600">{brand.logoAccent}</span>
+    <header className="sticky top-0 z-50 border-b border-[var(--line-soft)] bg-[var(--surface-page)]/92 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <Link
+          href="/"
+          className="group min-w-0 text-[var(--ink)]"
+          aria-label={brand.name}
+        >
+          <span className="block truncate text-base font-bold uppercase tracking-[0.22em] sm:text-lg">
+            {brand.name}
+          </span>
         </Link>
 
-        <nav className="hidden items-center gap-5 text-sm font-medium text-zinc-700 md:flex dark:text-zinc-300">
+        <nav className="hidden items-center gap-1 rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)]/80 p-1 text-sm font-medium shadow-sm md:flex">
           {navLinks.map((link) => {
             const isActive =
               link.href === "/"
@@ -40,10 +45,11 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`transition hover:text-orange-600 dark:hover:text-orange-400 ${
+                aria-current={isActive ? "page" : undefined}
+                className={`rounded-full px-4 py-2 transition ${
                   isActive
-                    ? "text-orange-600 dark:text-orange-400"
-                    : "text-zinc-700 dark:text-zinc-300"
+                    ? "bg-[var(--ink)] text-[var(--surface-page)] shadow-sm"
+                    : "text-[var(--ink-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--ink)]"
                 }`}
               >
                 {t.nav[link.key]}
@@ -52,11 +58,11 @@ export function Header() {
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={toggleLanguage}
-            className="rounded-full border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+            className="min-h-10 rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]"
             aria-label="Toggle language"
           >
             {language === "en"
@@ -67,7 +73,7 @@ export function Header() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="rounded-full border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+            className="min-h-10 rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? t.actions.lightMode : t.actions.darkMode}
@@ -75,21 +81,23 @@ export function Header() {
         </div>
       </div>
 
-      <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 pb-3 text-sm font-medium text-zinc-700 md:hidden dark:text-zinc-300">
+      <nav
+        aria-label="Mobile navigation"
+        className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold sm:px-6 md:hidden"
+      >
         {navLinks.map((link) => {
           const isActive =
-            link.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(link.href);
+            link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
 
           return (
             <Link
               key={link.href}
               href={link.href}
-              className={`shrink-0 rounded-full border px-3 py-1.5 ${
+              aria-current={isActive ? "page" : undefined}
+              className={`min-h-10 shrink-0 rounded-full border px-4 py-2 transition ${
                 isActive
-                  ? "border-orange-600 bg-orange-50 text-orange-700 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-300"
-                  : "border-zinc-200 dark:border-zinc-800"
+                  ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--surface-page)]"
+                  : "border-[var(--line-soft)] bg-[var(--surface-card)] text-[var(--ink-muted)] hover:text-[var(--ink)]"
               }`}
             >
               {t.nav[link.key]}

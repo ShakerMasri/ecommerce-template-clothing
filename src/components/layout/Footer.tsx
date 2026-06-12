@@ -37,73 +37,76 @@ export function Footer() {
   ];
 
   return (
-    <footer className="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-8 text-sm text-zinc-600 dark:text-zinc-400">
-        <div className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-start">
-          <div className="space-y-3">
-            <p>
-              © {new Date().getFullYear()} {t.brand.name}. {t.footer.rights}
-            </p>
+    <footer className="mt-16 border-t border-[var(--footer-line)] bg-[var(--footer-surface)] text-[var(--footer-ink)]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+        <div>
+          <p className="text-lg font-bold uppercase tracking-[0.22em] text-[var(--footer-ink)]">
+            {t.brand.name}
+          </p>
+          <p className="mt-4 max-w-xl text-sm leading-7 text-[var(--footer-muted)]">
+            © {new Date().getFullYear()} {t.footer.rights} {t.footer.description}
+          </p>
+        </div>
 
-            <p className="max-w-md">{t.footer.description}</p>
-          </div>
-
-          {contactConfig.footer.showContactSummary ? (
-            <div className="space-y-2 sm:text-end">
-              <p className="font-semibold text-zinc-800 dark:text-zinc-100">
+        {contactConfig.footer.showContactSummary ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:text-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--footer-accent)]">
                 {t.footer.contactTitle}
               </p>
 
-              <ul className="space-y-1">
+              <ul className="mt-4 space-y-2 text-sm">
                 {contactLinks.map((link) => (
                   <li key={link.href}>
                     <a
                       href={link.href}
                       target={link.external ? "_blank" : undefined}
                       rel={link.external ? "noreferrer" : undefined}
-                      className="transition hover:text-orange-600 dark:hover:text-orange-400"
+                      className="text-[var(--footer-muted)] transition hover:text-[var(--footer-ink)]"
                     >
                       {link.label}: {link.value}
                     </a>
                   </li>
                 ))}
               </ul>
-
-              {contactConfig.socialLinks.length > 0 ? (
-                <div className="space-y-1">
-                  <p className="font-semibold text-zinc-800 dark:text-zinc-100">
-                    {t.footer.socialLinks}
-                  </p>
-
-                  <ul className="space-y-1">
-                    {contactConfig.socialLinks.map((link) => (
-                      <li key={link.href}>
-                        <a
-                          href={link.href}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="transition hover:text-orange-600 dark:hover:text-orange-400"
-                        >
-                          {link.label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
             </div>
-          ) : null}
-        </div>
 
+            {contactConfig.socialLinks.length > 0 ? (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--footer-accent)]">
+                  {t.footer.socialLinks}
+                </p>
+
+                <ul className="mt-4 space-y-2 text-sm">
+                  {contactConfig.socialLinks.map((link) => (
+                    <li key={link.href}>
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[var(--footer-muted)] transition hover:text-[var(--footer-ink)]"
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="border-t border-[var(--footer-line)]">
         <nav
           aria-label="Legal links"
-          className="flex flex-wrap gap-x-4 gap-y-2 border-t border-zinc-200 pt-5 dark:border-zinc-800"
+          className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-3 px-4 py-5 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--footer-muted)] sm:px-6 lg:px-8"
         >
           {legalLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="font-semibold text-zinc-700 transition hover:text-orange-600 dark:text-zinc-300 dark:hover:text-orange-400"
+              className="transition hover:text-[var(--footer-ink)]"
             >
               {link.label}
             </Link>

@@ -43,7 +43,7 @@ describe("ProductCard", () => {
 
   it("renders product price", () => {
     render(<ProductCard product={mockProduct} labels={mockLabels} />);
-    expect(screen.getByText(/99.99/)).toBeInTheDocument();
+    expect(screen.getByText("₪99.99")).toBeInTheDocument();
   });
 
   it("renders sale price with regular price crossed out", () => {
@@ -54,9 +54,8 @@ describe("ProductCard", () => {
       />,
     );
 
-    expect(screen.getByText(/79.99/)).toBeInTheDocument();
-    expect(screen.getByText(/79.99/)).toHaveClass("text-orange-600");
-    expect(screen.getByText(/99.99/)).toHaveClass("line-through");
+    expect(screen.getByText("₪79.99")).toBeInTheDocument();
+    expect(screen.getByText("₪99.99")).toHaveClass("line-through");
   });
 
   it("renders category name", () => {

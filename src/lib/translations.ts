@@ -86,6 +86,7 @@ export type TranslationDictionary = {
     out: string;
     left: string;
     inStock: string;
+    options: string;
     outOfStock: string;
     descriptionTitle: string;
     noDescription: string;
@@ -651,7 +652,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     footer: {
       rights: "All rights reserved.",
       description:
-        "Simple online shopping with cash on delivery and secure server-side order handling.",
+        "Premium, simple clothing shopping with cash on delivery and secure server-side order handling.",
       contactTitle: "Contact",
       whatsapp: "WhatsApp",
       phone: "Phone",
@@ -659,52 +660,52 @@ export const translations: Record<Language, TranslationDictionary> = {
       socialLinks: "Social links",
     },
     home: {
-      badge: "Everyday clothing, clear checkout",
-      titleStart: "Build your everyday look at",
-      titleBrand: englishStoreName,
+      badge: "New season essentials",
+      titleStart: "Everyday pieces",
+      titleBrand: "styled simply",
       description:
-        "Browse clothing items, add what you like to your cart, and place your order with cash on delivery. Simple, mobile-friendly, and made for real store usage.",
-      flowTitle: "Simple clothing order flow",
+        "A clean clothing storefront for daily outfits. Browse by category, choose size and color, and place a cash-on-delivery order from any device.",
+      flowTitle: "How shopping works",
       highlights: [
         {
-          title: "Browse products",
+          title: "Browse pieces",
           description:
-            "Explore available clothing items with clear price and stock details.",
+            "Explore clothing pieces with clear pricing, availability, and product photos.",
         },
         {
-          title: "Add to cart",
+          title: "Choose size and color",
           description:
-            "Build your cart before placing a cash-on-delivery clothing order.",
+            "Select an available size and color before adding the piece to your cart.",
         },
         {
-          title: "Track orders",
+          title: "Review and order",
           description:
-            "View your order status after checkout from your account.",
+            "Review delivery and totals before checkout, then track the order from your account.",
         },
       ],
       stats: [
         {
-          title: "Mobile first",
+          title: "Mobile-first",
           description:
-            "The layout starts simple on phones, then expands on larger screens.",
+            "Large tap targets, readable product cards, and a browsing flow designed first for phones.",
         },
         {
-          title: "Real backend",
+          title: "Secure checkout",
           description:
-            "Products, cart, checkout, orders, and admin actions are handled by your server routes.",
+            "Prices, stock, orders, and permissions stay validated by the server behind the UI.",
         },
         {
           title: "Original UI",
           description:
-            "No copied templates, no paid UI kit components, and no random licensed assets.",
+            "Built with custom CSS and existing dependencies only: no copied templates, icon packs, or paid UI kits.",
         },
       ],
     },
     products: {
-      badge: "Shop",
-      title: "Products",
+      badge: "Shop products",
+      title: "Clothing made easy to browse",
       description:
-        "Browse available clothing items, filter by category, and open any item to view details before adding it to your cart.",
+        "Search by name, filter by category, and open each product to choose available size and color before adding it to your cart.",
       searchLabel: "Search products",
       searchPlaceholder: "Search by name or category...",
       allProducts: "All products",
@@ -717,12 +718,13 @@ export const translations: Record<Language, TranslationDictionary> = {
         "Try changing the category or searching with a different word.",
       failedToLoad: "Failed to load products.",
       failedToConnect: "Failed to connect to the server.",
-      noImage: "No image",
+      noImage: "Image coming soon",
       featured: "Featured",
       soldOut: "Sold out",
       out: "Out",
       left: "left",
-      inStock: "in stock",
+      inStock: "Available",
+      options: "Size / color",
       outOfStock: "Out of stock",
       descriptionTitle: "Description",
       noDescription: "No description available for this product yet.",
@@ -777,7 +779,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       placingOrder: "Placing order...",
       orderPlacedButton: "Order placed",
       stockServerNote:
-        "Stock and prices are checked on the server. Stock is only deducted after the store owner confirms the order.",
+        "Stock and prices are checked on the server. Stock is reserved when the order is placed, then the store owner confirms it by WhatsApp or phone.",
       failedToLoad: "Failed to load cart.",
       failedToConnect: "Failed to connect to the server.",
       failedToUpdate: "Failed to update item.",
@@ -1317,7 +1319,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     footer: {
       rights: "جميع الحقوق محفوظة.",
       description:
-        "تسوق بسيط مع الدفع عند الاستلام ومعالجة آمنة للطلبات من جهة الخادم.",
+        "تسوق ملابس بسيط وراقي مع الدفع عند الاستلام ومعالجة آمنة للطلبات من جهة الخادم.",
       contactTitle: "التواصل",
       whatsapp: "واتساب",
       phone: "الهاتف",
@@ -1325,49 +1327,49 @@ export const translations: Record<Language, TranslationDictionary> = {
       socialLinks: "روابط التواصل",
     },
     home: {
-      badge: "ملابس يومية ودفع واضح",
-      titleStart: "كوّن إطلالتك اليومية من",
-      titleBrand: arabicStoreName,
+      badge: "قطع يومية مختارة",
+      titleStart: "إطلالات يومية",
+      titleBrand: "مختارة بعناية",
       description:
-        "تصفح قطع الملابس، أضف ما يعجبك إلى السلة، ثم أكمل طلبك مع الدفع عند الاستلام. تجربة بسيطة ومناسبة للجوال ولمتجر حقيقي.",
-      flowTitle: "خطوات الشراء",
+        "واجهة ملابس بسيطة وواضحة للقطع اليومية. تصفح حسب التصنيف، اختر المقاس واللون، ثم أنشئ طلب الدفع عند الاستلام من أي جهاز.",
+      flowTitle: "طريقة التسوق",
       highlights: [
         {
-          title: "تصفح المنتجات",
-          description: "استكشف قطع الملابس المتوفرة مع السعر والمخزون بوضوح.",
+          title: "تصفح القطع",
+          description: "استكشف قطع الملابس مع صور وأسعار وتوفر واضح.",
         },
         {
-          title: "أضف إلى السلة",
-          description: "جهز سلتك قبل إنشاء طلب ملابس بنظام الدفع عند الاستلام.",
+          title: "اختر المقاس واللون",
+          description: "اختر المقاس واللون المتوفرين قبل إضافة القطعة إلى السلة.",
         },
         {
-          title: "تابع الطلبات",
-          description: "شاهد حالة طلبك من صفحة الطلبات بعد الشراء.",
+          title: "راجع واطلب",
+          description: "راجع التوصيل والمجموع النهائي قبل تأكيد الطلب، ثم تابعه من حسابك.",
         },
       ],
       stats: [
         {
-          title: "مناسب للجوال",
+          title: "مصمم للجوال",
           description:
-            "التصميم يبدأ بشكل بسيط على الهاتف ثم يتوسع على الشاشات الأكبر.",
+            "أزرار واضحة، بطاقات منتجات مقروءة، وتجربة تصفح مريحة أولاً على الهاتف.",
         },
         {
-          title: "Backend حقيقي",
+          title: "دفع آمن",
           description:
-            "المنتجات والسلة والدفع والطلبات ولوحة الإدارة تعتمد على مسارات الخادم.",
+            "الأسعار والمخزون والطلبات والصلاحيات تبقى محمية ومتحققة من جهة الخادم.",
         },
         {
           title: "واجهة أصلية",
           description:
-            "بدون نسخ قوالب، أو مكونات مدفوعة، أو أصول عشوائية ذات حقوق.",
+            "مصمم بـ CSS مخصص والاعتمادات الموجودة فقط، بدون قوالب منسوخة أو أيقونات أو UI kits مدفوعة.",
         },
       ],
     },
     products: {
-      badge: "المتجر",
-      title: "المنتجات",
+      badge: "تسوق المنتجات",
+      title: "تصفح ملابس بشكل أوضح",
       description:
-        "تصفح قطع الملابس المتوفرة، فلتر حسب التصنيف، وافتح أي منتج لرؤية التفاصيل قبل إضافته إلى السلة.",
+        "ابحث بالاسم، فلتر حسب التصنيف، وافتح كل منتج لاختيار المقاس واللون المتوفرين قبل إضافته إلى السلة.",
       searchLabel: "البحث في المنتجات",
       searchPlaceholder: "ابحث بالاسم أو التصنيف...",
       allProducts: "كل المنتجات",
@@ -1379,12 +1381,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       noProductsDescription: "جرب تغيير التصنيف أو البحث باستخدام كلمة مختلفة.",
       failedToLoad: "فشل تحميل المنتجات.",
       failedToConnect: "فشل الاتصال بالخادم.",
-      noImage: "لا توجد صورة",
+      noImage: "الصورة قريباً",
       featured: "مميز",
       soldOut: "نفذ المخزون",
       out: "غير متوفر",
       left: "متبقي",
       inStock: "متوفر",
+      options: "مقاس / لون",
       outOfStock: "غير متوفر",
       descriptionTitle: "الوصف",
       noDescription: "لا يوجد وصف لهذا المنتج بعد.",
@@ -1437,7 +1440,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       placingOrder: "جار إنشاء الطلب...",
       orderPlacedButton: "تم إنشاء الطلب",
       stockServerNote:
-        "يتم فحص المخزون والأسعار من الخادم. يتم خصم المخزون فقط بعد تأكيد صاحب المتجر للطلب.",
+        "يتم فحص المخزون والأسعار من الخادم. يتم حجز المخزون عند إنشاء الطلب، ثم يؤكد صاحب المتجر الطلب عبر واتساب أو الهاتف.",
       failedToLoad: "فشل تحميل السلة.",
       failedToConnect: "فشل الاتصال بالخادم.",
       failedToUpdate: "فشل تحديث المنتج.",

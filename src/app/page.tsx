@@ -8,79 +8,92 @@ export default function HomePage() {
 
   return (
     <main>
-      <section className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-20">
-        <div>
-          <p className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-700 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-300">
+      <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-16">
+        <div className="max-w-3xl">
+          <p className="inline-flex rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] shadow-sm">
             {t.home.badge}
           </p>
 
-          <h1 className="mt-6 max-w-3xl text-4xl font-black tracking-tight text-zinc-950 sm:text-5xl md:text-6xl dark:text-white">
-            {t.home.titleStart}{" "}
-            <span className="text-orange-600">{t.home.titleBrand}</span>.
+          <h1 className="mt-6 text-5xl font-bold leading-[0.94] tracking-[-0.055em] text-[var(--ink)] sm:text-6xl lg:text-7xl">
+            {t.home.titleStart} <br />
+            <span className="font-editorial italic text-[var(--accent-strong)]">
+              {t.home.titleBrand}
+            </span>
           </h1>
 
-          <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-600 sm:text-lg dark:text-zinc-300">
+          <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--ink-muted)] sm:text-lg">
             {t.home.description}
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/products"
-              className="rounded-full bg-zinc-950 px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--ink)] px-7 py-3 text-sm font-semibold text-[var(--surface-page)] shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
             >
               {t.actions.browseProducts}
             </Link>
 
             <Link
               href="/cart"
-              className="rounded-full border border-zinc-300 px-6 py-3 text-center text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-7 py-3 text-sm font-semibold text-[var(--ink)] transition hover:-translate-y-0.5 hover:border-[var(--accent)]"
             >
               {t.actions.viewCart}
             </Link>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="rounded-2xl bg-gradient-to-br from-orange-100 to-zinc-100 p-6 dark:from-orange-950 dark:to-zinc-800">
-            <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">
-              {t.home.flowTitle}
-            </p>
+        <div className="premium-shell overflow-hidden rounded-[2rem] p-4 sm:p-5">
+          <div className="grid gap-4 sm:grid-cols-[0.9fr_1.1fr]">
+            <div className="rounded-[1.5rem] border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
+              <div className="aspect-[3/4] rounded-[1.25rem] border border-[var(--line-soft)] bg-gradient-to-b from-[var(--surface-elevated)] via-[var(--accent-soft)] to-[var(--accent)]" />
+            </div>
 
-            <div className="mt-6 space-y-4">
-              {t.home.highlights.map((item, index) => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl bg-white p-4 shadow-sm dark:bg-zinc-950"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-600 text-sm font-bold text-white">
-                      {index + 1}
-                    </span>
+            <div className="flex flex-col justify-between gap-6 rounded-[1.5rem] border border-[var(--line-soft)] bg-[var(--surface-elevated)] p-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
+                  {t.home.flowTitle}
+                </p>
 
-                    <div>
-                      <h2 className="font-semibold text-zinc-950 dark:text-white">
-                        {item.title}
-                      </h2>
-                      <p className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-                        {item.description}
-                      </p>
+                <div className="mt-6 space-y-5">
+                  {t.home.highlights.map((item, index) => (
+                    <div key={item.title} className="grid grid-cols-[2rem_1fr] gap-4">
+                      <span className="pt-0.5 text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent)]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div>
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--ink)]">
+                          {item.title}
+                        </h2>
+                        <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
+                          {item.description}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2" aria-hidden="true">
+                <span className="h-12 rounded-xl border border-[var(--line-soft)] bg-[var(--ink)]" />
+                <span className="h-12 rounded-xl border border-[var(--line-soft)] bg-[var(--accent)]" />
+                <span className="h-12 rounded-xl border border-[var(--line-soft)] bg-[var(--surface-muted)]" />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 sm:grid-cols-3">
+      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+        <div className="grid gap-3 sm:grid-cols-3">
           {t.home.stats.map((item) => (
-            <div key={item.title}>
-              <p className="text-2xl font-black text-zinc-950 dark:text-white">
+            <div
+              key={item.title}
+              className="rounded-[1.5rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm sm:p-6"
+            >
+              <p className="text-base font-semibold text-[var(--ink)]">
                 {item.title}
               </p>
-              <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+              <p className="mt-3 text-sm leading-7 text-[var(--ink-muted)]">
                 {item.description}
               </p>
             </div>

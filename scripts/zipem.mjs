@@ -8,36 +8,24 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  "README.md",
-  "TESTING_GUIDE.md",
+  "src/components/products/ProductCard.tsx",
+  "src/components/products/ProductCard.test.tsx",
+  "src/components/products/ProductListingClient.tsx",
+  "src/components/products/CategoryTabs.tsx",
+  "src/components/products/ProductCardSkeleton.tsx",
 
-  "src/app/api/products/route.ts",
-  "src/app/api/products/products.test.ts",
-  "src/app/api/products/[slug]/route.ts",
-  "src/app/api/products/[slug]/route.test.ts",
+  "src/app/products/page.tsx",
+  "src/app/products/[slug]/page.tsx",
+  "src/components/products/ProductDetailClient.tsx",
+  "src/components/cart/AddToCartControls.tsx",
 
-  "src/app/api/orders/route.ts",
-  "src/app/api/orders/route.test.ts",
-  "src/app/orders/page.tsx",
-  "src/components/orders/OrdersClient.tsx",
+  "src/lib/translations.ts",
+  "src/config/store.ts",
+  "src/styles/globals.css",
 
-  "src/lib/rate-limit.ts",
-  "src/lib/rate-limit.test.ts",
-  "src/lib/csrf.ts",
-  "src/lib/csrf.test.ts",
-  "src/lib/logger.ts",
-
-  "src/server/validations/order.ts",
-  "src/server/validations/order.test.ts",
-
-  "tests/e2e/customer-order.e2e.ts",
   "tests/e2e/customer-product-display.e2e.ts",
   "tests/e2e/helpers/products.ts",
-
-  "docs/product-variants-design-contract.md",
-  "docs/product-variants-plan.md",
-  "docs/product-variants-readiness-audit.md",
-  "docs/production-readiness-checklist.md",
+  "tests/e2e/smoke.e2e.ts",
 ];
 
 function fail(message) {
