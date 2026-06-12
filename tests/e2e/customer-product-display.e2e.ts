@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { getRequiredE2EPath } from "./helpers/auth";
 import {
-  formatUsdPrice,
+  formatNisPrice,
   getPublicProductByPath,
 } from "./helpers/products";
 
@@ -10,14 +10,18 @@ function escapeRegExp(value: string): string {
 }
 
 function availableStockLabelPattern(): RegExp {
-  return /^(?:In stock|متوفر)$/i;
+  return /^(?:Available|In stock|متوفر)$/i;
 }
 
 function exactStockLabelPattern(stock: number): RegExp {
   return new RegExp(
-    `^${escapeRegExp(String(stock))}\\s+(?:In stock|متوفر)$`,
+    `^${escapeRegExp(String(stock))}\\s+(?:left|متبقي|Available|In stock|متوفر)$`,
     "i",
   );
+}
+
+function anyExactStockLabelPattern(): RegExp {
+  return /^[1-9][0-9]*\s+(?:left|متبقي|Available|In stock|متوفر)$/i;
 }
 
 test("customer sees sale price and old price for a discounted product", async ({
@@ -32,8 +36,8 @@ test("customer sees sale price and old price for a discounted product", async ({
     `${productPath} must point to a product with discountPrice set for this E2E test.`,
   ).not.toBeNull();
 
-  const salePrice = formatUsdPrice(product.discountPrice ?? product.price);
-  const regularPrice = formatUsdPrice(product.price);
+  const salePrice = formatNisPrice(product.discountPrice ?? product.price);
+  const regularPrice = formatNisPrice(product.price);
 
   await page.goto(productPath);
 
@@ -89,7 +93,5 @@ test("customer does not see exact stock when product stock visibility is disable
 
   await expect(page.getByRole("heading", { name: product.name })).toBeVisible();
   await expect(page.getByText(availableStockLabelPattern()).first()).toBeVisible();
-  await expect(page.getByText(/^[1-9][0-9]*\s+(?:In stock|متوفر)$/i)).toHaveCount(
-    0,
-  );
+  await expect(page.getByText(anyExactStockLabelPattern())).toHaveCount(0);
 });

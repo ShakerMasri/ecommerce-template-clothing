@@ -18,7 +18,7 @@ type Product = {
   slug: string;
   price: string;
   discountPrice: string | null;
-  stock: number;
+  stock: number | null;
   showStock: boolean;
   images: string[];
   isFeatured: boolean;
@@ -112,27 +112,27 @@ export function ProductListingClient() {
           ?.name ?? t.products.selectedCategory);
 
   return (
-    <section className="space-y-8">
-      <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <section className="space-y-6">
+      <div className="rounded-[1.75rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-4 shadow-sm sm:p-5 lg:p-6">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
           <div>
-            <p className="text-sm font-semibold tracking-wide text-orange-600 uppercase dark:text-orange-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
               {t.products.badge}
             </p>
 
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-zinc-950 sm:text-4xl dark:text-white">
+            <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-tight tracking-[-0.035em] text-[var(--ink)] sm:text-4xl lg:text-5xl">
               {t.products.title}
             </h1>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 sm:text-base dark:text-zinc-400">
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--ink-muted)]">
               {t.products.description}
             </p>
           </div>
 
-          <div className="w-full lg:max-w-sm">
+          <div>
             <label
               htmlFor="product-search"
-              className="text-sm font-medium text-zinc-700 dark:text-zinc-200"
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent)]"
             >
               {t.products.searchLabel}
             </label>
@@ -143,73 +143,73 @@ export function ProductListingClient() {
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder={t.products.searchPlaceholder}
-              className="mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-950 transition outline-none placeholder:text-zinc-400 focus:border-orange-600 focus:ring-4 focus:ring-orange-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-orange-400 dark:focus:ring-orange-950"
+              className="mt-2 min-h-12 w-full rounded-full border border-[var(--line-soft)] bg-[var(--surface-elevated)] px-4 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)] focus:border-[var(--accent)] focus:bg-[var(--surface-card)]"
             />
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <CategoryTabs
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          allLabel={t.products.allProducts}
-        />
+      <div className="rounded-[1.5rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-3 shadow-sm sm:p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <CategoryTabs
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            allLabel={t.products.allProducts}
+          />
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            {selectedCategoryName}
-          </p>
+          <div className="shrink-0 text-sm">
+            <p className="font-semibold text-[var(--ink)]">{selectedCategoryName}</p>
 
-          {!isLoading && !errorMessage && (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {t.products.showing} {visibleProducts.length}{" "}
-              {visibleProducts.length === 1
-                ? t.products.productSingular
-                : t.products.productPlural}
-            </p>
-          )}
+            {!isLoading && !errorMessage ? (
+              <p className="mt-1 text-[var(--ink-muted)]">
+                {t.products.showing} {visibleProducts.length} {" "}
+                {visibleProducts.length === 1
+                  ? t.products.productSingular
+                  : t.products.productPlural}
+              </p>
+            ) : null}
+          </div>
         </div>
       </div>
 
-      {errorMessage && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-medium text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+      {errorMessage ? (
+        <div className="rounded-[1.5rem] border border-[var(--danger-ink)] bg-[var(--danger-soft)] p-5 text-sm font-semibold text-[var(--danger-ink)]">
           {errorMessage}
         </div>
-      )}
+      ) : null}
 
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, index) => (
             <ProductCardSkeleton key={index} />
           ))}
         </div>
       ) : visibleProducts.length === 0 && !errorMessage ? (
-        <div className="rounded-3xl border border-dashed border-zinc-300 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900">
-          <h2 className="text-lg font-bold text-zinc-950 dark:text-white">
+        <div className="rounded-[2rem] border border-dashed border-[var(--line-soft)] bg-[var(--surface-card)] p-10 text-center shadow-sm">
+          <h2 className="text-xl font-semibold text-[var(--ink)]">
             {t.products.noProductsTitle}
           </h2>
 
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[var(--ink-muted)]">
             {t.products.noProductsDescription}
           </p>
 
-          {(selectedCategory ?? searchTerm) && (
+          {(selectedCategory ?? searchTerm) ? (
             <button
               type="button"
               onClick={() => {
                 setSelectedCategory(null);
                 setSearchTerm("");
               }}
-              className="mt-5 rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="mt-6 min-h-11 rounded-full bg-[var(--ink)] px-6 py-2 text-sm font-semibold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)]"
             >
               {t.actions.clearFilters}
             </button>
-          )}
+          ) : null}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {visibleProducts.map((product) => (
             <ProductCard
               key={product.id}

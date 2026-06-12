@@ -4,18 +4,108 @@
 
 @theme {
   --font-sans:
-    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
 :root {
   color-scheme: light;
+  --surface-page: #f6f1ea;
+  --surface-card: #fffdf8;
+  --surface-muted: #eee5da;
+  --surface-elevated: #ffffff;
+  --ink: #201b17;
+  --ink-muted: #70675f;
+  --line-soft: #dfd3c5;
+  --accent: #8f653f;
+  --accent-strong: #51351f;
+  --accent-soft: #ead9c6;
+  --sale-ink: #9b3f24;
+  --success-soft: #e7f0e5;
+  --success-ink: #315f36;
+  --danger-soft: #f3dfdb;
+  --danger-ink: #8a342a;
+  --footer-surface: #1b1612;
+  --footer-ink: #f8efe4;
+  --footer-muted: #c7b9aa;
+  --footer-line: rgba(255, 255, 255, 0.12);
+  --footer-accent: #d9b98e;
 }
 
 html.dark {
   color-scheme: dark;
+  --surface-page: #14110f;
+  --surface-card: #1e1a16;
+  --surface-muted: #2a241f;
+  --surface-elevated: #171310;
+  --ink: #fbf5ed;
+  --ink-muted: #cbbdaf;
+  --line-soft: #463a31;
+  --accent: #d1a777;
+  --accent-strong: #f1d2ac;
+  --accent-soft: #3b2c20;
+  --sale-ink: #ffb08b;
+  --success-soft: #1d3321;
+  --success-ink: #a6d7ab;
+  --danger-soft: #3a201d;
+  --danger-ink: #f0aaa1;
+  --footer-surface: #0f0d0b;
+  --footer-ink: #fbf5ed;
+  --footer-muted: #b9aa9c;
+  --footer-line: rgba(255, 255, 255, 0.1);
+  --footer-accent: #d1a777;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
+  background: linear-gradient(180deg, var(--surface-page), var(--surface-elevated));
+  color: var(--ink);
+  text-rendering: geometricPrecision;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 65%, transparent);
+  outline-offset: 3px;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+.font-editorial {
+  font-family: var(--font-serif);
+}
+
+.premium-shell {
+  background: var(--surface-card);
+  border: 1px solid var(--line-soft);
+  box-shadow: 0 18px 60px rgba(32, 25, 20, 0.07);
+}
+
+.dark .premium-shell {
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+}
+
+.premium-divider {
+  background: linear-gradient(90deg, transparent, var(--line-soft), transparent);
 }

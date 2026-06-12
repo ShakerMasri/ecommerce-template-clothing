@@ -31,7 +31,7 @@ type ProductCardProps = {
 };
 
 function formatPrice(price: string) {
-  return `$${Number(price).toFixed(2)}`;
+  return `₪${Number(price).toFixed(2)}`;
 }
 
 function getDisplayPrice(product: ProductCardProps["product"]) {
@@ -50,78 +50,85 @@ export function ProductCard({ product, labels }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group block overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
+      className="group block h-full min-w-0"
+      aria-label={product.name}
     >
-      <div className="relative aspect-square overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-        {mainImage ? (
-          <OptimizedImage
-            src={mainImage}
-            alt={product.name}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-cover transition duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-sm text-zinc-500 dark:text-zinc-400">
-            {labels.noImage}
+      <article className="flex h-full flex-col overflow-hidden rounded-[1.35rem] border border-[var(--line-soft)] bg-[var(--surface-card)] shadow-sm transition duration-300 group-hover:-translate-y-1 group-hover:border-[var(--accent)] group-hover:shadow-xl group-hover:shadow-black/10">
+        <div className="relative aspect-[4/5] overflow-hidden bg-[var(--surface-muted)]">
+          {mainImage ? (
+            <OptimizedImage
+              src={mainImage}
+              alt={product.name}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center px-6 text-center text-sm font-medium text-[var(--ink-muted)]">
+              {labels.noImage}
+            </div>
+          )}
+
+          <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
+            {product.isFeatured ? (
+              <span className="rounded-full bg-[var(--surface-card)]/92 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[var(--accent-strong)] shadow-sm backdrop-blur">
+                {labels.featured}
+              </span>
+            ) : (
+              <span />
+            )}
+
+            {isOutOfStock ? (
+              <span className="rounded-full bg-[var(--danger-soft)] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[var(--danger-ink)] shadow-sm">
+                {labels.soldOut}
+              </span>
+            ) : null}
           </div>
-        )}
-
-        {product.isFeatured && (
-          <span className="absolute top-3 left-3 rounded-full bg-orange-600 px-3 py-1 text-xs font-semibold text-white">
-            {labels.featured}
-          </span>
-        )}
-
-        {isOutOfStock && (
-          <span className="absolute top-3 right-3 rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white">
-            {labels.soldOut}
-          </span>
-        )}
-      </div>
-
-      <div className="space-y-3 p-4">
-        <div>
-          <p className="text-xs font-semibold tracking-wide text-orange-600 uppercase dark:text-orange-400">
-            {product.category.name}
-          </p>
-
-          <h3 className="mt-1 text-base font-bold text-zinc-950 transition group-hover:text-orange-600 dark:text-white dark:group-hover:text-orange-400">
-            {product.name}
-          </h3>
         </div>
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-1 flex-col gap-3 p-3 sm:p-5">
+          <div className="space-y-2">
+            <p className="truncate text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[var(--accent)] sm:text-[0.68rem]">
+              {product.category.name}
+            </p>
+
+            <h3 className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[var(--ink)] transition group-hover:text-[var(--accent-strong)] sm:min-h-12 sm:text-base sm:leading-6">
+              {product.name}
+            </h3>
+          </div>
+
           <div>
+            <span
+              className={`inline-flex rounded-full px-2.5 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] sm:px-3 sm:text-[0.68rem] ${
+                isOutOfStock
+                  ? "bg-[var(--danger-soft)] text-[var(--danger-ink)]"
+                  : "bg-[var(--success-soft)] text-[var(--success-ink)]"
+              }`}
+            >
+              {isOutOfStock
+                ? labels.out
+                : shouldShowStockCount
+                  ? `${product.stock} ${labels.left}`
+                  : labels.inStock}
+            </span>
+          </div>
+
+          <div className="mt-auto min-h-[3.25rem] border-t border-[var(--line-soft)] pt-3">
             <p
-              className={
-                hasDiscount
-                  ? "text-lg font-black text-orange-600 dark:text-orange-400"
-                  : "text-lg font-black text-zinc-950 dark:text-white"
-              }
+              className={`text-lg font-bold tracking-tight sm:text-xl ${
+                hasDiscount ? "text-[var(--sale-ink)]" : "text-[var(--ink)]"
+              }`}
             >
               {formatPrice(getDisplayPrice(product))}
             </p>
 
-            {hasDiscount && (
-              <p className="text-xs font-semibold text-zinc-500 line-through decoration-zinc-500 decoration-solid decoration-2 dark:text-zinc-400 dark:decoration-zinc-400 dark:decoration-solid">
+            {hasDiscount ? (
+              <p className="mt-0.5 text-sm font-semibold text-[var(--ink-muted)] line-through decoration-[var(--accent)] decoration-2">
                 {formatPrice(product.price)}
               </p>
-            )}
+            ) : null}
           </div>
-
-          {isOutOfStock ? (
-            <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 dark:bg-red-950 dark:text-red-300">
-              {labels.out}
-            </span>
-          ) : (
-            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950 dark:text-green-300">
-              {shouldShowStockCount
-                ? `${product.stock} ${labels.left}`
-                : labels.inStock}
-            </span>
-          )}
         </div>
-      </div>
+      </article>
     </Link>
   );
 }

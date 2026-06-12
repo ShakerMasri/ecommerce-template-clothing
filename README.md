@@ -4,7 +4,7 @@ Clothing Ecommerce Template is a reusable private full-stack e-commerce starter 
 
 This project was forked from an existing hardened ecommerce starter and is now maintained as a separate clothing-store template. It is being prepared as a real client-ready application, not just a demo. The backend, authentication, authorization, environment configuration, deployment flow, and production safety checks should be treated seriously before launch.
 
-This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, and checkout-time stock reservation. The next hardening checkpoint is final post-reservation review before production/client handoff.
+This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, checkout-time stock reservation, and the `v0.1.0-post-reservation-audit` checkpoint. The next checkpoint is a clothing-store UI/UX refresh before production/client handoff.
 
 ## Tech Stack
 
@@ -72,8 +72,8 @@ Completed:
 
 Not started yet:
 
-- Full post-reservation security audit after checkout-time stock reservation is reviewed.
-- Full post-variant security audit.
+- Full clothing-store UI/UX refresh.
+- Admin UI simplification pass.
 - Caching.
 
 Not supported in this clothing template yet:
@@ -91,16 +91,15 @@ Not supported in this clothing template yet:
 
 Postponed intentionally:
 
-- Full post-reservation security audit. Checkout-time reservation should be reviewed before production/client handoff.
 - Admin-editable delivery pricing dashboard. Delivery areas/prices remain code-managed for now, and existing orders keep delivery snapshots for audit safety.
 - PWA support. If considered later, it should be a minimal installable-app checkpoint and must not cache auth, cart, order, profile, stock-sensitive, price-sensitive, or admin data unsafely.
 
 Planned next checkpoints:
 
-- Review checkout-time stock reservation on staging with variant/option products.
-- Verify admin confirmation is only an approval/status change and does not deduct stock again.
-- Verify cancellation restores reserved stock exactly once.
-- Run a full security review after the stock-reservation flow is stable.
+- Refresh the customer storefront UI for a premium, simple clothing-store feel.
+- Polish product listing/card and size/color option UX without weakening server-side stock validation.
+- Simplify admin product/options/stock screens after the customer UI foundation is stable.
+- Clean up remaining hardcoded visible strings through translations/config where appropriate.
 - Complete production readiness and client handoff review.
 - Review caching/performance only after core business rules are stable and real usage or smoke-load results show a need.
 
@@ -790,17 +789,14 @@ Important production rules:
 
 Use Git tags for deployed releases only. Do not describe a version as released or tagged until the tag has actually been created and pushed.
 
-This clothing template repository starts as its own project. Do not reuse old source-repo tag claims. Create the first checkpoint tag only after the fork audit, docs cleanup, dependency review, and local checks pass in this repository.
+This clothing template repository starts as its own project. Do not reuse old source-repo tag claims. The current checkpoint is `v0.1.0-post-reservation-audit`; create future tags only after the matching commit is reviewed and checks pass in this repository.
 
 Recommended version format:
 
 ```txt
-v0.1.0-clothing-fork-audit  clothing fork audit checkpoint
-v0.2.0-clothing-branding-config  safe clothing branding/config checkpoint
-v0.3.0-product-variants-design  variants design documentation checkpoint
-v0.4.0-admin-product-variants  admin variant management checkpoint
-v0.5.0-customer-product-variants  customer variant ordering checkpoint
-v0.6.0-checkout-stock-reservation  checkout-time stock reservation checkpoint
+v0.1.0-post-reservation-audit  post-reservation audit checkpoint
+v0.2.0-customer-ui-refresh  customer clothing-store UI refresh checkpoint
+v0.3.0-admin-ui-simplification  admin product/order UI simplification checkpoint
 v1.0.0  first production clothing-store launch
 v1.0.1  production bug fix
 v1.1.0  small feature release
@@ -815,11 +811,11 @@ Create a release tag only after checks pass and after the matching commit is mer
 npm run check
 npm run build
 git status
-git tag -a v0.1.0-clothing-fork-audit -m "Clothing fork audit checkpoint"
-git push origin v0.1.0-clothing-fork-audit
+git tag -a v0.2.0-customer-ui-refresh -m "Customer clothing-store UI refresh checkpoint"
+git push origin v0.2.0-customer-ui-refresh
 ```
 
-Replace `v0.1.0-clothing-fork-audit` with the version you actually intend to release. Tag the exact commit that is reviewed or deployed.
+Replace `v0.2.0-customer-ui-refresh` with the version you actually intend to release. Tag the exact commit that is reviewed or deployed.
 
 For production releases, prefer this flow:
 
@@ -869,9 +865,9 @@ The current order flow is:
 
 Stock reservation is tracked with `stockDeductedAt`, which now means inventory has already been reduced for the order. This marker prevents double deduction and controls whether cancellation should restock.
 
-Known next hardening checkpoint:
+Known next checkpoint:
 
-- Complete final local, E2E, and staging verification for the post-reservation audit branch before merging.
+- Complete the customer clothing-store UI refresh without changing checkout, order, stock reservation, or authorization business logic.
 
 ### Filtering and Pagination
 
@@ -1074,10 +1070,10 @@ This app is still being hardened for production as a clothing-store template. It
 
 Next safest checkpoints:
 
-1. Review checkout-time stock reservation for variant/option orders on staging.
-2. Verify admin confirmation is an approval step that does not deduct stock again.
-3. Verify reserved stock is restored exactly once when an order is cancelled.
-4. Run a full security review after the stock-reservation flow is stable.
+1. Complete the customer storefront UI refresh for a premium, simple clothing-store feel.
+2. Polish product detail size/color selection UX without changing checkout or stock-reservation rules.
+3. Simplify admin products/options/stock UI after customer-facing pages are stable.
+4. Simplify admin orders UI after product admin UI is reviewed.
 5. Verify Google sign-in on staging/production with exact callback URLs and separate environment secrets if OAuth is enabled for the client.
 6. Complete the production readiness checklist and client handoff guide.
 7. Review caching/performance after launch testing or measured usage shows a real need.

@@ -111,10 +111,10 @@ export function getEffectiveProductPrice(product: PublicProduct): number {
   return Number(product.discountPrice ?? product.price);
 }
 
-export function formatUsdPrice(value: string | number): string {
-  return `$${Number(value).toFixed(2)}`;
+export function formatNisPrice(value: string | number): string {
+  return `₪${Number(value).toFixed(2)}`;
 }
 
-export function formatNisPrice(value: string | number): string {
-  return `${Number(value).toFixed(2)} NIS`;
+export function formatUsdPrice(value: string | number): string {
+  return formatNisPrice(value);
 }

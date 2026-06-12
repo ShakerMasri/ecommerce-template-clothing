@@ -47,7 +47,7 @@ type ProductDetailClientProps = {
 };
 
 function formatPrice(price: string) {
-  return `$${Number(price).toFixed(2)}`;
+  return `₪${Number(price).toFixed(2)}`;
 }
 
 function getDisplayPrice(product: Product) {
@@ -296,7 +296,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
               ) : (
                 <span className="rounded-full bg-green-50 px-3 py-1 text-sm font-semibold text-green-700 dark:bg-green-950 dark:text-green-300">
                   {product.showStock && (selectedVariant ? selectedStock : product.stock) !== null
-                    ? `${selectedVariant ? selectedStock : product.stock} ${t.products.inStock}`
+                    ? `${selectedVariant ? selectedStock : product.stock} ${t.products.left}`
                     : t.products.inStock}
                 </span>
               )}
