@@ -57,18 +57,20 @@ type OrdersResponse = {
 
 const statusStyles: Record<string, string> = {
   PENDING:
-    "bg-yellow-50 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200",
-  PROCESSING: "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
+    "bg-[var(--surface-muted)] text-[var(--accent-strong)] ring-[var(--accent-soft)]",
+  PROCESSING:
+    "bg-[var(--accent-soft)] text-[var(--accent-strong)] ring-[var(--accent-soft)]",
   SHIPPED:
-    "bg-purple-50 text-purple-800 dark:bg-purple-950 dark:text-purple-200",
-  DELIVERED: "bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200",
-  CANCELLED: "bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200",
+    "bg-[var(--surface-muted)] text-[var(--accent-strong)] ring-[var(--line-soft)]",
+  DELIVERED:
+    "bg-[var(--success-soft)] text-[var(--success-ink)] ring-[var(--success-soft)]",
+  CANCELLED:
+    "bg-[var(--danger-soft)] text-[var(--danger-ink)] ring-[var(--danger-soft)]",
 };
 
 const paymentStatusStyles: Record<string, string> = {
-  UNPAID:
-    "bg-orange-50 text-orange-800 dark:bg-orange-950 dark:text-orange-200",
-  PAID: "bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200",
+  UNPAID: "bg-[var(--surface-muted)] text-[var(--ink)] ring-[var(--line-soft)]",
+  PAID: "bg-[var(--success-soft)] text-[var(--success-ink)] ring-[var(--success-soft)]",
 };
 
 function formatPrice(price: string | number, currency: string) {
@@ -230,16 +232,16 @@ export function OrdersClient() {
   if (isLoading) {
     return (
       <section className="space-y-6">
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="h-8 w-44 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-          <div className="mt-3 h-4 w-80 max-w-full animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+        <div className="rounded-[1.75rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm shadow-black/5">
+          <div className="h-8 w-44 animate-pulse rounded bg-[var(--surface-muted)]" />
+          <div className="mt-3 h-4 w-80 max-w-full animate-pulse rounded bg-[var(--surface-muted)]" />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="h-24 animate-pulse rounded-3xl bg-zinc-200 dark:bg-zinc-800"
+              className="h-24 animate-pulse rounded-3xl bg-[var(--surface-muted)]"
             />
           ))}
         </div>
@@ -248,7 +250,7 @@ export function OrdersClient() {
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="h-56 animate-pulse rounded-3xl bg-zinc-200 dark:bg-zinc-800"
+              className="h-56 animate-pulse rounded-3xl bg-[var(--surface-muted)]"
             />
           ))}
         </div>
@@ -258,27 +260,27 @@ export function OrdersClient() {
 
   if (message && orders.length === 0) {
     return (
-      <section className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-2xl font-black text-zinc-950 dark:text-white">
+      <section className="rounded-[2rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-8 text-center shadow-sm shadow-black/5">
+        <h1 className="text-2xl font-black text-[var(--ink)]">
           {t.orders.ordersUnavailable}
         </h1>
 
-        <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
           {message}
         </p>
 
         {isAuthRequired ? (
           <Link
             href="/login?callbackUrl=/orders"
-            className="mt-6 inline-flex rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="mt-6 inline-flex rounded-full bg-[var(--ink)] px-5 py-2.5 text-sm font-bold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none"
           >
-            Log in
+            {t.auth.login}
           </Link>
         ) : (
           <button
             type="button"
             onClick={() => void loadOrders()}
-            className="mt-6 rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="mt-6 rounded-full bg-[var(--ink)] px-5 py-2.5 text-sm font-bold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none"
           >
             {t.orders.tryAgain}
           </button>
@@ -289,22 +291,22 @@ export function OrdersClient() {
 
   if (orders.length === 0) {
     return (
-      <section className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 text-2xl dark:bg-orange-950">
+      <section className="rounded-[2rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-8 text-center shadow-sm shadow-black/5">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-muted)] text-2xl">
           📦
         </div>
 
-        <h1 className="mt-5 text-2xl font-black text-zinc-950 dark:text-white">
+        <h1 className="mt-5 text-2xl font-black text-[var(--ink)]">
           {t.orders.noOrdersTitle}
         </h1>
 
-        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--ink-muted)]">
           {t.orders.noOrdersDescription}
         </p>
 
         <Link
           href="/products"
-          className="mt-6 inline-flex rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+          className="mt-6 inline-flex rounded-full bg-[var(--ink)] px-5 py-2.5 text-sm font-bold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none"
         >
           {t.orders.browseProducts}
         </Link>
@@ -314,18 +316,18 @@ export function OrdersClient() {
 
   return (
     <section className="space-y-6">
-      <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="text-sm font-semibold tracking-wide text-orange-600 uppercase dark:text-orange-400">
+      <div className="rounded-[2rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm shadow-black/5 sm:p-6">
+        <p className="text-sm font-semibold tracking-wide text-[var(--accent)] uppercase">
           {t.orders.badge}
         </p>
 
         <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-zinc-950 sm:text-4xl dark:text-white">
+            <h1 className="text-3xl font-black tracking-tight text-[var(--ink)] sm:text-4xl">
               {t.orders.title}
             </h1>
 
-            <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
               {t.orders.description}
             </p>
           </div>
@@ -333,7 +335,7 @@ export function OrdersClient() {
           <button
             type="button"
             onClick={() => void loadOrders()}
-            className="w-fit rounded-full border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-950"
+            className="w-fit rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-4 py-2 text-sm font-semibold text-[var(--accent-strong)] transition hover:bg-[var(--surface-muted)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none"
           >
             {t.orders.refresh}
           </button>
@@ -341,36 +343,36 @@ export function OrdersClient() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="rounded-[1.75rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm shadow-black/5">
+          <p className="text-sm text-[var(--ink-muted)]">
             {t.orders.totalOrders}
           </p>
-          <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
+          <p className="mt-2 text-2xl font-black text-[var(--accent-strong)]">
             {totalOrdersCount}
           </p>
         </div>
 
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="rounded-[1.75rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm shadow-black/5">
+          <p className="text-sm text-[var(--ink-muted)]">
             {t.orders.activeOrders}
           </p>
-          <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
+          <p className="mt-2 text-2xl font-black text-[var(--accent-strong)]">
             {activeOrdersCount}
           </p>
         </div>
 
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="rounded-[1.75rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm shadow-black/5">
+          <p className="text-sm text-[var(--ink-muted)]">
             {t.orders.totalSpent}
           </p>
-          <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
+          <p className="mt-2 text-2xl font-black text-[var(--accent-strong)]">
             {formatPrice(totalSpent, t.delivery.currency)}
           </p>
         </div>
       </div>
 
       {message && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <div className="rounded-2xl border border-[var(--danger-soft)] bg-[var(--danger-soft)] p-4 text-sm font-medium text-[var(--danger-ink)]">
           {message}
         </div>
       )}
@@ -379,42 +381,42 @@ export function OrdersClient() {
         {orders.map((order) => {
           const statusClass =
             statusStyles[order.status] ??
-            "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200";
+            "bg-[var(--surface-muted)] text-[var(--ink)]";
 
           const paymentStatusClass =
             paymentStatusStyles[order.paymentStatus] ??
-            "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200";
+            "bg-[var(--surface-muted)] text-[var(--ink)]";
 
           return (
             <article
               key={order.id}
-              className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+              className="overflow-hidden rounded-[1.75rem] border border-[var(--line-soft)] bg-[var(--surface-card)] shadow-sm shadow-black/5"
             >
-              <div className="border-b border-zinc-200 p-5 sm:p-6 dark:border-zinc-800">
+              <div className="border-b border-[var(--line-soft)] bg-[var(--surface-muted)] p-5 sm:p-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
-                    <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+                    <p className="text-xs font-semibold tracking-wide text-[var(--ink-muted)] uppercase">
                       {t.orders.order}
                     </p>
 
-                    <h2 className="mt-1 max-w-full truncate font-mono text-sm font-bold text-zinc-950 dark:text-white">
+                    <h2 className="mt-1 max-w-full truncate font-mono text-sm font-bold text-[var(--ink)]">
                       {order.id}
                     </h2>
 
-                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    <p className="mt-2 text-sm text-[var(--ink-muted)]">
                       {t.orders.placed} {formatDate(order.createdAt, language)}
                     </p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass}`}
+                      className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${statusClass}`}
                     >
                       {getStatusLabel(order.status)}
                     </span>
 
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold ${paymentStatusClass}`}
+                      className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${paymentStatusClass}`}
                     >
                       {getPaymentStatusLabel(order.paymentStatus)}
                     </span>
@@ -422,20 +424,18 @@ export function OrdersClient() {
                 </div>
 
                 <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-950">
-                    <p className="text-zinc-500 dark:text-zinc-400">
-                      {t.orders.total}
-                    </p>
-                    <p className="mt-1 font-black text-zinc-950 dark:text-white">
+                  <div className="rounded-2xl bg-[var(--surface-card)] p-4 ring-1 ring-[var(--accent-soft)]">
+                    <p className="text-[var(--ink-muted)]">{t.orders.total}</p>
+                    <p className="mt-1 font-black text-[var(--accent-strong)]">
                       {formatPrice(order.totalAmount, t.delivery.currency)}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-950">
-                    <p className="text-zinc-500 dark:text-zinc-400">
+                  <div className="rounded-2xl bg-[var(--surface-card)] p-4 ring-1 ring-[var(--accent-soft)]">
+                    <p className="text-[var(--ink-muted)]">
                       {t.orders.deliveryPrice}
                     </p>
-                    <p className="mt-1 font-semibold text-zinc-950 dark:text-white">
+                    <p className="mt-1 font-semibold text-[var(--ink)]">
                       {formatDeliveryPriceNis(Number(order.deliveryPrice), {
                         free: t.delivery.free,
                         currency: t.delivery.currency,
@@ -443,20 +443,18 @@ export function OrdersClient() {
                     </p>
                   </div>
 
-                  <div className="rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-950">
-                    <p className="text-zinc-500 dark:text-zinc-400">
+                  <div className="rounded-2xl bg-[var(--surface-card)] p-4 ring-1 ring-[var(--accent-soft)]">
+                    <p className="text-[var(--ink-muted)]">
                       {t.orders.payment}
                     </p>
-                    <p className="mt-1 font-semibold text-zinc-950 dark:text-white">
+                    <p className="mt-1 font-semibold text-[var(--ink)]">
                       {getPaymentMethodLabel(order.paymentMethod)}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-950">
-                    <p className="text-zinc-500 dark:text-zinc-400">
-                      {t.orders.items}
-                    </p>
-                    <p className="mt-1 font-semibold text-zinc-950 dark:text-white">
+                  <div className="rounded-2xl bg-[var(--surface-card)] p-4 ring-1 ring-[var(--accent-soft)]">
+                    <p className="text-[var(--ink-muted)]">{t.orders.items}</p>
+                    <p className="mt-1 font-semibold text-[var(--ink)]">
                       {order.items.reduce(
                         (sum, item) => sum + item.quantity,
                         0,
@@ -465,44 +463,44 @@ export function OrdersClient() {
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm dark:border-zinc-800 dark:bg-zinc-950">
-                  <h3 className="font-bold text-zinc-950 dark:text-white">
+                <div className="mt-4 rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-card)] p-4 text-sm">
+                  <h3 className="font-bold text-[var(--ink)]">
                     {t.orders.deliveryDetails}
                   </h3>
 
                   <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                     <div>
-                      <dt className="text-zinc-500 dark:text-zinc-400">
+                      <dt className="text-[var(--ink-muted)]">
                         {t.orders.deliveryArea}
                       </dt>
-                      <dd className="mt-1 font-semibold text-zinc-950 dark:text-white">
+                      <dd className="mt-1 font-semibold text-[var(--ink)]">
                         {getDeliveryAreaLabel(order.deliveryAreaKey)}
                       </dd>
                     </div>
 
                     <div>
-                      <dt className="text-zinc-500 dark:text-zinc-400">
+                      <dt className="text-[var(--ink-muted)]">
                         {t.orders.deliveryCity}
                       </dt>
-                      <dd className="mt-1 font-semibold text-zinc-950 dark:text-white">
+                      <dd className="mt-1 font-semibold text-[var(--ink)]">
                         {order.deliveryCity ?? t.orders.notProvided}
                       </dd>
                     </div>
 
                     <div>
-                      <dt className="text-zinc-500 dark:text-zinc-400">
+                      <dt className="text-[var(--ink-muted)]">
                         {t.orders.deliveryAddress}
                       </dt>
-                      <dd className="mt-1 font-semibold text-zinc-950 dark:text-white">
+                      <dd className="mt-1 font-semibold text-[var(--ink)]">
                         {order.deliveryAddress ?? t.orders.notProvided}
                       </dd>
                     </div>
 
                     <div>
-                      <dt className="text-zinc-500 dark:text-zinc-400">
+                      <dt className="text-[var(--ink-muted)]">
                         {t.orders.pickupAgreement}
                       </dt>
-                      <dd className="mt-1 font-semibold text-zinc-950 dark:text-white">
+                      <dd className="mt-1 font-semibold text-[var(--ink)]">
                         {order.deliveryAreaKey === "nablus_receive_point"
                           ? order.pickupAgreementAccepted
                             ? t.orders.yes
@@ -513,10 +511,10 @@ export function OrdersClient() {
 
                     {order.deliveryNotes ? (
                       <div className="sm:col-span-2">
-                        <dt className="text-zinc-500 dark:text-zinc-400">
+                        <dt className="text-[var(--ink-muted)]">
                           {t.orders.deliveryNotes}
                         </dt>
-                        <dd className="mt-1 font-semibold whitespace-pre-wrap text-zinc-950 dark:text-white">
+                        <dd className="mt-1 font-semibold whitespace-pre-wrap text-[var(--ink)]">
                           {order.deliveryNotes}
                         </dd>
                       </div>
@@ -525,7 +523,7 @@ export function OrdersClient() {
                 </div>
               </div>
 
-              <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <div className="divide-y divide-[var(--line-soft)]">
                 {order.items.map((item) => {
                   const image = item.productImagesAtPurchase.at(0);
 
@@ -536,7 +534,7 @@ export function OrdersClient() {
                     >
                       <Link
                         href={`/products/${item.productSlugAtPurchase}`}
-                        className="relative h-24 w-full shrink-0 overflow-hidden rounded-2xl bg-zinc-100 sm:w-24 dark:bg-zinc-800"
+                        className="relative h-24 w-full shrink-0 overflow-hidden rounded-2xl bg-[var(--surface-muted)] ring-1 ring-[var(--accent-soft)] sm:w-24"
                       >
                         {image ? (
                           <OptimizedImage
@@ -546,7 +544,7 @@ export function OrdersClient() {
                             className="object-cover transition hover:scale-105"
                           />
                         ) : (
-                          <div className="flex h-full items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">
+                          <div className="flex h-full items-center justify-center text-xs text-[var(--ink-muted)]">
                             {t.orders.noImage}
                           </div>
                         )}
@@ -555,18 +553,18 @@ export function OrdersClient() {
                       <div className="min-w-0 flex-1">
                         <Link
                           href={`/products/${item.productSlugAtPurchase}`}
-                          className="font-bold text-zinc-950 transition hover:text-orange-600 dark:text-white dark:hover:text-orange-400"
+                          className="font-bold text-[var(--ink)] transition hover:text-[var(--accent-strong)]"
                         >
                           {item.productNameAtPurchase}
                         </Link>
 
                         {getVariantSnapshotLabel(item) ? (
-                          <p className="mt-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                          <p className="mt-2 inline-flex w-fit rounded-full bg-[var(--surface-muted)] px-3 py-1 text-xs font-semibold text-[var(--accent-strong)] ring-1 ring-[var(--accent-soft)]">
                             {getVariantSnapshotLabel(item)}
                           </p>
                         ) : null}
 
-                        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        <p className="mt-1 text-sm text-[var(--ink-muted)]">
                           {t.orders.quantity}: {item.quantity} ×{" "}
                           {formatPrice(
                             item.priceAtPurchase,
@@ -576,10 +574,10 @@ export function OrdersClient() {
                       </div>
 
                       <div className="text-left sm:text-right">
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        <p className="text-sm text-[var(--ink-muted)]">
                           {t.orders.subtotal}
                         </p>
-                        <p className="font-black text-zinc-950 dark:text-white">
+                        <p className="font-black text-[var(--accent-strong)]">
                           {formatPrice(
                             item.subtotalAmount,
                             t.delivery.currency,
@@ -605,19 +603,12 @@ export function OrdersClient() {
               }
             }}
             disabled={isLoadingMore}
-            className="rounded-full border border-zinc-300 px-5 py-2.5 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-950"
+            className="rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-5 py-2.5 text-sm font-semibold text-[var(--accent-strong)] transition hover:bg-[var(--surface-muted)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isLoadingMore
-              ? language === "ar"
-                ? "جار التحميل…"
-                : "Loading…"
-              : language === "ar"
-                ? "عرض طلبات أكثر"
-                : "Load more orders"}
+            {isLoadingMore ? t.orders.loadingMore : t.orders.loadMore}
           </button>
         </div>
       ) : null}
-
     </section>
   );
 }
