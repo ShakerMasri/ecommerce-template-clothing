@@ -72,17 +72,34 @@ Decision:
 
 ### Icons, SVGs, and UI Asset Packs
 
-Status: no separate committed icon pack found in this scan
+Status: accepted with trademark caution
 
 Finding:
 
-- The scan did not show committed SVG packs, icon packs, illustration packs, or downloaded UI assets in `public`.
-- The current app mainly uses text, CSS, product images, and Cloudinary-hosted media.
+- The scan did not show committed SVG packs, illustration packs, or downloaded UI kits in `public`.
+- The footer uses a small dependency-free inline SVG map for optional public social profile links.
+- Current supported brand icons are Instagram, WhatsApp, and Facebook.
+- The location/map-pin icon is an original simple geometric inline SVG created for this template, not a copied brand or icon-pack asset.
 
 Decision:
 
-- Keep current approach.
-- If icons, illustrations, templates, or UI kits are added later, record their source and license before commercial delivery.
+- Do not add `react-icons`, paid icon kits, copied Google/Image-search SVGs, or unknown-source assets for social links.
+- Footer social brand icon path data is based on Simple Icons, a CC0 project: `https://simpleicons.org/` and `https://github.com/simple-icons/simple-icons`.
+- Simple Icons' own disclaimer asks users to review icon license information because licenses and brand usage can change.
+- CC0 reduces copyright risk for the icon path data, but it does not remove trademark, brand-guideline, endorsement, or unfair-competition concerns.
+- Use brand icons only as neutral links to the store's real public profiles. Do not use them in a way that suggests Meta, Instagram, WhatsApp, Facebook, or any other platform sponsors, endorses, or partners with the store.
+- Keep the footer social/location icons grouped inside the contact summary so they read as navigation/contact links, not as a separate brand partnership section.
+- Replace placeholder social/location URLs in `src/config/contact.ts` before launch. Remove any social platform the client does not actually use.
+- Keep icons monochrome with `currentColor` in this footer so they match the theme and are presented as navigation icons, not modified brand lockups.
+- Before commercial launch, review the current official brand-resource pages for each enabled platform and keep this file updated.
+
+Reviewed links for this checkpoint:
+
+- Simple Icons: `https://simpleicons.org/`
+- Simple Icons legal disclaimer: `https://github.com/simple-icons/simple-icons/blob/develop/DISCLAIMER.md`
+- Instagram brand resources: `https://www.meta.com/brand/resources/instagram/instagram-brand/`
+- WhatsApp brand resources: `https://www.meta.com/brand/resources/whatsapp/whatsapp-brand/`
+- Facebook brand resources: `https://www.meta.com/brand/resources/facebook/logo/`
 
 ## Required Production Actions
 

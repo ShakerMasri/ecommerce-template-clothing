@@ -6,14 +6,16 @@
  * inbox passwords, API tokens, private webhook URLs, or internal admin contacts here.
  */
 
-type PublicContactLinkHref =
-  | `mailto:${string}`
-  | `tel:${string}`
-  | `https://${string}`;
+export type ContactSocialIconName =
+  | "instagram"
+  | "whatsapp"
+  | "facebook"
+  | "location";
 
-type PublicContactLink = {
+type PublicSocialLink = {
   label: string;
-  href: PublicContactLinkHref;
+  href: `https://${string}`;
+  icon: ContactSocialIconName;
 };
 
 type LocalizedText = {
@@ -40,11 +42,41 @@ type PublicContactConfig = {
   };
   footer: {
     showContactSummary: boolean;
+    onlineStoreCta: {
+      enabled: boolean;
+      whatsapp: {
+        display: string;
+        href: `https://wa.me/${string}`;
+      };
+    };
   };
-  socialLinks: readonly PublicContactLink[];
+  socialLinks: readonly PublicSocialLink[];
 };
 
-const socialLinks: readonly PublicContactLink[] = [];
+const socialLinks: readonly PublicSocialLink[] = [
+  // Replace these placeholders with the client-owned public profile links before launch.
+  // Remove any platform the client does not actually use.
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/",
+    icon: "instagram",
+  },
+  {
+    label: "WhatsApp",
+    href: "https://wa.me/970000000000",
+    icon: "whatsapp",
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/",
+    icon: "facebook",
+  },
+  {
+    label: "Location",
+    href: "https://www.google.com/maps",
+    icon: "location",
+  },
+];
 
 export const contactConfig = {
   email: {
@@ -52,11 +84,11 @@ export const contactConfig = {
     href: "mailto:support@example.com",
   },
   phone: {
-    display: "Replace with client phone",
+    display: "+970000000000",
     href: "tel:+970000000000",
   },
   whatsapp: {
-    display: "Replace with client WhatsApp",
+    display: "tel:+970000000000",
     href: "https://wa.me/970000000000",
   },
   supportHours: {
@@ -71,6 +103,13 @@ export const contactConfig = {
   },
   footer: {
     showContactSummary: true,
+    onlineStoreCta: {
+      enabled: false,
+      whatsapp: {
+        display: "+970599355107",
+        href: "https://wa.me/970599355107",
+      },
+    },
   },
   socialLinks,
 } as const satisfies PublicContactConfig;

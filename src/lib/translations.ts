@@ -53,6 +53,11 @@ export type TranslationDictionary = {
     phone: string;
     email: string;
     socialLinks: string;
+    openSocialLink: string;
+    locationNote: string;
+    onlineStoreCtaTitle: string;
+    onlineStoreCtaDescription: string;
+    onlineStoreCtaAction: string;
   };
   home: {
     badge: string;
@@ -715,7 +720,14 @@ export const translations: Record<Language, TranslationDictionary> = {
       whatsapp: "WhatsApp",
       phone: "Phone",
       email: "Email",
-      socialLinks: "Social links",
+      socialLinks: "Social and location links",
+      openSocialLink: "Open contact link:",
+      locationNote:
+        "Use the location icon for the store or pickup point. Delivery and pickup details are confirmed by WhatsApp or phone before completing the order.",
+      onlineStoreCtaTitle: "Want your own online store?",
+      onlineStoreCtaDescription:
+        "Launch a secure, mobile-friendly storefront with products, size and color options, cart, and cash-on-delivery ordering.",
+      onlineStoreCtaAction: "Discuss your store on WhatsApp",
     },
     home: {
       badge: "New season essentials",
@@ -1447,7 +1459,14 @@ export const translations: Record<Language, TranslationDictionary> = {
       whatsapp: "واتساب",
       phone: "الهاتف",
       email: "البريد الإلكتروني",
-      socialLinks: "روابط التواصل",
+      socialLinks: "روابط التواصل والموقع",
+      openSocialLink: "افتح رابط التواصل:",
+      locationNote:
+        "استخدم أيقونة الموقع للوصول إلى موقع المتجر أو نقطة الاستلام. يتم تأكيد تفاصيل التوصيل أو الاستلام عبر واتساب أو الهاتف قبل إكمال الطلب.",
+      onlineStoreCtaTitle: "هل تريد متجرًا إلكترونيًا خاصًا؟",
+      onlineStoreCtaDescription:
+        "ابدأ بواجهة متجر آمنة ومتجاوبة مع الجوال، تشمل المنتجات وخيارات المقاس واللون والسلة والدفع عند الاستلام.",
+      onlineStoreCtaAction: "ناقش متجرك عبر واتساب",
     },
     home: {
       badge: "قطع يومية مختارة",
