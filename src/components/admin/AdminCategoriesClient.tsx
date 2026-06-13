@@ -322,7 +322,7 @@ export function AdminCategoriesClient() {
 
   if (isLoading) {
     return (
-      <section className="space-y-6">
+      <section className="workspace-ui space-y-6">
         <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="h-8 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
           <div className="mt-3 h-4 w-80 max-w-full animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
@@ -337,7 +337,7 @@ export function AdminCategoriesClient() {
   }
 
   return (
-    <section className="space-y-6">
+    <section className="workspace-ui space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-semibold tracking-wide text-orange-600 uppercase dark:text-orange-400">

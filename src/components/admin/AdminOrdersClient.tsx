@@ -489,7 +489,7 @@ export function AdminOrdersClient() {
 
   if (message && !isLoading && orders.length === 0) {
     return (
-      <section className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="workspace-ui rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="text-2xl font-black text-zinc-950 dark:text-white">
           {t.admin.orders.unavailableTitle}
         </h1>
@@ -510,7 +510,7 @@ export function AdminOrdersClient() {
   }
 
   return (
-    <section className="space-y-6">
+    <section className="workspace-ui space-y-6">
       <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>

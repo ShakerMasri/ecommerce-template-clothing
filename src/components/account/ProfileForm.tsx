@@ -118,7 +118,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
+    <main className="workspace-ui mx-auto max-w-3xl px-4 py-8 sm:py-10">
       <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-8 dark:border-zinc-800 dark:bg-zinc-900">
         <p className="text-sm font-semibold tracking-wide text-orange-600 uppercase dark:text-orange-400">
           {t.profile.badge}
