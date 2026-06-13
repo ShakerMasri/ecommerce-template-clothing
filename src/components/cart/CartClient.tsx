@@ -106,6 +106,12 @@ type DeliveryFormState = {
   pickupAgreementAccepted: boolean;
 };
 
+type DeliveryValidationErrors = {
+  city: string | null;
+  address: string | null;
+  pickupAgreement: string | null;
+};
+
 const defaultDeliveryForm: DeliveryFormState = {
   deliveryAreaKey: DEFAULT_DELIVERY_AREA_KEY,
   deliveryCity: "",
@@ -114,8 +120,8 @@ const defaultDeliveryForm: DeliveryFormState = {
   pickupAgreementAccepted: false,
 };
 
-function formatPrice(price: number, currency: string) {
-  return `${price.toFixed(2)} ${currency}`;
+function formatPrice(amount: number) {
+  return `₪${amount.toFixed(2)}`;
 }
 
 function getEffectiveCartPrice(product: CartProduct) {
@@ -131,7 +137,9 @@ function formatVariantLabel(variant: CartVariant | null) {
     return null;
   }
 
-  const label = [variant.sizeLabel, variant.colorLabel].filter(Boolean).join(" / ");
+  const label = [variant.sizeLabel, variant.colorLabel]
+    .filter(Boolean)
+    .join(" / ");
 
   return label || null;
 }
@@ -149,6 +157,8 @@ export function CartClient() {
   const [deliveryForm, setDeliveryForm] =
     useState<DeliveryFormState>(defaultDeliveryForm);
   const [isConfirmingOrder, setIsConfirmingOrder] = useState(false);
+  const [deliveryValidationAttempted, setDeliveryValidationAttempted] =
+    useState(false);
   const checkoutKeyRef = useRef<string | null>(null);
   const [checkoutStatus, setCheckoutStatus] = useState<
     "idle" | "loading" | "success" | "error"
@@ -280,6 +290,7 @@ export function CartClient() {
       ...current,
       [field]: value,
     }));
+    setMessage("");
   }
 
   function updateDeliveryArea(deliveryAreaKey: DeliveryAreaKey) {
@@ -292,26 +303,32 @@ export function CartClient() {
         ? current.pickupAgreementAccepted
         : false,
     }));
+    setMessage("");
   }
 
-  function getDeliveryValidationError() {
-    if (deliveryForm.deliveryCity.trim().length < 2) {
-      return t.cart.deliveryCityRequired;
-    }
+  function getDeliveryValidationErrors(): DeliveryValidationErrors {
+    const city =
+      deliveryForm.deliveryCity.trim().length < 2
+        ? t.cart.deliveryCityRequired
+        : null;
 
-    if (selectedDeliveryArea.requiresCustomerAgreement) {
-      if (!deliveryForm.pickupAgreementAccepted) {
-        return t.cart.pickupAgreementRequired;
-      }
+    const pickupAgreement =
+      selectedDeliveryArea.requiresCustomerAgreement &&
+      !deliveryForm.pickupAgreementAccepted
+        ? t.cart.pickupAgreementRequired
+        : null;
 
-      return null;
-    }
+    const address =
+      !selectedDeliveryArea.requiresCustomerAgreement &&
+      deliveryForm.deliveryAddress.trim().length < 5
+        ? t.cart.deliveryAddressRequired
+        : null;
 
-    if (deliveryForm.deliveryAddress.trim().length < 5) {
-      return t.cart.deliveryAddressRequired;
-    }
+    return { city, address, pickupAgreement };
+  }
 
-    return null;
+  function getFirstDeliveryValidationError(errors: DeliveryValidationErrors) {
+    return errors.city ?? errors.pickupAgreement ?? errors.address;
   }
 
   function reviewOrder() {
@@ -324,10 +341,14 @@ export function CartClient() {
       return;
     }
 
-    const validationError = getDeliveryValidationError();
+    setDeliveryValidationAttempted(true);
+
+    const validationError = getFirstDeliveryValidationError(
+      getDeliveryValidationErrors(),
+    );
 
     if (validationError) {
-      setMessage(validationError);
+      setMessage("");
       return;
     }
 
@@ -345,11 +366,15 @@ export function CartClient() {
       return;
     }
 
-    const validationError = getDeliveryValidationError();
+    setDeliveryValidationAttempted(true);
+
+    const validationError = getFirstDeliveryValidationError(
+      getDeliveryValidationErrors(),
+    );
 
     if (validationError) {
       setIsConfirmingOrder(false);
-      setMessage(validationError);
+      setMessage("");
       return;
     }
 
@@ -405,9 +430,9 @@ export function CartClient() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="h-8 w-40 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-          <div className="mt-3 h-4 w-72 max-w-full animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+        <div className="rounded-3xl border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm">
+          <div className="h-8 w-40 animate-pulse rounded bg-[var(--surface-muted)]" />
+          <div className="mt-3 h-4 w-72 max-w-full animate-pulse rounded bg-[var(--surface-muted)]" />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -415,21 +440,21 @@ export function CartClient() {
             {Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={index}
-                className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+                className="rounded-[1.75rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-4 shadow-sm shadow-black/5"
               >
                 <div className="flex gap-4">
-                  <div className="h-24 w-24 animate-pulse rounded-2xl bg-zinc-200 dark:bg-zinc-800" />
+                  <div className="h-24 w-24 animate-pulse rounded-2xl bg-[var(--surface-muted)]" />
                   <div className="flex-1 space-y-3">
-                    <div className="h-5 w-2/3 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-                    <div className="h-4 w-24 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-                    <div className="h-9 w-32 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                    <div className="h-5 w-2/3 animate-pulse rounded bg-[var(--surface-muted)]" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-[var(--surface-muted)]" />
+                    <div className="h-9 w-32 animate-pulse rounded-full bg-[var(--surface-muted)]" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="h-52 animate-pulse rounded-3xl bg-zinc-200 dark:bg-zinc-800" />
+          <div className="h-52 animate-pulse rounded-3xl bg-[var(--surface-muted)]" />
         </div>
       </div>
     );
@@ -441,43 +466,41 @@ export function CartClient() {
       placedOrder.deliveryAreaKey;
 
     return (
-      <div className="mx-auto max-w-2xl rounded-3xl border border-green-200 bg-green-50 p-6 shadow-sm dark:border-green-900 dark:bg-green-950">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600 text-xl font-black text-white">
+      <div className="mx-auto max-w-2xl rounded-3xl border border-[var(--success-soft)] bg-[var(--success-soft)] p-6 shadow-sm">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--success-ink)] text-xl font-black text-[var(--surface-page)]">
           ✓
         </div>
 
-        <h1 className="mt-5 text-2xl font-black text-green-950 dark:text-green-100">
+        <h1 className="mt-5 text-2xl font-black text-[var(--success-ink)]">
           {t.cart.orderPlacedTitle}
         </h1>
 
-        <p className="mt-2 text-sm leading-6 text-green-800 dark:text-green-200">
+        <p className="mt-2 text-sm leading-6 text-[var(--success-ink)]">
           {t.cart.orderPlacedDescription}
         </p>
 
-        <div className="mt-6 space-y-3 rounded-2xl bg-white p-4 text-sm dark:bg-zinc-950">
+        <div className="mt-6 space-y-3 rounded-2xl bg-[var(--surface-card)] p-4 text-sm">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-zinc-500 dark:text-zinc-400">
-              {t.cart.orderId}
-            </span>
-            <span className="max-w-44 truncate font-mono text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+            <span className="text-[var(--ink-muted)]">{t.cart.orderId}</span>
+            <span className="max-w-44 truncate font-mono text-xs font-semibold text-[var(--ink)]">
               {placedOrder.id}
             </span>
           </div>
 
           <div className="flex items-center justify-between gap-4">
-            <span className="text-zinc-500 dark:text-zinc-400">
+            <span className="text-[var(--ink-muted)]">
               {t.cart.deliveryArea}
             </span>
-            <span className="text-right font-semibold text-zinc-900 dark:text-zinc-100">
+            <span className="text-right font-semibold text-[var(--ink)]">
               {placedDeliveryAreaLabel}
             </span>
           </div>
 
           <div className="flex items-center justify-between gap-4">
-            <span className="text-zinc-500 dark:text-zinc-400">
+            <span className="text-[var(--ink-muted)]">
               {t.cart.deliveryPrice}
             </span>
-            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+            <span className="font-semibold text-[var(--ink)]">
               {formatDeliveryPriceNis(Number(placedOrder.deliveryPrice), {
                 free: t.delivery.free,
                 currency: t.delivery.currency,
@@ -486,31 +509,22 @@ export function CartClient() {
           </div>
 
           <div className="flex items-center justify-between gap-4">
-            <span className="text-zinc-500 dark:text-zinc-400">
-              {t.cart.total}
-            </span>
-            <span className="font-bold text-zinc-950 dark:text-white">
-              {formatPrice(
-                Number(placedOrder.totalAmount),
-                t.delivery.currency,
-              )}
+            <span className="text-[var(--ink-muted)]">{t.cart.total}</span>
+            <span className="font-bold text-[var(--ink)]">
+              {formatPrice(Number(placedOrder.totalAmount))}
             </span>
           </div>
 
           <div className="flex items-center justify-between gap-4">
-            <span className="text-zinc-500 dark:text-zinc-400">
-              {t.cart.payment}
-            </span>
-            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+            <span className="text-[var(--ink-muted)]">{t.cart.payment}</span>
+            <span className="font-semibold text-[var(--ink)]">
               {t.cart.cashOnDelivery}
             </span>
           </div>
 
           <div className="flex items-center justify-between gap-4">
-            <span className="text-zinc-500 dark:text-zinc-400">
-              {t.cart.status}
-            </span>
-            <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-950 dark:text-orange-300">
+            <span className="text-[var(--ink-muted)]">{t.cart.status}</span>
+            <span className="rounded-full bg-[var(--surface-muted)] px-3 py-1 text-xs font-semibold text-[var(--accent-strong)]">
               {placedOrder.status}
             </span>
           </div>
@@ -519,14 +533,14 @@ export function CartClient() {
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/orders"
-            className="rounded-full bg-zinc-950 px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="rounded-full bg-[var(--ink)] px-5 py-2.5 text-center text-sm font-bold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)]"
           >
             {t.cart.viewOrders}
           </Link>
 
           <Link
             href="/products"
-            className="rounded-full border border-zinc-300 px-5 py-2.5 text-center text-sm font-semibold text-zinc-800 transition hover:bg-white dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
+            className="rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-5 py-2.5 text-center text-sm font-semibold text-[var(--accent-strong)] transition hover:bg-[var(--surface-muted)]"
           >
             {t.cart.continueShopping}
           </Link>
@@ -537,27 +551,27 @@ export function CartClient() {
 
   if (message && cartItems.length === 0) {
     return (
-      <div className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-2xl font-black text-zinc-950 dark:text-white">
+      <div className="rounded-3xl border border-[var(--line-soft)] bg-[var(--surface-card)] p-8 text-center shadow-sm">
+        <h1 className="text-2xl font-black text-[var(--ink)]">
           {t.cart.cartUnavailable}
         </h1>
 
-        <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
           {message}
         </p>
 
         {isAuthRequired ? (
           <Link
             href="/login?callbackUrl=/cart"
-            className="mt-6 inline-flex rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="mt-6 inline-flex rounded-full bg-[var(--ink)] px-5 py-2.5 text-sm font-bold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)]"
           >
-            Log in
+            {t.auth.login}
           </Link>
         ) : (
           <button
             type="button"
             onClick={() => void loadCart()}
-            className="mt-6 rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="mt-6 rounded-full bg-[var(--ink)] px-5 py-2.5 text-sm font-bold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)]"
           >
             {t.cart.tryAgain}
           </button>
@@ -568,22 +582,22 @@ export function CartClient() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 text-2xl dark:bg-orange-950">
+      <div className="rounded-3xl border border-[var(--line-soft)] bg-[var(--surface-card)] p-8 text-center shadow-sm">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-muted)] text-2xl">
           🛒
         </div>
 
-        <h1 className="mt-5 text-2xl font-black text-zinc-950 dark:text-white">
+        <h1 className="mt-5 text-2xl font-black text-[var(--ink)]">
           {t.cart.emptyTitle}
         </h1>
 
-        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--ink-muted)]">
           {t.cart.emptyDescription}
         </p>
 
         <Link
           href="/products"
-          className="mt-6 inline-flex rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+          className="mt-6 inline-flex rounded-full bg-[var(--ink)] px-5 py-2.5 text-sm font-bold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)]"
         >
           {t.actions.browseProducts}
         </Link>
@@ -591,25 +605,32 @@ export function CartClient() {
     );
   }
 
+  const deliveryValidationErrors = getDeliveryValidationErrors();
+  const deliveryValidationMessage = deliveryValidationAttempted
+    ? getFirstDeliveryValidationError(deliveryValidationErrors)
+    : null;
+  const submitAreaMessage =
+    deliveryValidationMessage ?? (checkoutStatus === "error" ? message : null);
+
   return (
     <section className="space-y-6">
-      <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="text-sm font-semibold tracking-wide text-orange-600 uppercase dark:text-orange-400">
+      <div className="rounded-[2rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm shadow-black/5 sm:p-6">
+        <p className="text-sm font-semibold tracking-wide text-[var(--accent)] uppercase">
           {t.cart.badge}
         </p>
 
         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-zinc-950 sm:text-4xl dark:text-white">
+            <h1 className="text-3xl font-black tracking-tight text-[var(--ink)] sm:text-4xl">
               {t.cart.title}
             </h1>
 
-            <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
               {t.cart.description}
             </p>
           </div>
 
-          <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          <p className="w-fit rounded-full bg-[var(--surface-muted)] px-3 py-1 text-sm font-semibold text-[var(--accent-strong)] ring-1 ring-[var(--accent-soft)]">
             {itemCount}{" "}
             {itemCount === 1 ? t.cart.itemSingular : t.cart.itemPlural}
           </p>
@@ -617,13 +638,13 @@ export function CartClient() {
       </div>
 
       {message && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <div className="rounded-2xl border border-[var(--danger-soft)] bg-[var(--danger-soft)] p-4 text-sm font-medium text-[var(--danger-ink)]">
           {message}
         </div>
       )}
 
       {hasUnavailableItems && (
-        <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4 text-sm font-medium text-orange-800 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-200">
+        <div className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4 text-sm font-medium text-[var(--accent-strong)]">
           {t.cart.unavailableNotice}
         </div>
       )}
@@ -646,12 +667,12 @@ export function CartClient() {
             return (
               <article
                 key={item.id}
-                className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+                className="rounded-[1.75rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-4 shadow-sm shadow-black/5"
               >
                 <div className="flex flex-col gap-4 sm:flex-row">
                   <Link
                     href={`/products/${item.product.slug}`}
-                    className="relative h-32 w-full shrink-0 overflow-hidden rounded-2xl bg-zinc-100 sm:h-28 sm:w-28 dark:bg-zinc-800"
+                    className="relative h-32 w-full shrink-0 overflow-hidden rounded-2xl bg-[var(--surface-muted)] ring-1 ring-[var(--accent-soft)] sm:h-28 sm:w-28"
                   >
                     {image ? (
                       <OptimizedImage
@@ -661,7 +682,7 @@ export function CartClient() {
                         className="object-cover transition hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">
+                      <div className="flex h-full items-center justify-center text-xs text-[var(--ink-muted)]">
                         {t.cart.noImage}
                       </div>
                     )}
@@ -670,65 +691,63 @@ export function CartClient() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold tracking-wide text-orange-600 uppercase dark:text-orange-400">
+                        <p className="text-xs font-semibold tracking-wide text-[var(--accent)] uppercase">
                           {item.product.category.name}
                         </p>
 
                         <Link
                           href={`/products/${item.product.slug}`}
-                          className="mt-1 block truncate text-base font-bold text-zinc-950 transition hover:text-orange-600 dark:text-white dark:hover:text-orange-400"
+                          className="mt-1 block text-base font-bold text-[var(--ink)] transition hover:text-[var(--accent-strong)]"
                         >
                           {item.product.name}
                         </Link>
 
                         {variantLabel ? (
-                          <p className="mt-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                          <p className="mt-2 inline-flex w-fit rounded-full bg-[var(--surface-muted)] px-3 py-1 text-xs font-semibold text-[var(--accent-strong)] ring-1 ring-[var(--accent-soft)]">
                             {variantLabel}
                           </p>
                         ) : null}
 
                         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-                          <span className="font-semibold text-zinc-700 dark:text-zinc-200">
-                            {formatPrice(itemUnitPrice, t.delivery.currency)}
+                          <span className="font-bold text-[var(--accent-strong)]">
+                            {formatPrice(itemUnitPrice)}
                           </span>
 
                           {itemHasDiscount && (
-                            <span className="text-xs text-zinc-500 line-through dark:text-zinc-400">
-                              {formatPrice(
-                                Number(item.product.price),
-                                t.delivery.currency,
-                              )}
+                            <span className="text-xs text-[var(--ink-muted)] line-through">
+                              {formatPrice(Number(item.product.price))}
                             </span>
                           )}
 
-                          <span className="text-zinc-600 dark:text-zinc-400">
+                          <span className="text-[var(--ink-muted)]">
                             {t.cart.each}
                           </span>
                         </div>
                       </div>
 
-                      <p className="text-lg font-black text-zinc-950 dark:text-white">
-                        {formatPrice(itemSubtotal, t.delivery.currency)}
+                      <p className="text-lg font-black text-[var(--accent-strong)]">
+                        {formatPrice(itemSubtotal)}
                       </p>
                     </div>
 
                     {isUnavailable && (
-                      <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
+                      <p className="mt-3 rounded-2xl bg-[var(--danger-soft)] px-3 py-2 text-sm font-medium text-[var(--danger-ink)]">
                         {isArchived
                           ? t.cart.productArchived
                           : isOutOfStock
                             ? t.cart.productOutOfStock
-                            : item.availableStock !== null
+                            : item.product.showStock &&
+                                item.availableStock !== null
                               ? t.cart.onlyLeft.replace(
                                   "{stock}",
                                   String(item.availableStock),
                                 )
-                              : t.cart.productOutOfStock}
+                              : t.cart.requestedQuantityUnavailable}
                       </p>
                     )}
 
                     <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex w-fit items-center overflow-hidden rounded-full border border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-950">
+                      <div className="flex w-fit items-center overflow-hidden rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] shadow-sm shadow-black/5">
                         <button
                           type="button"
                           disabled={
@@ -737,22 +756,24 @@ export function CartClient() {
                           onClick={() =>
                             void updateQuantity(item.id, item.quantity - 1)
                           }
-                          className="flex h-10 w-10 items-center justify-center text-lg font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                          className="flex h-10 w-10 items-center justify-center text-lg font-bold text-[var(--ink-muted)] transition hover:bg-[var(--surface-muted)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
                           aria-label={t.cart.decreaseQuantity}
                         >
                           -
                         </button>
 
-                        <span className="min-w-10 text-center text-sm font-bold text-zinc-950 dark:text-white">
+                        <span className="min-w-10 text-center text-sm font-bold text-[var(--ink)]">
                           {isUpdating ? "..." : item.quantity}
                         </span>
 
                         <button
                           type="button"
                           disabled={
-                            (item.availableStock !== null &&
+                            (item.product.showStock &&
+                              item.availableStock !== null &&
                               item.quantity >= item.availableStock) ||
                             item.quantity >= 99 ||
+                            exceedsStock ||
                             isArchived ||
                             isOutOfStock ||
                             isUpdating ||
@@ -761,7 +782,7 @@ export function CartClient() {
                           onClick={() =>
                             void updateQuantity(item.id, item.quantity + 1)
                           }
-                          className="flex h-10 w-10 items-center justify-center text-lg font-bold text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                          className="flex h-10 w-10 items-center justify-center text-lg font-bold text-[var(--ink-muted)] transition hover:bg-[var(--surface-muted)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
                           aria-label={t.cart.increaseQuantity}
                         >
                           +
@@ -772,7 +793,7 @@ export function CartClient() {
                         type="button"
                         onClick={() => void removeItem(item.id)}
                         disabled={isRemoving || isUpdating}
-                        className="text-left text-sm font-semibold text-red-600 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
+                        className="min-h-10 rounded-full border border-[var(--danger-soft)] bg-[var(--danger-soft)] px-4 py-2 text-left text-sm font-semibold text-[var(--danger-ink)] transition hover:bg-[var(--danger-soft)] focus-visible:ring-4 focus-visible:ring-[var(--danger-soft)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isRemoving ? t.cart.removing : t.cart.remove}
                       </button>
@@ -784,33 +805,39 @@ export function CartClient() {
           })}
         </div>
 
-        <aside className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="text-xl font-black text-zinc-950 dark:text-white">
+        <aside className="rounded-[2rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm shadow-black/5 lg:sticky lg:top-24">
+          <h2 className="text-xl font-black text-[var(--ink)]">
             {t.cart.orderSummary}
           </h2>
 
-          <div className="mt-5 space-y-5 border-b border-zinc-200 pb-5 dark:border-zinc-800">
+          <div className="mt-5 space-y-5 border-b border-[var(--line-soft)] pb-5">
             <div>
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-white">
+              <h3 className="text-sm font-bold text-[var(--ink)]">
                 {t.cart.deliveryDetailsTitle}
               </h3>
-              <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+              <p className="mt-1 text-xs leading-5 text-[var(--ink-muted)]">
                 {t.cart.deliveryDetailsDescription}
               </p>
             </div>
 
             <fieldset className="space-y-2">
-              <legend className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+              <legend className="text-sm font-semibold text-[var(--ink)]">
                 {t.cart.deliveryArea}
               </legend>
 
               {DELIVERY_AREAS.map((area) => {
                 const areaTranslation = t.delivery.areas[area.key];
+                const isSelectedArea =
+                  deliveryForm.deliveryAreaKey === area.key;
 
                 return (
                   <label
                     key={area.key}
-                    className="flex cursor-pointer gap-3 rounded-2xl border border-zinc-200 p-3 text-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-950"
+                    className={`flex cursor-pointer gap-3 rounded-2xl border p-3 text-sm transition ${
+                      isSelectedArea
+                        ? "border-[var(--accent)] bg-[var(--surface-muted)] text-[var(--accent-strong)] shadow-sm"
+                        : "border-[var(--line-soft)] bg-[var(--surface-card)] hover:border-[var(--line-soft)] hover:bg-[var(--surface-muted)]"
+                    }`}
                   >
                     <input
                       type="radio"
@@ -818,14 +845,14 @@ export function CartClient() {
                       value={area.key}
                       checked={deliveryForm.deliveryAreaKey === area.key}
                       onChange={() => updateDeliveryArea(area.key)}
-                      className="mt-1"
+                      className="mt-1 accent-[var(--accent)]"
                     />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-start justify-between gap-3">
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        <span className="font-semibold text-[var(--ink)]">
                           {areaTranslation.label}
                         </span>
-                        <span className="shrink-0 font-bold text-zinc-950 dark:text-white">
+                        <span className="shrink-0 font-bold text-[var(--ink)]">
                           {formatDeliveryPriceNis(area.priceNis, {
                             free: t.delivery.free,
                             currency: t.delivery.currency,
@@ -833,7 +860,7 @@ export function CartClient() {
                         </span>
                       </span>
                       {areaTranslation.note ? (
-                        <span className="mt-1 block text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                        <span className="mt-1 block text-xs leading-5 text-[var(--ink-muted)]">
                           {areaTranslation.note}
                         </span>
                       ) : null}
@@ -845,23 +872,48 @@ export function CartClient() {
 
             {selectedDeliveryArea.requiresCustomerAgreement &&
             selectedDeliveryTranslation.agreementLabel ? (
-              <label className="flex gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm font-medium text-orange-900 dark:border-orange-900 dark:bg-orange-950/50 dark:text-orange-100">
-                <input
-                  type="checkbox"
-                  checked={deliveryForm.pickupAgreementAccepted}
-                  onChange={(event) =>
-                    updateDeliveryForm(
-                      "pickupAgreementAccepted",
-                      event.target.checked,
-                    )
-                  }
-                  className="mt-1"
-                />
-                <span>{selectedDeliveryTranslation.agreementLabel}</span>
-              </label>
+              <div>
+                <label
+                  className={`flex gap-3 rounded-2xl border p-3 text-sm font-medium transition ${
+                    deliveryValidationAttempted &&
+                    deliveryValidationErrors.pickupAgreement
+                      ? "border-[var(--danger-ink)] bg-[var(--danger-soft)] text-[var(--danger-ink)]"
+                      : "border-[var(--line-soft)] bg-[var(--surface-muted)] text-[var(--accent-strong)]"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={deliveryForm.pickupAgreementAccepted}
+                    onChange={(event) =>
+                      updateDeliveryForm(
+                        "pickupAgreementAccepted",
+                        event.target.checked,
+                      )
+                    }
+                    className="mt-1 accent-[var(--accent)]"
+                    aria-describedby={
+                      deliveryValidationAttempted &&
+                      deliveryValidationErrors.pickupAgreement
+                        ? "pickup-agreement-error"
+                        : undefined
+                    }
+                  />
+                  <span>{selectedDeliveryTranslation.agreementLabel}</span>
+                </label>
+
+                {deliveryValidationAttempted &&
+                deliveryValidationErrors.pickupAgreement ? (
+                  <p
+                    id="pickup-agreement-error"
+                    className="mt-2 text-xs font-semibold text-[var(--danger-ink)]"
+                  >
+                    {deliveryValidationErrors.pickupAgreement}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
 
-            <label className="block text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+            <label className="block text-sm font-semibold text-[var(--ink)]">
               {t.cart.deliveryCity}
               <input
                 type="text"
@@ -870,11 +922,32 @@ export function CartClient() {
                   updateDeliveryForm("deliveryCity", event.target.value)
                 }
                 placeholder={t.cart.deliveryCityPlaceholder}
-                className="mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-950 transition outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-orange-950"
+                aria-invalid={
+                  deliveryValidationAttempted &&
+                  Boolean(deliveryValidationErrors.city)
+                }
+                aria-describedby={
+                  deliveryValidationAttempted && deliveryValidationErrors.city
+                    ? "delivery-city-error"
+                    : undefined
+                }
+                className={`mt-2 w-full rounded-2xl border bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)] ${
+                  deliveryValidationAttempted && deliveryValidationErrors.city
+                    ? "border-[var(--danger-ink)]"
+                    : "border-[var(--line-soft)]"
+                }`}
               />
+              {deliveryValidationAttempted && deliveryValidationErrors.city ? (
+                <span
+                  id="delivery-city-error"
+                  className="mt-2 block text-xs font-semibold text-[var(--danger-ink)]"
+                >
+                  {deliveryValidationErrors.city}
+                </span>
+              ) : null}
             </label>
 
-            <label className="block text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+            <label className="block text-sm font-semibold text-[var(--ink)]">
               {selectedDeliveryArea.requiresCustomerAgreement
                 ? t.cart.deliveryAddressOptional
                 : t.cart.deliveryAddress}
@@ -885,11 +958,35 @@ export function CartClient() {
                 }
                 placeholder={t.cart.deliveryAddressPlaceholder}
                 rows={3}
-                className="mt-2 w-full resize-none rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-950 transition outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-orange-950"
+                aria-invalid={
+                  deliveryValidationAttempted &&
+                  Boolean(deliveryValidationErrors.address)
+                }
+                aria-describedby={
+                  deliveryValidationAttempted &&
+                  deliveryValidationErrors.address
+                    ? "delivery-address-error"
+                    : undefined
+                }
+                className={`mt-2 w-full resize-none rounded-2xl border bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)] ${
+                  deliveryValidationAttempted &&
+                  deliveryValidationErrors.address
+                    ? "border-[var(--danger-ink)]"
+                    : "border-[var(--line-soft)]"
+                }`}
               />
+              {deliveryValidationAttempted &&
+              deliveryValidationErrors.address ? (
+                <span
+                  id="delivery-address-error"
+                  className="mt-2 block text-xs font-semibold text-[var(--danger-ink)]"
+                >
+                  {deliveryValidationErrors.address}
+                </span>
+              ) : null}
             </label>
 
-            <label className="block text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+            <label className="block text-sm font-semibold text-[var(--ink)]">
               {t.cart.deliveryNotes}
               <textarea
                 value={deliveryForm.deliveryNotes}
@@ -898,44 +995,42 @@ export function CartClient() {
                 }
                 placeholder={t.cart.deliveryNotesPlaceholder}
                 rows={2}
-                className="mt-2 w-full resize-none rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-950 transition outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-orange-950"
+                className="mt-2 w-full resize-none rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
               />
             </label>
           </div>
 
-          <div className="mt-5 space-y-3 border-b border-zinc-200 pb-5 text-sm dark:border-zinc-800">
+          <div className="mt-5 space-y-3 border-b border-[var(--line-soft)] pb-5 text-sm">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-zinc-600 dark:text-zinc-400">
-                {t.cart.items}
-              </span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <span className="text-[var(--ink-muted)]">{t.cart.items}</span>
+              <span className="font-semibold text-[var(--ink)]">
                 {itemCount}
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-4">
-              <span className="text-zinc-600 dark:text-zinc-400">
+              <span className="text-[var(--ink-muted)]">
                 {t.cart.paymentMethod}
               </span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <span className="font-semibold text-[var(--ink)]">
                 {t.cart.cashOnDelivery}
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-4">
-              <span className="text-zinc-600 dark:text-zinc-400">
+              <span className="text-[var(--ink-muted)]">
                 {t.cart.productsTotal}
               </span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {formatPrice(total, t.delivery.currency)}
+              <span className="font-semibold text-[var(--ink)]">
+                {formatPrice(total)}
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-4">
-              <span className="text-zinc-600 dark:text-zinc-400">
+              <span className="text-[var(--ink-muted)]">
                 {t.cart.deliveryPrice}
               </span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <span className="font-semibold text-[var(--ink)]">
                 {formatDeliveryPriceNis(selectedDeliveryPrice, {
                   free: t.delivery.free,
                   currency: t.delivery.currency,
@@ -944,14 +1039,23 @@ export function CartClient() {
             </div>
 
             <div className="flex items-center justify-between gap-4">
-              <span className="text-zinc-600 dark:text-zinc-400">
+              <span className="text-[var(--ink-muted)]">
                 {t.cart.estimatedTotal}
               </span>
-              <span className="text-lg font-black text-zinc-950 dark:text-white">
-                {formatPrice(finalTotal, t.delivery.currency)}
+              <span className="text-lg font-black text-[var(--accent-strong)]">
+                {formatPrice(finalTotal)}
               </span>
             </div>
           </div>
+
+          {submitAreaMessage ? (
+            <div
+              className="mt-5 rounded-2xl border border-[var(--danger-soft)] bg-[var(--danger-soft)] p-3 text-sm font-semibold text-[var(--danger-ink)]"
+              role="alert"
+            >
+              {submitAreaMessage}
+            </div>
+          ) : null}
 
           <button
             type="button"
@@ -961,7 +1065,7 @@ export function CartClient() {
               checkoutStatus === "success" ||
               hasUnavailableItems
             }
-            className="mt-5 w-full rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="mt-5 w-full rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-bold text-[var(--surface-page)] shadow-sm shadow-black/10 transition hover:bg-[var(--accent-strong)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-[var(--surface-muted)] disabled:text-[var(--ink-muted)] disabled:shadow-none"
           >
             {checkoutStatus === "loading"
               ? t.cart.placingOrder
@@ -970,45 +1074,45 @@ export function CartClient() {
                 : t.cart.reviewOrder}
           </button>
 
-          <p className="mt-4 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+          <p className="mt-4 text-xs leading-5 text-[var(--ink-muted)]">
             {t.legal.notices.byPlacingOrder}{" "}
             <Link
               href="/terms"
-              className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+              className="font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               {t.legal.notices.termsOfUse}
             </Link>
             ,{" "}
             <Link
               href="/privacy"
-              className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+              className="font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               {t.legal.notices.privacyPolicy}
             </Link>
             ,{" "}
             <Link
               href="/shipping"
-              className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+              className="font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               {t.legal.notices.shippingPolicy}
             </Link>
             , {t.legal.notices.and}{" "}
             <Link
               href="/returns"
-              className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+              className="font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]"
             >
               {t.legal.notices.returnsPolicy}
             </Link>
             .
           </p>
 
-          <p className="mt-3 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+          <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">
             {t.cart.stockServerNote}
           </p>
 
           <Link
             href="/products"
-            className="mt-4 inline-flex w-full justify-center rounded-full border border-zinc-300 px-5 py-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-950"
+            className="mt-4 inline-flex w-full justify-center rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-5 py-3 text-sm font-semibold text-[var(--accent-strong)] transition hover:bg-[var(--surface-muted)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none"
           >
             {t.cart.continueShopping}
           </Link>
@@ -1016,22 +1120,22 @@ export function CartClient() {
       </div>
 
       {isConfirmingOrder ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[color-mix(in_srgb,var(--ink)_72%,transparent)] p-4">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-order-title"
-            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-2xl shadow-black/20"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2
                   id="confirm-order-title"
-                  className="text-2xl font-black text-zinc-950 dark:text-white"
+                  className="text-2xl font-black text-[var(--ink)]"
                 >
                   {t.cart.confirmOrderTitle}
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+                <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
                   {t.cart.confirmOrderDescription}
                 </p>
               </div>
@@ -1039,82 +1143,82 @@ export function CartClient() {
               <button
                 type="button"
                 onClick={() => setIsConfirmingOrder(false)}
-                className="rounded-full border border-zinc-300 px-3 py-1.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                className="rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-1.5 text-sm font-semibold text-[var(--accent-strong)] transition hover:bg-[var(--surface-muted)]"
               >
                 {t.cart.cancel}
               </button>
             </div>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
-                <h3 className="text-sm font-bold text-zinc-950 dark:text-white">
+              <div className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
+                <h3 className="text-sm font-bold text-[var(--ink)]">
                   {t.cart.contactInfo}
                 </h3>
                 <dl className="mt-3 space-y-2 text-sm">
                   <div className="flex justify-between gap-3">
-                    <dt className="text-zinc-500 dark:text-zinc-400">
+                    <dt className="text-[var(--ink-muted)]">
                       {t.cart.customerName}
                     </dt>
-                    <dd className="text-right font-semibold text-zinc-900 dark:text-zinc-100">
+                    <dd className="text-right font-semibold text-[var(--ink)]">
                       {customer?.name?.trim() ?? "—"}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-zinc-500 dark:text-zinc-400">
+                    <dt className="text-[var(--ink-muted)]">
                       {t.cart.customerEmail}
                     </dt>
-                    <dd className="text-right font-semibold text-zinc-900 dark:text-zinc-100">
+                    <dd className="text-right font-semibold text-[var(--ink)]">
                       {customer?.email?.trim() ?? "—"}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-zinc-500 dark:text-zinc-400">
+                    <dt className="text-[var(--ink-muted)]">
                       {t.cart.customerPhone}
                     </dt>
-                    <dd className="text-right font-semibold text-zinc-900 dark:text-zinc-100">
+                    <dd className="text-right font-semibold text-[var(--ink)]">
                       {customer?.phone?.trim() ?? "—"}
                     </dd>
                   </div>
                 </dl>
-                <p className="mt-3 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">
                   {t.cart.savedAccountContact}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
-                <h3 className="text-sm font-bold text-zinc-950 dark:text-white">
+              <div className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
+                <h3 className="text-sm font-bold text-[var(--ink)]">
                   {t.cart.deliveryDetailsTitle}
                 </h3>
                 <dl className="mt-3 space-y-2 text-sm">
                   <div className="flex justify-between gap-3">
-                    <dt className="text-zinc-500 dark:text-zinc-400">
+                    <dt className="text-[var(--ink-muted)]">
                       {t.cart.deliveryArea}
                     </dt>
-                    <dd className="text-right font-semibold text-zinc-900 dark:text-zinc-100">
+                    <dd className="text-right font-semibold text-[var(--ink)]">
                       {selectedDeliveryTranslation.label}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-zinc-500 dark:text-zinc-400">
+                    <dt className="text-[var(--ink-muted)]">
                       {t.cart.deliveryCity}
                     </dt>
-                    <dd className="text-right font-semibold text-zinc-900 dark:text-zinc-100">
+                    <dd className="text-right font-semibold text-[var(--ink)]">
                       {deliveryForm.deliveryCity.trim()}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-zinc-500 dark:text-zinc-400">
+                    <dt className="text-[var(--ink-muted)]">
                       {t.cart.deliveryAddress}
                     </dt>
-                    <dd className="text-right font-semibold text-zinc-900 dark:text-zinc-100">
+                    <dd className="text-right font-semibold text-[var(--ink)]">
                       {deliveryForm.deliveryAddress.trim() || "—"}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-zinc-500 dark:text-zinc-400">
+                    <dt className="text-[var(--ink-muted)]">
                       {t.cart.deliveryNotes}
                     </dt>
-                    <dd className="text-right font-semibold text-zinc-900 dark:text-zinc-100">
+                    <dd className="text-right font-semibold text-[var(--ink)]">
                       {deliveryForm.deliveryNotes.trim() || "—"}
                     </dd>
                   </div>
@@ -1122,36 +1226,36 @@ export function CartClient() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-white">
+            <div className="mt-4 rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
+              <h3 className="text-sm font-bold text-[var(--ink)]">
                 {t.cart.orderSummary}
               </h3>
               <dl className="mt-3 space-y-2 text-sm">
                 <div className="flex justify-between gap-4">
-                  <dt className="text-zinc-500 dark:text-zinc-400">
+                  <dt className="text-[var(--ink-muted)]">
                     {t.cart.productsTotal}
                   </dt>
-                  <dd className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {formatPrice(total, t.delivery.currency)}
+                  <dd className="font-semibold text-[var(--ink)]">
+                    {formatPrice(total)}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-zinc-500 dark:text-zinc-400">
+                  <dt className="text-[var(--ink-muted)]">
                     {t.cart.deliveryPrice}
                   </dt>
-                  <dd className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  <dd className="font-semibold text-[var(--ink)]">
                     {formatDeliveryPriceNis(selectedDeliveryPrice, {
                       free: t.delivery.free,
                       currency: t.delivery.currency,
                     })}
                   </dd>
                 </div>
-                <div className="flex justify-between gap-4 border-t border-zinc-200 pt-3 dark:border-zinc-800">
-                  <dt className="font-bold text-zinc-950 dark:text-white">
+                <div className="flex justify-between gap-4 border-t border-[var(--line-soft)] pt-3">
+                  <dt className="font-bold text-[var(--ink)]">
                     {t.cart.finalTotal}
                   </dt>
-                  <dd className="text-lg font-black text-zinc-950 dark:text-white">
-                    {formatPrice(finalTotal, t.delivery.currency)}
+                  <dd className="text-lg font-black text-[var(--accent-strong)]">
+                    {formatPrice(finalTotal)}
                   </dd>
                 </div>
               </dl>
@@ -1161,7 +1265,7 @@ export function CartClient() {
               <button
                 type="button"
                 onClick={() => setIsConfirmingOrder(false)}
-                className="rounded-full border border-zinc-300 px-5 py-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
+                className="rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-5 py-3 text-sm font-semibold text-[var(--accent-strong)] transition hover:bg-[var(--surface-muted)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none"
               >
                 {t.cart.cancel}
               </button>
@@ -1170,7 +1274,7 @@ export function CartClient() {
                 type="button"
                 onClick={() => void placeOrder()}
                 disabled={checkoutStatus === "loading"}
-                className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                className="rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-bold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-[var(--surface-muted)] disabled:text-[var(--ink-muted)]"
               >
                 {checkoutStatus === "loading"
                   ? t.cart.placingOrder

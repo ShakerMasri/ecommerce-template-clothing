@@ -43,10 +43,7 @@ type ProductPriceFields = {
   discountPrice?: number | null;
 };
 
-function validateDiscountPrice(
-  data: ProductPriceFields,
-  ctx: z.RefinementCtx,
-) {
+function validateDiscountPrice(data: ProductPriceFields, ctx: z.RefinementCtx) {
   if (data.discountPrice == null || data.price === undefined) {
     return;
   }
@@ -82,6 +79,17 @@ const productImageUrlSchema = z
     "Image must be an uploaded Cloudinary image URL",
   );
 
+const phoneSchema = z
+  .string()
+  .trim()
+  .min(10, "Phone number must be at least 10 characters")
+  .max(19, "Phone number must be less than 20 characters")
+  .regex(
+    /^\+?[0-9\s\-()]+$/,
+    "Phone number can only contain numbers, spaces, dashes, parentheses, and an optional +",
+  )
+  .transform((value) => value.replace(/[\s\-()]/g, ""));
+
 export const registerSchema = z.object({
   name: z
     .string()
@@ -90,6 +98,8 @@ export const registerSchema = z.object({
     .max(50, "Name must be less than 50 characters"),
 
   email: z.string().trim().email("Invalid email address").toLowerCase(),
+
+  phone: phoneSchema,
 
   password: z
     .string()
@@ -102,17 +112,6 @@ export const loginSchema = z.object({
 
   password: z.string().min(1, "Password is required"),
 });
-
-const phoneSchema = z
-  .string()
-  .trim()
-  .min(8, "Phone number must be at least 8 characters")
-  .max(20, "Phone number must be less than 20 characters")
-  .regex(
-    /^\+?[0-9\s\-()]+$/,
-    "Phone number can only contain numbers, spaces, dashes, parentheses, and an optional +",
-  )
-  .transform((value) => value.replace(/[\s\-()]/g, ""));
 
 export const updateProfileSchema = z.object({
   name: z

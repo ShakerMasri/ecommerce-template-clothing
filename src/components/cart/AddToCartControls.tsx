@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAppPreferences } from "~/components/providers/AppPreferencesProvider";
 
 type AddToCartControlsProps = {
   productId: string;
@@ -23,6 +25,7 @@ export function AddToCartControls({
   disabledReason = null,
 }: AddToCartControlsProps) {
   const router = useRouter();
+  const { t } = useAppPreferences();
 
   const [quantity, setQuantity] = useState(1);
   const [status, setStatus] = useState<
@@ -33,6 +36,7 @@ export function AddToCartControls({
   const maxClientQuantity = stock ?? 99;
   const isOutOfStock = !isInStock;
   const isLoading = status === "loading";
+  const isDisabled = isLoading || isOutOfStock || Boolean(disabledReason);
 
   useEffect(() => {
     setQuantity((currentQuantity) => {
@@ -42,14 +46,15 @@ export function AddToCartControls({
       );
     });
   }, [maxClientQuantity, productVariantId]);
-  const isDisabled = isLoading || isOutOfStock || Boolean(disabledReason);
 
   function decreaseQuantity() {
     setQuantity((currentQuantity) => Math.max(1, currentQuantity - 1));
   }
 
   function increaseQuantity() {
-    setQuantity((currentQuantity) => Math.min(maxClientQuantity, currentQuantity + 1));
+    setQuantity((currentQuantity) =>
+      Math.min(maxClientQuantity, currentQuantity + 1),
+    );
   }
 
   async function handleAddToCart() {
@@ -87,74 +92,92 @@ export function AddToCartControls({
 
       if (!response.ok) {
         setStatus("error");
-        setMessage(data.message ?? "Failed to add item to cart.");
+        setMessage(data.message ?? t.cart.failedToAddItem);
         return;
       }
 
       setStatus("success");
-      setMessage(data.message ?? "Item added to cart.");
+      setMessage(data.message ?? t.cart.itemAddedToCart);
       router.refresh();
     } catch {
       setStatus("error");
-      setMessage("Failed to connect to the server.");
+      setMessage(t.cart.failedToConnect);
     }
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-3">
+    <div className="space-y-4 rounded-3xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex w-fit items-center overflow-hidden rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] shadow-sm shadow-black/5">
+          <button
+            type="button"
+            onClick={decreaseQuantity}
+            disabled={isLoading || quantity <= 1}
+            className="flex h-11 w-11 items-center justify-center text-lg font-bold text-[var(--ink-muted)] transition hover:bg-[var(--surface-muted)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label={t.cart.decreaseQuantity}
+          >
+            −
+          </button>
+
+          <span
+            className="min-w-12 text-center text-sm font-black text-[var(--ink)]"
+            aria-live="polite"
+          >
+            {quantity}
+          </span>
+
+          <button
+            type="button"
+            onClick={increaseQuantity}
+            disabled={isLoading || quantity >= maxClientQuantity || isDisabled}
+            className="flex h-11 w-11 items-center justify-center text-lg font-bold text-[var(--ink-muted)] transition hover:bg-[var(--surface-muted)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label={t.cart.increaseQuantity}
+          >
+            +
+          </button>
+        </div>
+
         <button
           type="button"
-          onClick={decreaseQuantity}
-          disabled={isLoading || quantity <= 1}
-          className="rounded border border-gray-300 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={handleAddToCart}
+          disabled={isDisabled}
+          className="min-h-11 flex-1 rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-bold text-[var(--surface-page)] shadow-sm shadow-black/10 transition hover:bg-[var(--accent-strong)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-[var(--surface-muted)] disabled:text-[var(--ink-muted)] disabled:shadow-none"
         >
-          -
-        </button>
-
-        <span className="min-w-8 text-center">{quantity}</span>
-
-        <button
-          type="button"
-          onClick={increaseQuantity}
-          disabled={isLoading || quantity >= maxClientQuantity || isDisabled}
-          className="rounded border border-gray-300 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          +
+          {isLoading
+            ? t.cart.addingToCart
+            : disabledReason
+              ? t.cart.chooseOption
+              : isOutOfStock
+                ? t.products.outOfStock
+                : t.cart.addToCart}
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={handleAddToCart}
-        disabled={isDisabled}
-        className="rounded bg-black px-6 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isLoading
-          ? "Adding..."
-          : disabledReason
-            ? "Choose an option"
-            : isOutOfStock
-              ? "Out of stock"
-              : "Add to cart"}
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {message ? (
+          <p
+            className={`rounded-2xl px-3 py-2 text-sm font-medium ${
+              status === "error"
+                ? "bg-[var(--danger-soft)] text-[var(--danger-ink)]"
+                : "bg-[var(--success-soft)] text-[var(--success-ink)]"
+            }`}
+            role={status === "error" ? "alert" : "status"}
+          >
+            {message}
+          </p>
+        ) : (
+          <p className="text-xs leading-5 text-[var(--ink-muted)]">
+            {t.cart.quantityHelp}
+          </p>
+        )}
 
-      <a
-        href="/cart"
-        className="ml-3 inline-block text-sm text-gray-600 underline"
-      >
-        View cart
-      </a>
-
-      {message && (
-        <p
-          className={`text-sm ${
-            status === "error" ? "text-red-600" : "text-green-700"
-          }`}
+        <Link
+          href="/cart"
+          className="inline-flex min-h-10 items-center justify-center rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-4 py-2 text-sm font-semibold text-[var(--accent-strong)] transition hover:bg-[var(--surface-muted)] focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none"
         >
-          {message}
-        </p>
-      )}
+          {t.actions.viewCart}
+        </Link>
+      </div>
     </div>
   );
 }

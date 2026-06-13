@@ -1,4 +1,8 @@
-import { policyConfig, type PolicyPageKey, type PublicPolicySection } from "~/config/policies";
+import {
+  policyConfig,
+  type PolicyPageKey,
+  type PublicPolicySection,
+} from "~/config/policies";
 import { storeConfig } from "~/config/store";
 import {
   getDeliveryAreaLabels,
@@ -87,6 +91,12 @@ export type TranslationDictionary = {
     left: string;
     inStock: string;
     options: string;
+    size: string;
+    color: string;
+    option: string;
+    selected: string;
+    selectOptionHelp: string;
+    selectOptionRequired: string;
     outOfStock: string;
     descriptionTitle: string;
     noDescription: string;
@@ -141,6 +151,13 @@ export type TranslationDictionary = {
     failedToUpdate: string;
     failedToRemove: string;
     failedToPlaceOrder: string;
+    failedToAddItem: string;
+    itemAddedToCart: string;
+    addingToCart: string;
+    chooseOption: string;
+    addToCart: string;
+    quantityHelp: string;
+    requestedQuantityUnavailable: string;
     decreaseQuantity: string;
     increaseQuantity: string;
     deliveryDetailsTitle: string;
@@ -195,6 +212,8 @@ export type TranslationDictionary = {
     noOrdersDescription: string;
     browseProducts: string;
     refresh: string;
+    loadMore: string;
+    loadingMore: string;
     order: string;
     placed: string;
     total: string;
@@ -230,6 +249,13 @@ export type TranslationDictionary = {
     name: string;
     phone: string;
     phoneHelp: string;
+    nameInvalid: string;
+    emailInvalid: string;
+    phoneInvalid: string;
+    passwordRequired: string;
+    passwordTooShort: string;
+    fixHighlightedFields: string;
+    invalidRegistrationInput: string;
     login: string;
     loggingIn: string;
     continueWithGoogle: string;
@@ -330,6 +356,9 @@ export type TranslationDictionary = {
     name: string;
     phoneNumber: string;
     phoneHelp: string;
+    nameInvalid: string;
+    phoneInvalid: string;
+    fixHighlightedFields: string;
     saveProfile: string;
     saving: string;
     backToAccount: string;
@@ -724,7 +753,15 @@ export const translations: Record<Language, TranslationDictionary> = {
       out: "Out",
       left: "left",
       inStock: "Available",
-      options: "Size / color",
+      options: "Options",
+      size: "Size",
+      color: "Color",
+      option: "Option",
+      selected: "Selected",
+      selectOptionHelp:
+        "Choose an available size and color before adding this piece to your cart.",
+      selectOptionRequired:
+        "Please choose an available size or color option before adding to cart.",
       outOfStock: "Out of stock",
       descriptionTitle: "Description",
       noDescription: "No description available for this product yet.",
@@ -785,6 +822,14 @@ export const translations: Record<Language, TranslationDictionary> = {
       failedToUpdate: "Failed to update item.",
       failedToRemove: "Failed to remove item.",
       failedToPlaceOrder: "Failed to place order.",
+      failedToAddItem: "Failed to add item to cart.",
+      itemAddedToCart: "Item added to cart.",
+      addingToCart: "Adding...",
+      chooseOption: "Choose an option",
+      addToCart: "Add to cart",
+      quantityHelp: "Choose quantity, then add the item to your cart.",
+      requestedQuantityUnavailable:
+        "The selected quantity is not currently available.",
       decreaseQuantity: "Decrease quantity",
       increaseQuantity: "Increase quantity",
       deliveryDetailsTitle: "Delivery details",
@@ -839,6 +884,8 @@ export const translations: Record<Language, TranslationDictionary> = {
         "When you place an order, it will appear here with its status, payment state, and product details.",
       browseProducts: "Browse products",
       refresh: "Refresh",
+      loadMore: "Load more orders",
+      loadingMore: "Loading…",
       order: "Order",
       placed: "Placed",
       total: "Total",
@@ -877,8 +924,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     auth: {
       welcomeBackBadge: "Welcome back",
       loginHeroTitle: "Sign in and continue shopping.",
-      loginHeroDescription:
-        `Access your cart, checkout, and order history using your ${englishStoreName} account.`,
+      loginHeroDescription: `Access your cart, checkout, and order history using your ${englishStoreName} account.`,
       loginTitle: "Login",
       loginDescription: "Enter your email and password to access your account.",
       email: "Email",
@@ -886,6 +932,15 @@ export const translations: Record<Language, TranslationDictionary> = {
       name: "Name",
       phone: "Phone number",
       phoneHelp: "The admin may use this number to confirm your order.",
+      nameInvalid: "Enter your name using 2 to 50 characters.",
+      emailInvalid: "Enter a valid email address.",
+      phoneInvalid:
+        "Enter a valid phone number using digits, spaces, dashes, parentheses, and an optional + at the start.",
+      passwordRequired: "Enter your password.",
+      passwordTooShort: "Password must be at least 8 characters.",
+      fixHighlightedFields: "Please fix the highlighted fields.",
+      invalidRegistrationInput:
+        "Some registration details are invalid. Please review the highlighted fields.",
       login: "Login",
       loggingIn: "Logging in...",
       continueWithGoogle: "Continue with Google",
@@ -1002,6 +1057,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       phoneNumber: "Phone number",
       phoneHelp:
         "Phone numbers are required before checkout. They are not verified by SMS yet.",
+      nameInvalid: "Enter your name using 2 to 50 characters.",
+      phoneInvalid:
+        "Enter a valid phone number using digits, spaces, dashes, parentheses, and an optional + at the start.",
+      fixHighlightedFields: "Please fix the highlighted fields.",
       saveProfile: "Save profile",
       saving: "Saving...",
       backToAccount: "Back to account",
@@ -1100,7 +1159,8 @@ export const translations: Record<Language, TranslationDictionary> = {
         dashboard: "Dashboard",
         refresh: "Refresh",
         search: "Search",
-        searchPlaceholder: "Search by order ID, customer, phone, email, or city...",
+        searchPlaceholder:
+          "Search by order ID, customer, phone, email, or city...",
         statusFilter: "Status",
         allStatuses: "All statuses",
         paymentFilter: "Payment",
@@ -1152,7 +1212,8 @@ export const translations: Record<Language, TranslationDictionary> = {
           "This note is for admins only. Never store passwords, payment card details, or private secrets here.",
         noImage: "No image",
         noOrdersTitle: "No orders yet",
-        noOrdersDescription: "Customer orders will appear here after checkout or when filters match existing orders.",
+        noOrdersDescription:
+          "Customer orders will appear here after checkout or when filters match existing orders.",
         selectOrderTitle: "Select an order",
         selectOrderDescription:
           "Choose an order card to review details and update its admin state.",
@@ -1340,11 +1401,13 @@ export const translations: Record<Language, TranslationDictionary> = {
         },
         {
           title: "اختر المقاس واللون",
-          description: "اختر المقاس واللون المتوفرين قبل إضافة القطعة إلى السلة.",
+          description:
+            "اختر المقاس واللون المتوفرين قبل إضافة القطعة إلى السلة.",
         },
         {
           title: "راجع واطلب",
-          description: "راجع التوصيل والمجموع النهائي قبل تأكيد الطلب، ثم تابعه من حسابك.",
+          description:
+            "راجع التوصيل والمجموع النهائي قبل تأكيد الطلب، ثم تابعه من حسابك.",
         },
       ],
       stats: [
@@ -1387,7 +1450,15 @@ export const translations: Record<Language, TranslationDictionary> = {
       out: "غير متوفر",
       left: "متبقي",
       inStock: "متوفر",
-      options: "مقاس / لون",
+      options: "الخيارات",
+      size: "المقاس",
+      color: "اللون",
+      option: "خيار",
+      selected: "محدد",
+      selectOptionHelp:
+        "اختر المقاس واللون المتوفرين قبل إضافة القطعة إلى السلة.",
+      selectOptionRequired:
+        "يرجى اختيار مقاس أو لون متوفر قبل الإضافة إلى السلة.",
       outOfStock: "غير متوفر",
       descriptionTitle: "الوصف",
       noDescription: "لا يوجد وصف لهذا المنتج بعد.",
@@ -1446,6 +1517,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       failedToUpdate: "فشل تحديث المنتج.",
       failedToRemove: "فشل حذف المنتج.",
       failedToPlaceOrder: "فشل إنشاء الطلب.",
+      failedToAddItem: "فشل إضافة المنتج إلى السلة.",
+      itemAddedToCart: "تمت إضافة المنتج إلى السلة.",
+      addingToCart: "جار الإضافة...",
+      chooseOption: "اختر خياراً",
+      addToCart: "إضافة إلى السلة",
+      quantityHelp: "اختر الكمية ثم أضف المنتج إلى السلة.",
+      requestedQuantityUnavailable: "الكمية المحددة غير متوفرة حالياً.",
       decreaseQuantity: "تقليل الكمية",
       increaseQuantity: "زيادة الكمية",
       deliveryDetailsTitle: "تفاصيل التوصيل",
@@ -1499,6 +1577,8 @@ export const translations: Record<Language, TranslationDictionary> = {
         "عند إنشاء طلب، سيظهر هنا مع حالته وحالة الدفع وتفاصيل المنتجات.",
       browseProducts: "تصفح المنتجات",
       refresh: "تحديث",
+      loadMore: "عرض طلبات أكثر",
+      loadingMore: "جار التحميل…",
       order: "الطلب",
       placed: "تم الإنشاء",
       total: "المجموع",
@@ -1537,8 +1617,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     auth: {
       welcomeBackBadge: "مرحباً بعودتك",
       loginHeroTitle: "سجل الدخول وتابع التسوق.",
-      loginHeroDescription:
-        `ادخل إلى السلة والدفع وسجل الطلبات باستخدام حسابك في ${arabicStoreName}.`,
+      loginHeroDescription: `ادخل إلى السلة والدفع وسجل الطلبات باستخدام حسابك في ${arabicStoreName}.`,
       loginTitle: "تسجيل الدخول",
       loginDescription: "أدخل البريد الإلكتروني وكلمة المرور للوصول إلى حسابك.",
       email: "البريد الإلكتروني",
@@ -1546,12 +1625,22 @@ export const translations: Record<Language, TranslationDictionary> = {
       name: "الاسم",
       phone: "رقم الهاتف",
       phoneHelp: "قد يستخدم المسؤول هذا الرقم لتأكيد طلبك.",
+      nameInvalid: "أدخل الاسم من 2 إلى 50 حرفاً.",
+      emailInvalid: "أدخل بريداً إلكترونياً صحيحاً.",
+      phoneInvalid:
+        "أدخل رقم هاتف صحيحاً باستخدام الأرقام والمسافات والشرطات والأقواس، ويمكن استخدام + في البداية فقط.",
+      passwordRequired: "أدخل كلمة المرور.",
+      passwordTooShort: "يجب أن تكون كلمة المرور 8 أحرف على الأقل.",
+      fixHighlightedFields: "يرجى تصحيح الحقول المحددة.",
+      invalidRegistrationInput:
+        "بعض بيانات التسجيل غير صحيحة. يرجى مراجعة الحقول المحددة.",
       login: "تسجيل الدخول",
       loggingIn: "جار تسجيل الدخول...",
       continueWithGoogle: "المتابعة باستخدام Google",
       continuingWithGoogle: "جار فتح Google...",
       orContinueWithEmail: "أو تابع بالبريد الإلكتروني",
-      googleSignInFailed: "فشل بدء تسجيل الدخول باستخدام Google. حاول مرة أخرى.",
+      googleSignInFailed:
+        "فشل بدء تسجيل الدخول باستخدام Google. حاول مرة أخرى.",
       invalidLogin: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
       noAccount: "ليس لديك حساب؟",
       createOne: "أنشئ حساباً",
@@ -1660,6 +1749,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       phoneNumber: "رقم الهاتف",
       phoneHelp:
         "رقم الهاتف مطلوب قبل إتمام الطلب. لم يتم تفعيله عبر SMS حالياً.",
+      nameInvalid: "أدخل الاسم من 2 إلى 50 حرفاً.",
+      phoneInvalid:
+        "أدخل رقم هاتف صحيحاً باستخدام الأرقام والمسافات والشرطات والأقواس، ويمكن استخدام + في البداية فقط.",
+      fixHighlightedFields: "يرجى تصحيح الحقول المحددة.",
       saveProfile: "حفظ الملف الشخصي",
       saving: "جاري الحفظ...",
       backToAccount: "العودة للحساب",
@@ -1757,7 +1850,8 @@ export const translations: Record<Language, TranslationDictionary> = {
         dashboard: "لوحة الإدارة",
         refresh: "تحديث",
         search: "بحث",
-        searchPlaceholder: "ابحث برقم الطلب أو العميل أو الهاتف أو البريد أو المدينة...",
+        searchPlaceholder:
+          "ابحث برقم الطلب أو العميل أو الهاتف أو البريد أو المدينة...",
         statusFilter: "الحالة",
         allStatuses: "كل الحالات",
         paymentFilter: "الدفع",
@@ -1809,7 +1903,8 @@ export const translations: Record<Language, TranslationDictionary> = {
           "هذه الملاحظة للإدارة فقط. لا تحفظ كلمات مرور أو بيانات بطاقات دفع أو أسرار خاصة هنا.",
         noImage: "لا توجد صورة",
         noOrdersTitle: "لا توجد طلبات بعد",
-        noOrdersDescription: "ستظهر طلبات العملاء هنا بعد إنشاء الطلب أو عند مطابقة الفلاتر لطلبات موجودة.",
+        noOrdersDescription:
+          "ستظهر طلبات العملاء هنا بعد إنشاء الطلب أو عند مطابقة الفلاتر لطلبات موجودة.",
         selectOrderTitle: "اختر طلباً",
         selectOrderDescription:
           "اختر بطاقة طلب لمراجعة التفاصيل وتعديل حالته من الإدارة.",

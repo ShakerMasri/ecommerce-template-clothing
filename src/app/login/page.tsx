@@ -10,8 +10,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-6xl px-4 py-10">
-          <div className="h-96 animate-pulse rounded-3xl bg-zinc-200 dark:bg-zinc-800" />
+        <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="premium-shell h-96 animate-pulse rounded-[2rem] bg-[var(--surface-muted)]" />
         </main>
       }
     >

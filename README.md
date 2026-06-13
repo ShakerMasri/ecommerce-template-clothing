@@ -4,7 +4,7 @@ Clothing Ecommerce Template is a reusable private full-stack e-commerce starter 
 
 This project was forked from an existing hardened ecommerce starter and is now maintained as a separate clothing-store template. It is being prepared as a real client-ready application, not just a demo. The backend, authentication, authorization, environment configuration, deployment flow, and production safety checks should be treated seriously before launch.
 
-This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, checkout-time stock reservation, and the `v0.1.0-post-reservation-audit` checkpoint. The next checkpoint is a clothing-store UI/UX refresh before production/client handoff.
+This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, checkout-time stock reservation, the `v0.1.0-post-reservation-audit` checkpoint, and a customer-facing clothing-store UI refresh for storefront, product detail, cart, orders, and auth flows. The next checkpoint is admin UI simplification and remaining production/client handoff review.
 
 ## Tech Stack
 
@@ -69,10 +69,13 @@ Completed:
 - Cart rows can distinguish the same product with different selected variants
 - Order items can snapshot selected size/color details for historical accuracy
 - Variant-first checkout reservation deducts selected `ProductVariant.stock`; customer-orderable product stock is derived from active variant stock
+- Customer storefront UI refresh for a premium, simple clothing-store feel across homepage, product listing, product cards, category tabs, header, and footer
+- Customer product detail, size/color option selection, cart, checkout summary/error display, and customer orders UI polish
+- Customer auth form visual refresh for login, registration, forgot-password, and reset-password flows
+- Customer-facing form validation polish with inline/mobile-friendly errors and friendlier messages for registration/login/profile fields
 
 Not started yet:
 
-- Full clothing-store UI/UX refresh.
 - Admin UI simplification pass.
 - Caching.
 
@@ -96,9 +99,9 @@ Postponed intentionally:
 
 Planned next checkpoints:
 
-- Refresh the customer storefront UI for a premium, simple clothing-store feel.
-- Polish product listing/card and size/color option UX without weakening server-side stock validation.
-- Simplify admin product/options/stock screens after the customer UI foundation is stable.
+- Verify the refreshed customer UI on mobile and staging after checks pass.
+- Simplify admin product/options/stock screens now that the customer UI foundation is stable.
+- Simplify admin orders UI after product admin UI is reviewed.
 - Clean up remaining hardcoded visible strings through translations/config where appropriate.
 - Complete production readiness and client handoff review.
 - Review caching/performance only after core business rules are stable and real usage or smoke-load results show a need.
@@ -109,8 +112,9 @@ Planned next checkpoints:
 
 - Register and log in with email/password
 - Sign in with Google when OAuth is configured
-- View public products
-- View product details
+- Use refreshed mobile-friendly auth forms with inline validation feedback
+- View public products through a premium, simple clothing-store storefront
+- View product details with refreshed size/color option selection
 - Select available size/color variants when a product has active variants
 - See discounted product prices when an admin discount is active
 - See exact stock counts only when the admin enables customer stock visibility for that product
@@ -120,6 +124,7 @@ Planned next checkpoints:
 - Place cash-on-delivery orders
 - Select delivery area / receive option during checkout
 - Review product total, delivery price, and final total before confirming an order
+- See inline, mobile-friendly checkout/delivery validation errors near the relevant fields and submit area
 - Receive a post-order message explaining that the store owner will confirm the order by WhatsApp or phone
 - View public contact/support details from the shared contact config
 - View own orders with capped pagination, including delivery details and selected size/color snapshots
@@ -159,6 +164,7 @@ This project follows these rules:
 - Customer data must be scoped to the logged-in user.
 - Customer order history must use capped pagination instead of returning every order at once.
 - API routes must validate request bodies, route params, and query params.
+- Customer form validation must show friendly field-level errors in the UI, but backend/API validation remains the security boundary where applicable.
 - API routes must not return password hashes, tokens, secrets, raw database errors, or stack traces.
 - Secrets must stay server-side.
 - OAuth client secrets must be stored only in local or hosting environment variables, never in Git.
@@ -175,6 +181,7 @@ This project follows these rules:
 - Product prices and stock decisions must be calculated on the server, not trusted from client-submitted values.
 - Discount pricing must be validated server-side and order items must store price snapshots.
 - Hiding stock counts from customers is display-only; backend stock validation must still run.
+- UI components must not reveal exact stock counts through quantity controls, helper text, or cart warnings when customer stock visibility is disabled.
 - Stock reservation/deduction must be protected against double deduction. Checkout reserves stock immediately; admin confirmation must not deduct stock again.
 - Important business records such as orders should not be hard-deleted unless a separate retention/audit policy is reviewed.
 
@@ -867,7 +874,7 @@ Stock reservation is tracked with `stockDeductedAt`, which now means inventory h
 
 Known next checkpoint:
 
-- Complete the customer clothing-store UI refresh without changing checkout, order, stock reservation, or authorization business logic.
+- Verify the completed customer clothing-store UI refresh on staging, then move to admin UI simplification without changing checkout, order, stock reservation, or authorization business logic.
 
 ### Filtering and Pagination
 
@@ -880,6 +887,8 @@ Cancelled orders are not hard-deleted or archived by default. Keeping order hist
 ### Stock Visibility Control
 
 Admins can choose whether customers can see exact stock counts per product. This is a display choice only; backend stock validation still runs regardless of whether the count is visible to customers. Public APIs must not expose exact product or variant stock when stock visibility is disabled; they should expose availability booleans instead.
+
+The customer UI should also avoid revealing hidden exact stock through quantity limits, helper messages, option text, or cart warnings. This is not a replacement for backend validation; it prevents accidental display leaks while the server remains the source of truth.
 
 ### Product Discounts
 
@@ -919,6 +928,14 @@ Current stock-reservation rule:
 - Admin cancellation restores reserved stock exactly once.
 
 See `docs/product-variants-plan.md` and `docs/product-variants-design-contract.md` before changing variant/order behavior.
+
+### Customer UI Refresh Status
+
+The customer-facing UI has been refreshed toward a premium, simple clothing-store style using the existing dependencies, system fonts, original CSS/React, and the shared storefront theme variables. This includes the homepage, products listing, category tabs, product cards, product detail option selection, cart, checkout summary/error display, customer orders, and customer auth forms.
+
+Customer UI work must remain presentation-focused unless a specific validation or accessibility issue requires a small boundary-level fix. Do not change checkout reservation, order status, stock restoration, admin authorization, CSRF/same-origin checks, rate limiting, or server validation as part of visual polish.
+
+Auth and checkout errors should be visible near the related input/control and near the submit area where helpful, especially on mobile. Avoid top-only error messages that can be missed after scrolling.
 
 ### Google Sign-in
 
@@ -1070,8 +1087,8 @@ This app is still being hardened for production as a clothing-store template. It
 
 Next safest checkpoints:
 
-1. Complete the customer storefront UI refresh for a premium, simple clothing-store feel.
-2. Polish product detail size/color selection UX without changing checkout or stock-reservation rules.
+1. Run full local checks and targeted E2E tests for the customer UI refresh.
+2. Verify the refreshed customer UI on staging, especially mobile product details, cart, checkout errors, orders, and auth forms.
 3. Simplify admin products/options/stock UI after customer-facing pages are stable.
 4. Simplify admin orders UI after product admin UI is reviewed.
 5. Verify Google sign-in on staging/production with exact callback URLs and separate environment secrets if OAuth is enabled for the client.

@@ -24,7 +24,7 @@ export function SignOutButton() {
       type="button"
       onClick={() => void handleSignOut()}
       disabled={isSigningOut}
-      className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+      className="min-h-11 rounded-full border border-[var(--danger-ink)]/25 bg-[var(--danger-soft)] px-5 py-2.5 text-sm font-semibold text-[var(--danger-ink)] transition hover:border-[var(--danger-ink)]/45 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {isSigningOut ? t.auth.signingOut : t.auth.signOut}
     </button>

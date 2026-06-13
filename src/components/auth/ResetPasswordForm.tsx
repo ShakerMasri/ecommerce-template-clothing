@@ -8,6 +8,14 @@ import { authClient } from "~/lib/auth-client";
 
 type ResetStatus = "idle" | "loading" | "success" | "error";
 
+const inputClassName =
+  "mt-2 w-full rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-elevated)] px-4 py-3 text-sm text-[var(--ink)] transition outline-none placeholder:text-[var(--ink-muted)] focus:border-[var(--accent)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--accent)_18%,transparent)]";
+
+const labelClassName = "text-sm font-semibold text-[var(--ink)]";
+
+const accentLinkClassName =
+  "font-semibold text-[var(--accent-strong)] transition hover:text-[var(--accent)]";
+
 export function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,6 +31,15 @@ export function ResetPasswordForm() {
 
   const isSubmitting = status === "loading";
   const hasValidToken = Boolean(token) && !urlError;
+  const hasMessage = Boolean(message);
+  const hasError = status === "error" && hasMessage;
+  const hasSuccess = status === "success" && hasMessage;
+  const passwordError =
+    hasError && message === t.auth.resetPasswordTooShort ? message : "";
+  const confirmationError =
+    hasError && message === t.auth.passwordsDoNotMatch ? message : "";
+  const submitAreaError =
+    hasError && !passwordError && !confirmationError ? message : "";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -68,44 +85,63 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <main className="mx-auto grid min-h-[calc(100vh-180px)] max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-[0.9fr_1.1fr]">
+    <main className="mx-auto grid min-h-[calc(100vh-180px)] max-w-6xl items-center gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:px-8">
       <section className="hidden lg:block">
-        <p className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-sm font-semibold text-orange-700 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-300">
+        <p className="inline-flex rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-1 text-sm font-semibold text-[var(--accent-strong)]">
           {t.auth.setNewPasswordBadge}
         </p>
 
-        <h1 className="mt-6 text-5xl font-black tracking-tight text-zinc-950 dark:text-white">
+        <h1 className="mt-6 max-w-xl text-5xl font-black tracking-tight text-[var(--ink)]">
           {t.auth.setNewPasswordHeroTitle}
         </h1>
 
-        <p className="mt-5 max-w-xl text-base leading-7 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-5 max-w-xl text-base leading-7 text-[var(--ink-muted)]">
           {t.auth.setNewPasswordHeroDescription}
         </p>
+
+        <div className="premium-shell mt-8 rounded-[2rem] p-5">
+          <div className="rounded-[1.5rem] border border-[var(--line-soft)] bg-[var(--surface-muted)] p-5">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
+              {t.auth.password}
+            </p>
+            <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
+              {t.auth.passwordHelp}
+            </p>
+          </div>
+        </div>
       </section>
 
-      <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-8 dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="premium-shell rounded-[2rem] p-5 sm:p-8">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-zinc-950 dark:text-white">
+          <p className="inline-flex rounded-full border border-[var(--line-soft)] bg-[var(--surface-muted)] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent-strong)] lg:hidden">
+            {t.auth.setNewPasswordBadge}
+          </p>
+
+          <h1 className="mt-4 text-3xl font-black tracking-tight text-[var(--ink)] lg:mt-0">
             {t.auth.resetPasswordTitle}
           </h1>
 
-          <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+          <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
             {t.auth.resetPasswordDescription}
           </p>
         </div>
 
         {urlError && (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          <div
+            role="alert"
+            className="mt-5 rounded-2xl border border-[var(--danger-ink)]/30 bg-[var(--danger-soft)] p-4 text-sm font-medium text-[var(--danger-ink)]"
+          >
             {t.auth.invalidResetLink}
           </div>
         )}
 
-        {message && (
+        {hasMessage && (hasSuccess || submitAreaError) && (
           <div
+            role="alert"
             className={`mt-5 rounded-2xl border p-4 text-sm font-medium ${
-              status === "success"
-                ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
-                : "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+              hasSuccess
+                ? "border-[var(--success-ink)]/30 bg-[var(--success-soft)] text-[var(--success-ink)]"
+                : "border-[var(--danger-ink)]/30 bg-[var(--danger-soft)] text-[var(--danger-ink)]"
             }`}
           >
             {message}
@@ -116,7 +152,7 @@ export function ResetPasswordForm() {
           <div className="mt-6">
             <Link
               href="/forgot-password"
-              className="inline-flex rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-[var(--surface-page)] transition hover:opacity-90"
             >
               {t.auth.requestNewResetLink}
             </Link>
@@ -124,10 +160,7 @@ export function ResetPasswordForm() {
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-5">
             <div>
-              <label
-                htmlFor="newPassword"
-                className="text-sm font-semibold text-zinc-800 dark:text-zinc-100"
-              >
+              <label htmlFor="newPassword" className={labelClassName}>
                 {t.auth.newPassword}
               </label>
 
@@ -139,16 +172,26 @@ export function ResetPasswordForm() {
                 onChange={(event) => setNewPassword(event.target.value)}
                 required
                 minLength={8}
-                className="mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-950 transition outline-none placeholder:text-zinc-400 focus:border-orange-600 focus:ring-4 focus:ring-orange-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-orange-400 dark:focus:ring-orange-950"
+                className={inputClassName}
                 placeholder={t.auth.passwordPlaceholder}
+                aria-invalid={passwordError ? "true" : undefined}
+                aria-describedby={
+                  passwordError ? "newPassword-error" : undefined
+                }
               />
+
+              {passwordError && (
+                <p
+                  id="newPassword-error"
+                  className="mt-2 text-sm font-medium text-[var(--danger-ink)]"
+                >
+                  {passwordError}
+                </p>
+              )}
             </div>
 
             <div>
-              <label
-                htmlFor="confirmPassword"
-                className="text-sm font-semibold text-zinc-800 dark:text-zinc-100"
-              >
+              <label htmlFor="confirmPassword" className={labelClassName}>
                 {t.auth.confirmPassword}
               </label>
 
@@ -160,26 +203,47 @@ export function ResetPasswordForm() {
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 required
                 minLength={8}
-                className="mt-2 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-950 transition outline-none placeholder:text-zinc-400 focus:border-orange-600 focus:ring-4 focus:ring-orange-100 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-orange-400 dark:focus:ring-orange-950"
+                className={inputClassName}
                 placeholder={t.auth.repeatPassword}
+                aria-invalid={confirmationError ? "true" : undefined}
+                aria-describedby={
+                  confirmationError ? "confirmPassword-error" : undefined
+                }
               />
+
+              {confirmationError && (
+                <p
+                  id="confirmPassword-error"
+                  className="mt-2 text-sm font-medium text-[var(--danger-ink)]"
+                >
+                  {confirmationError}
+                </p>
+              )}
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting || status === "success"}
-              className="w-full rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-            >
-              {isSubmitting ? t.auth.resettingPassword : t.auth.resetPassword}
-            </button>
+            <div className="space-y-3 pt-1">
+              {submitAreaError && (
+                <p
+                  role="alert"
+                  className="rounded-2xl border border-[var(--danger-ink)]/25 bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger-ink)]"
+                >
+                  {submitAreaError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmitting || status === "success"}
+                className="min-h-12 w-full rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-[var(--surface-page)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSubmitting ? t.auth.resettingPassword : t.auth.resetPassword}
+              </button>
+            </div>
           </form>
         )}
 
-        <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
-          <Link
-            href="/login"
-            className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
-          >
+        <p className="mt-6 text-center text-sm text-[var(--ink-muted)]">
+          <Link href="/login" className={accentLinkClassName}>
             {t.auth.backToLogin}
           </Link>
         </p>

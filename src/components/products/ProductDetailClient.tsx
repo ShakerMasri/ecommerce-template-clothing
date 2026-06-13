@@ -54,8 +54,11 @@ function getDisplayPrice(product: Product) {
   return product.discountPrice ?? product.price;
 }
 
-function formatVariantLabel(variant: ProductVariant) {
-  return [variant.sizeLabel, variant.colorLabel].filter(Boolean).join(" / ");
+function formatVariantLabel(variant: ProductVariant, fallback: string) {
+  return (
+    [variant.sizeLabel, variant.colorLabel].filter(Boolean).join(" / ") ||
+    fallback
+  );
 }
 
 export function ProductDetailClient({ slug }: ProductDetailClientProps) {
@@ -118,24 +121,24 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
     return (
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="space-y-4">
-          <div className="aspect-square animate-pulse rounded-3xl bg-zinc-200 dark:bg-zinc-800" />
+          <div className="aspect-square animate-pulse rounded-3xl bg-[var(--surface-muted)]" />
 
           <div className="grid grid-cols-4 gap-3">
             {Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={index}
-                className="aspect-square animate-pulse rounded-2xl bg-zinc-200 dark:bg-zinc-800"
+                className="aspect-square animate-pulse rounded-2xl bg-[var(--surface-muted)]"
               />
             ))}
           </div>
         </div>
 
         <div className="space-y-5">
-          <div className="h-4 w-28 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-          <div className="h-10 w-3/4 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-          <div className="h-7 w-32 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-          <div className="h-28 animate-pulse rounded-2xl bg-zinc-200 dark:bg-zinc-800" />
-          <div className="h-12 w-full animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+          <div className="h-4 w-28 animate-pulse rounded bg-[var(--surface-muted)]" />
+          <div className="h-10 w-3/4 animate-pulse rounded bg-[var(--surface-muted)]" />
+          <div className="h-7 w-32 animate-pulse rounded bg-[var(--surface-muted)]" />
+          <div className="h-28 animate-pulse rounded-2xl bg-[var(--surface-muted)]" />
+          <div className="h-12 w-full animate-pulse rounded-full bg-[var(--surface-muted)]" />
         </div>
       </div>
     );
@@ -143,18 +146,18 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
 
   if (!product) {
     return (
-      <div className="mx-auto max-w-2xl rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-2xl font-black text-zinc-950 dark:text-white">
+      <div className="mx-auto max-w-2xl rounded-3xl border border-[var(--line-soft)] bg-[var(--surface-card)] p-8 text-center shadow-sm">
+        <h1 className="text-2xl font-black text-[var(--ink)]">
           {t.products.productNotFound}
         </h1>
 
-        <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
           {message || t.products.productUnavailable}
         </p>
 
         <Link
           href="/products"
-          className="mt-6 inline-flex rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+          className="mt-6 inline-flex rounded-full bg-[var(--ink)] px-5 py-2.5 text-sm font-semibold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)]"
         >
           {t.actions.backToProducts}
         </Link>
@@ -166,6 +169,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
     (variant) => variant.id === selectedVariantId,
   );
   const selectedStock = selectedVariant?.stock ?? product.stock;
+  const customerVisibleStock = product.showStock ? selectedStock : null;
   const selectedIsInStock = selectedVariant
     ? selectedVariant.isInStock
     : product.hasVariants
@@ -177,15 +181,15 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
     ? product.images.findIndex((image) => image === selectedImage)
     : -1;
   const variantSelectionMessage = product.hasVariants
-    ? "Please choose a size or color."
+    ? t.products.selectOptionRequired
     : null;
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-6">
       <div>
         <Link
           href="/products"
-          className="text-sm font-semibold text-zinc-600 transition hover:text-orange-600 dark:text-zinc-400 dark:hover:text-orange-400"
+          className="text-sm font-semibold text-[var(--ink-muted)] transition hover:text-[var(--accent)]"
         >
           {language === "ar" ? "→" : "←"} {t.actions.backToProducts}
         </Link>
@@ -193,7 +197,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
 
       <div className="grid gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-start">
         <div className="space-y-4">
-          <div className="relative aspect-square overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-100 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="relative aspect-square overflow-hidden rounded-[2rem] border border-[var(--line-soft)] bg-gradient-to-br from-[var(--surface-elevated)] via-[var(--accent-soft)] to-[var(--accent)] shadow-sm">
             {selectedImage ? (
               <OptimizedImage
                 src={selectedImage}
@@ -203,19 +207,19 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                 className="object-cover"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-zinc-500 dark:text-zinc-400">
+              <div className="flex h-full items-center justify-center text-sm text-[var(--ink-muted)]">
                 {t.products.noImage}
               </div>
             )}
 
             {product.isFeatured && (
-              <span className="absolute top-4 left-4 rounded-full bg-orange-600 px-3 py-1 text-xs font-semibold text-white">
+              <span className="absolute top-4 left-4 rounded-full bg-[var(--ink)] px-3 py-1 text-xs font-semibold text-[var(--surface-page)]">
                 {t.products.featured}
               </span>
             )}
 
             {isOutOfStock && (
-              <span className="absolute top-4 right-4 rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white">
+              <span className="absolute top-4 right-4 rounded-full bg-[var(--danger-ink)] px-3 py-1 text-xs font-semibold text-[var(--surface-page)]">
                 {t.products.soldOut}
               </span>
             )}
@@ -231,10 +235,10 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                     key={`${image}-${index}`}
                     type="button"
                     onClick={() => setSelectedImage(image)}
-                    className={`relative aspect-square overflow-hidden rounded-2xl border bg-zinc-100 transition dark:bg-zinc-900 ${
+                    className={`relative aspect-square overflow-hidden rounded-2xl border bg-[var(--surface-muted)] transition ${
                       isActive
-                        ? "border-orange-600 ring-4 ring-orange-100 dark:border-orange-400 dark:ring-orange-950"
-                        : "border-zinc-200 hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
+                        ? "border-[var(--accent)] ring-4 ring-[var(--accent-soft)]"
+                        : "border-[var(--line-soft)] hover:border-[var(--accent)]"
                     }`}
                     aria-label={`${t.products.image} ${index + 1}`}
                   >
@@ -251,21 +255,21 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
           )}
 
           {selectedImageIndex >= 0 && product.images.length > 1 && (
-            <p className="text-center text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-center text-xs text-[var(--ink-muted)]">
               {t.products.image} {selectedImageIndex + 1} {t.products.of}{" "}
               {product.images.length}
             </p>
           )}
         </div>
 
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 lg:sticky lg:top-24 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-[2rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-5 shadow-sm shadow-black/5 sm:p-6 lg:sticky lg:top-24">
           <div className="space-y-5">
             <div>
-              <p className="text-sm font-semibold tracking-wide text-orange-600 uppercase dark:text-orange-400">
+              <p className="text-sm font-semibold tracking-wide text-[var(--accent)] uppercase">
                 {product.category.name}
               </p>
 
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-zinc-950 sm:text-4xl dark:text-white">
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-[var(--ink)] sm:text-4xl">
                 {product.name}
               </h1>
             </div>
@@ -275,39 +279,40 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                 <p
                   className={
                     hasDiscount
-                      ? "text-3xl font-black text-orange-600 dark:text-orange-400"
-                      : "text-3xl font-black text-zinc-950 dark:text-white"
+                      ? "text-3xl font-black text-[var(--sale-ink)]"
+                      : "text-3xl font-black text-[var(--ink)]"
                   }
                 >
                   {formatPrice(getDisplayPrice(product))}
                 </p>
 
                 {hasDiscount && (
-                  <p className="text-sm font-semibold text-zinc-500 line-through decoration-zinc-500 decoration-solid decoration-2 dark:text-zinc-400 dark:decoration-zinc-400 dark:decoration-solid">
+                  <p className="text-sm font-semibold text-[var(--ink-muted)] line-through decoration-[var(--ink-muted)] decoration-solid decoration-2">
                     {formatPrice(product.price)}
                   </p>
                 )}
               </div>
 
               {isOutOfStock ? (
-                <span className="rounded-full bg-red-50 px-3 py-1 text-sm font-semibold text-red-700 dark:bg-red-950 dark:text-red-300">
+                <span className="rounded-full bg-[var(--danger-soft)] px-3 py-1 text-sm font-semibold text-[var(--danger-ink)]">
                   {t.products.outOfStock}
                 </span>
               ) : (
-                <span className="rounded-full bg-green-50 px-3 py-1 text-sm font-semibold text-green-700 dark:bg-green-950 dark:text-green-300">
-                  {product.showStock && (selectedVariant ? selectedStock : product.stock) !== null
+                <span className="rounded-full bg-[var(--success-soft)] px-3 py-1 text-sm font-semibold text-[var(--success-ink)]">
+                  {product.showStock &&
+                  (selectedVariant ? selectedStock : product.stock) !== null
                     ? `${selectedVariant ? selectedStock : product.stock} ${t.products.left}`
                     : t.products.inStock}
                 </span>
               )}
             </div>
 
-            <div className="rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-950">
-              <h2 className="text-sm font-bold text-zinc-950 dark:text-white">
+            <div className="rounded-3xl bg-[var(--surface-muted)] p-4 ring-1 ring-[var(--accent-soft)]">
+              <h2 className="text-sm font-bold text-[var(--ink)]">
                 {t.products.descriptionTitle}
               </h2>
 
-              <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-400">
+              <p className="mt-2 text-sm leading-7 text-[var(--ink-muted)]">
                 {product.description?.trim()
                   ? product.description
                   : t.products.noDescription}
@@ -315,15 +320,26 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
             </div>
 
             {product.hasVariants ? (
-              <div className="rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
-                <h2 className="text-sm font-bold text-zinc-950 dark:text-white">
-                  Choose size / color
-                </h2>
+              <div className="rounded-3xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h2 className="text-sm font-bold text-[var(--ink)]">
+                      {t.products.options}
+                    </h2>
+                    <p className="mt-1 text-xs leading-5 text-[var(--ink-muted)]">
+                      {t.products.selectOptionHelp}
+                    </p>
+                  </div>
+                </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   {product.variants.map((variant) => {
                     const isSelected = selectedVariantId === variant.id;
                     const isVariantOutOfStock = !variant.isInStock;
+                    const variantLabel = formatVariantLabel(
+                      variant,
+                      t.products.option,
+                    );
 
                     return (
                       <button
@@ -331,39 +347,60 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                         type="button"
                         onClick={() => setSelectedVariantId(variant.id)}
                         disabled={isVariantOutOfStock}
-                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                        className={`min-h-12 rounded-2xl border px-3 py-2.5 text-left transition focus-visible:ring-4 focus-visible:ring-[var(--accent-soft)] focus-visible:outline-none disabled:cursor-not-allowed ${
                           isSelected
-                            ? "border-orange-600 bg-orange-50 text-orange-700 dark:border-orange-400 dark:bg-orange-950 dark:text-orange-200"
-                            : "border-zinc-300 text-zinc-700 hover:border-orange-400 dark:border-zinc-700 dark:text-zinc-200"
+                            ? "border-[var(--accent)] bg-[var(--surface-card)] text-[var(--accent-strong)] shadow-sm ring-2 ring-[var(--accent-soft)]"
+                            : isVariantOutOfStock
+                              ? "border-[var(--line-soft)] bg-[var(--surface-muted)] text-[var(--ink-muted)]"
+                              : "border-[var(--line-soft)] bg-[var(--surface-card)] text-[var(--ink)] hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]"
                         }`}
+                        aria-pressed={isSelected}
                       >
-                        {formatVariantLabel(variant)}
-                        {isVariantOutOfStock ? " · Out" : ""}
+                        <span className="flex items-center justify-between gap-3">
+                          <span className="min-w-0 truncate text-sm font-bold">
+                            {variantLabel}
+                          </span>
+
+                          <span
+                            className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                              isVariantOutOfStock
+                                ? "bg-[var(--danger-soft)] text-[var(--danger-ink)]"
+                                : "bg-[var(--success-soft)] text-[var(--success-ink)]"
+                            }`}
+                          >
+                            {isVariantOutOfStock
+                              ? t.products.outOfStock
+                              : product.showStock && variant.stock !== null
+                                ? `${variant.stock} ${t.products.left}`
+                                : t.products.inStock}
+                          </span>
+                        </span>
                       </button>
                     );
                   })}
                 </div>
 
                 {selectedVariant ? (
-                  <p className="mt-3 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                    Selected: {formatVariantLabel(selectedVariant)}
+                  <p className="mt-3 rounded-2xl bg-[var(--surface-card)] px-3 py-2 text-xs leading-5 text-[var(--ink-muted)] ring-1 ring-[var(--accent-soft)]">
+                    {t.products.selected}:{" "}
+                    {formatVariantLabel(selectedVariant, t.products.option)}
                     {product.showStock && selectedVariant.stock !== null
-                      ? ` · ${selectedVariant.stock} available`
+                      ? ` · ${selectedVariant.stock} ${t.products.left}`
                       : ""}
                   </p>
                 ) : (
-                  <p className="mt-3 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                    Select an available size/color before adding to cart.
+                  <p className="mt-3 rounded-2xl bg-[var(--surface-card)] px-3 py-2 text-xs leading-5 font-semibold text-[var(--accent-strong)] ring-1 ring-[var(--accent-soft)]">
+                    {t.products.selectOptionRequired}
                   </p>
                 )}
               </div>
             ) : null}
 
-            <div className="border-t border-zinc-200 pt-5 dark:border-zinc-800">
+            <div className="border-t border-[var(--line-soft)] pt-5">
               <AddToCartControls
                 productId={product.id}
                 productVariantId={selectedVariant?.id ?? null}
-                stock={selectedStock}
+                stock={customerVisibleStock}
                 isInStock={selectedIsInStock}
                 disabledReason={
                   product.hasVariants && !selectedVariant
@@ -372,38 +409,9 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                 }
               />
 
-              <p className="mt-3 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+              <p className="mt-3 text-xs leading-5 text-[var(--ink-muted)]">
                 {t.products.stockNote}
               </p>
-            </div>
-
-            <div className="grid gap-3 border-t border-zinc-200 pt-5 text-sm dark:border-zinc-800">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  {t.products.payment}
-                </span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  {t.products.cashOnDelivery}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  {t.products.category}
-                </span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  {product.category.name}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  {t.products.productId}
-                </span>
-                <span className="max-w-40 truncate font-mono text-xs text-zinc-700 dark:text-zinc-300">
-                  {product.id}
-                </span>
-              </div>
             </div>
           </div>
         </div>
