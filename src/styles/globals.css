@@ -64,7 +64,11 @@ html {
 
 body {
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--surface-page), var(--surface-elevated));
+  background: linear-gradient(
+    180deg,
+    var(--surface-page),
+    var(--surface-elevated)
+  );
   color: var(--ink);
   text-rendering: geometricPrecision;
 }
@@ -107,7 +111,12 @@ a {
 }
 
 .premium-divider {
-  background: linear-gradient(90deg, transparent, var(--line-soft), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--line-soft),
+    transparent
+  );
 }
 
 .workspace-ui {
@@ -130,7 +139,15 @@ a {
   background-color: var(--surface-card);
 }
 
-.workspace-ui :where([class*="bg-zinc-50"], [class*="bg-zinc-100"], [class*="bg-zinc-200"], [class*="bg-orange-50"], [class*="bg-orange-100"], [class*="bg-orange-950"]) {
+.workspace-ui
+  :where(
+    [class*="bg-zinc-50"],
+    [class*="bg-zinc-100"],
+    [class*="bg-zinc-200"],
+    [class*="bg-orange-50"],
+    [class*="bg-orange-100"],
+    [class*="bg-orange-950"]
+  ) {
   background-color: var(--surface-muted);
 }
 
@@ -138,19 +155,41 @@ a {
   border-color: var(--line-soft);
 }
 
-.workspace-ui :where([class*="text-zinc-950"], [class*="text-zinc-900"], [class*="text-zinc-800"], [class*="text-zinc-100"]) {
+.workspace-ui
+  :where(
+    [class*="text-zinc-950"],
+    [class*="text-zinc-900"],
+    [class*="text-zinc-800"],
+    [class*="text-zinc-100"]
+  ) {
   color: var(--ink);
 }
 
-.workspace-ui :where([class*="text-zinc-700"], [class*="text-zinc-600"], [class*="text-zinc-500"], [class*="text-zinc-400"], [class*="text-orange-800"], [class*="text-orange-900"]) {
+.workspace-ui
+  :where(
+    [class*="text-zinc-700"],
+    [class*="text-zinc-600"],
+    [class*="text-zinc-500"],
+    [class*="text-zinc-400"],
+    [class*="text-orange-800"],
+    [class*="text-orange-900"]
+  ) {
   color: var(--ink-muted);
 }
 
-.workspace-ui :where([class*="text-orange-600"], [class*="text-orange-700"], [class*="text-orange-400"], [class*="text-orange-300"], [class*="text-orange-200"]) {
+.workspace-ui
+  :where(
+    [class*="text-orange-600"],
+    [class*="text-orange-700"],
+    [class*="text-orange-400"],
+    [class*="text-orange-300"],
+    [class*="text-orange-200"]
+  ) {
   color: var(--accent-strong);
 }
 
-.workspace-ui input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.workspace-ui
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
 .workspace-ui select,
 .workspace-ui textarea {
   background-color: var(--surface-elevated);
@@ -163,7 +202,8 @@ a {
   color: color-mix(in srgb, var(--ink-muted) 72%, transparent);
 }
 
-.workspace-ui input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+.workspace-ui
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
 .workspace-ui select:focus,
 .workspace-ui textarea:focus {
   border-color: var(--accent);
@@ -184,6 +224,99 @@ a {
   color: var(--ink);
 }
 
-.workspace-ui :where(button[class*="border-zinc-"]:hover, a[class*="border-zinc-"]:hover) {
+.workspace-ui
+  :where(button[class*="border-zinc-"]:hover, a[class*="border-zinc-"]:hover) {
   background-color: var(--surface-muted);
+}
+
+/* Admin/account workspace controls: keep button text readable before hover. */
+.workspace-ui button:not(:disabled),
+.workspace-ui [role="button"]:not([aria-disabled="true"]),
+.workspace-ui a[href],
+.workspace-ui label[for],
+.workspace-ui input[type="checkbox"]:not(:disabled),
+.workspace-ui input[type="radio"]:not(:disabled),
+.workspace-ui input[type="file"]:not(:disabled),
+.workspace-ui select:not(:disabled) {
+  cursor: pointer;
+}
+
+.workspace-ui button:disabled,
+.workspace-ui input:disabled,
+.workspace-ui select:disabled,
+.workspace-ui textarea:disabled,
+.workspace-ui [aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.workspace-ui button[class*="bg-zinc-950"],
+.workspace-ui a[class*="bg-zinc-950"],
+.workspace-ui button[class*="dark:bg-white"],
+.workspace-ui a[class*="dark:bg-white"],
+.workspace-ui button[class*="bg-[var(--ink)]"],
+.workspace-ui a[class*="bg-[var(--ink)]"] {
+  background-color: var(--ink);
+  color: var(--surface-card);
+}
+
+.workspace-ui button[class*="bg-zinc-950"]:not(:disabled):hover,
+.workspace-ui a[class*="bg-zinc-950"]:hover,
+.workspace-ui button[class*="dark:bg-white"]:not(:disabled):hover,
+.workspace-ui a[class*="dark:bg-white"]:hover,
+.workspace-ui button[class*="bg-[var(--ink)]"]:not(:disabled):hover,
+.workspace-ui a[class*="bg-[var(--ink)]"]:hover {
+  background-color: var(--accent-strong);
+  color: var(--surface-card);
+}
+
+.workspace-ui button[class*="bg-white"],
+.workspace-ui a[class*="bg-white"] {
+  background-color: var(--surface-card);
+  color: var(--ink);
+}
+
+.workspace-ui button[class*="bg-white"]:not(:disabled):hover,
+.workspace-ui a[class*="bg-white"]:hover {
+  background-color: var(--surface-muted);
+  color: var(--ink);
+}
+
+.workspace-ui button[class*="bg-orange-"],
+.workspace-ui a[class*="bg-orange-"] {
+  background-color: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.workspace-ui button[class*="bg-orange-"]:not(:disabled):hover,
+.workspace-ui a[class*="bg-orange-"]:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--accent-soft) 78%,
+    var(--accent-strong)
+  );
+  color: var(--accent-strong);
+}
+
+.workspace-ui button[class*="bg-red-"],
+.workspace-ui a[class*="bg-red-"] {
+  background-color: var(--danger-ink);
+  color: var(--surface-card);
+}
+
+.workspace-ui button[class*="bg-red-"]:not(:disabled):hover,
+.workspace-ui a[class*="bg-red-"]:hover {
+  background-color: color-mix(in srgb, var(--danger-ink) 82%, var(--ink));
+  color: var(--surface-card);
+}
+
+.workspace-ui button[class*="bg-green-"],
+.workspace-ui a[class*="bg-green-"] {
+  background-color: var(--success-ink);
+  color: var(--surface-card);
+}
+
+.workspace-ui button[class*="bg-green-"]:not(:disabled):hover,
+.workspace-ui a[class*="bg-green-"]:hover {
+  background-color: color-mix(in srgb, var(--success-ink) 82%, var(--ink));
+  color: var(--surface-card);
 }

@@ -12,12 +12,8 @@ const filesToZip = [
   "src/lib/translations.ts",
 
   "src/app/admin/products/AdminProductsClient.tsx",
-  "src/app/admin/products/page.tsx",
-
-  "src/components/admin/AdminDashboardClient.tsx",
   "src/components/admin/AdminCategoriesClient.tsx",
   "src/components/admin/AdminOrdersClient.tsx",
-
   "src/components/account/AccountClient.tsx",
   "src/components/account/ProfileForm.tsx",
 ];
