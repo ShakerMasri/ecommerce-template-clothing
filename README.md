@@ -843,6 +843,8 @@ Public client-safe template values live in typed config files:
 
 Only public display and storefront policy values belong in these files. Secrets, SMTP credentials, OAuth credentials, database URLs, private webhooks, internal admin-only contacts, and private client agreements must stay out of source code and in the correct server-side environment/secrets system. Public policy copy in the template is placeholder text, not legal advice, and must be reviewed/replaced for each client before launch.
 
+Footer contact, social, and location links are configured in `src/config/contact.ts`. They render inside one contact summary as small accessible inline SVG icons, use `currentColor` so they match the footer theme, and should point only to the client's real public profiles/location. The location link should point to the store or pickup point, while final delivery/pickup details are still confirmed by WhatsApp or phone. The default entries are placeholders and must be replaced or removed before launch. The optional footer "Want your own online store?" CTA is also configured there and is disabled by default so client sites do not advertise the template builder unless intentionally enabled. Social/brand icon source and trademark notes must stay documented in `docs/asset-license-notes.md`.
+
 ### Checkout and Delivery
 
 Delivery areas/prices currently live in code configuration, not in an admin-editable database table.
