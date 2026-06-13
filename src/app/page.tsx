@@ -10,13 +10,13 @@ export default function HomePage() {
     <main>
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-16">
         <div className="max-w-3xl">
-          <p className="inline-flex rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] shadow-sm">
+          <p className="inline-flex rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-4 py-2 text-xs font-semibold tracking-[0.2em] text-[var(--accent-strong)] uppercase shadow-sm">
             {t.home.badge}
           </p>
 
-          <h1 className="mt-6 text-5xl font-bold leading-[0.94] tracking-[-0.055em] text-[var(--ink)] sm:text-6xl lg:text-7xl">
+          <h1 className="mt-6 text-5xl leading-[0.94] font-bold tracking-[-0.055em] text-[var(--ink)] sm:text-6xl lg:text-7xl">
             {t.home.titleStart} <br />
-            <span className="font-editorial italic text-[var(--accent-strong)]">
+            <span className="font-editorial text-[var(--accent-strong)] italic">
               {t.home.titleBrand}
             </span>
           </h1>
@@ -43,25 +43,24 @@ export default function HomePage() {
         </div>
 
         <div className="premium-shell overflow-hidden rounded-[2rem] p-4 sm:p-5">
-          <div className="grid gap-4 sm:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-[1.5rem] border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
-              <div className="aspect-[3/4] rounded-[1.25rem] border border-[var(--line-soft)] bg-gradient-to-b from-[var(--surface-elevated)] via-[var(--accent-soft)] to-[var(--accent)]" />
-            </div>
-
+          <div className="grid gap-4">
             <div className="flex flex-col justify-between gap-6 rounded-[1.5rem] border border-[var(--line-soft)] bg-[var(--surface-elevated)] p-5">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
+                <p className="text-xs font-semibold tracking-[0.24em] text-[var(--accent)] uppercase">
                   {t.home.flowTitle}
                 </p>
 
                 <div className="mt-6 space-y-5">
                   {t.home.highlights.map((item, index) => (
-                    <div key={item.title} className="grid grid-cols-[2rem_1fr] gap-4">
-                      <span className="pt-0.5 text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent)]">
+                    <div
+                      key={item.title}
+                      className="grid grid-cols-[2rem_1fr] gap-4"
+                    >
+                      <span className="pt-0.5 text-xs font-bold tracking-[0.18em] text-[var(--accent)] uppercase">
                         {String(index + 1).padStart(2, "0")}
                       </span>
                       <div>
-                        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--ink)]">
+                        <h2 className="text-sm font-semibold tracking-[0.16em] text-[var(--ink)] uppercase">
                           {item.title}
                         </h2>
                         <p className="mt-2 text-sm leading-6 text-[var(--ink-muted)]">
@@ -71,12 +70,6 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2" aria-hidden="true">
-                <span className="h-12 rounded-xl border border-[var(--line-soft)] bg-[var(--ink)]" />
-                <span className="h-12 rounded-xl border border-[var(--line-soft)] bg-[var(--accent)]" />
-                <span className="h-12 rounded-xl border border-[var(--line-soft)] bg-[var(--surface-muted)]" />
               </div>
             </div>
           </div>
