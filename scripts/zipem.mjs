@@ -8,35 +8,12 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  // reference pages/components for the new correct palette
-  "src/app/page.tsx",
-  "src/app/products/page.tsx",
-  "src/components/products/ProductListingClient.tsx",
-  "src/components/products/ProductCard.tsx",
-  "src/components/products/ProductCardSkeleton.tsx",
-  "src/components/products/CategoryTabs.tsx",
-  "src/components/layout/Header.tsx",
-  "src/components/layout/Footer.tsx",
-
-  // files we patched and need to fix
-  "src/app/products/[slug]/page.tsx",
-  "src/app/cart/page.tsx",
-  "src/app/orders/page.tsx",
-  "src/components/products/ProductDetailClient.tsx",
-  "src/components/cart/AddToCartControls.tsx",
-  "src/components/cart/CartClient.tsx",
-  "src/components/orders/OrdersClient.tsx",
-
-  // shared style/translations/config
+  "src/app/register/page.tsx",
+  "src/components/auth/RegisterForm.tsx",
+  "src/components/auth/LoginForm.tsx",
   "src/styles/globals.css",
   "src/lib/translations.ts",
-  "src/config/store.ts",
-  "src/config/contact.ts",
-  "src/config/delivery.ts",
-
-  // tests that may need wording/styling-safe updates
-  "tests/e2e/customer-cart.e2e.ts",
-  "tests/e2e/customer-order.e2e.ts",
+  "tests/e2e/customer-login.e2e.ts",
   "tests/e2e/customer-pages.e2e.ts",
 ];
 

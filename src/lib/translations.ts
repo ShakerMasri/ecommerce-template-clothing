@@ -249,6 +249,13 @@ export type TranslationDictionary = {
     name: string;
     phone: string;
     phoneHelp: string;
+    nameInvalid: string;
+    emailInvalid: string;
+    phoneInvalid: string;
+    passwordRequired: string;
+    passwordTooShort: string;
+    fixHighlightedFields: string;
+    invalidRegistrationInput: string;
     login: string;
     loggingIn: string;
     continueWithGoogle: string;
@@ -349,6 +356,9 @@ export type TranslationDictionary = {
     name: string;
     phoneNumber: string;
     phoneHelp: string;
+    nameInvalid: string;
+    phoneInvalid: string;
+    fixHighlightedFields: string;
     saveProfile: string;
     saving: string;
     backToAccount: string;
@@ -922,6 +932,15 @@ export const translations: Record<Language, TranslationDictionary> = {
       name: "Name",
       phone: "Phone number",
       phoneHelp: "The admin may use this number to confirm your order.",
+      nameInvalid: "Enter your name using 2 to 50 characters.",
+      emailInvalid: "Enter a valid email address.",
+      phoneInvalid:
+        "Enter a valid phone number using digits, spaces, dashes, parentheses, and an optional + at the start.",
+      passwordRequired: "Enter your password.",
+      passwordTooShort: "Password must be at least 8 characters.",
+      fixHighlightedFields: "Please fix the highlighted fields.",
+      invalidRegistrationInput:
+        "Some registration details are invalid. Please review the highlighted fields.",
       login: "Login",
       loggingIn: "Logging in...",
       continueWithGoogle: "Continue with Google",
@@ -1038,6 +1057,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       phoneNumber: "Phone number",
       phoneHelp:
         "Phone numbers are required before checkout. They are not verified by SMS yet.",
+      nameInvalid: "Enter your name using 2 to 50 characters.",
+      phoneInvalid:
+        "Enter a valid phone number using digits, spaces, dashes, parentheses, and an optional + at the start.",
+      fixHighlightedFields: "Please fix the highlighted fields.",
       saveProfile: "Save profile",
       saving: "Saving...",
       backToAccount: "Back to account",
@@ -1602,6 +1625,15 @@ export const translations: Record<Language, TranslationDictionary> = {
       name: "الاسم",
       phone: "رقم الهاتف",
       phoneHelp: "قد يستخدم المسؤول هذا الرقم لتأكيد طلبك.",
+      nameInvalid: "أدخل الاسم من 2 إلى 50 حرفاً.",
+      emailInvalid: "أدخل بريداً إلكترونياً صحيحاً.",
+      phoneInvalid:
+        "أدخل رقم هاتف صحيحاً باستخدام الأرقام والمسافات والشرطات والأقواس، ويمكن استخدام + في البداية فقط.",
+      passwordRequired: "أدخل كلمة المرور.",
+      passwordTooShort: "يجب أن تكون كلمة المرور 8 أحرف على الأقل.",
+      fixHighlightedFields: "يرجى تصحيح الحقول المحددة.",
+      invalidRegistrationInput:
+        "بعض بيانات التسجيل غير صحيحة. يرجى مراجعة الحقول المحددة.",
       login: "تسجيل الدخول",
       loggingIn: "جار تسجيل الدخول...",
       continueWithGoogle: "المتابعة باستخدام Google",
@@ -1717,6 +1749,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       phoneNumber: "رقم الهاتف",
       phoneHelp:
         "رقم الهاتف مطلوب قبل إتمام الطلب. لم يتم تفعيله عبر SMS حالياً.",
+      nameInvalid: "أدخل الاسم من 2 إلى 50 حرفاً.",
+      phoneInvalid:
+        "أدخل رقم هاتف صحيحاً باستخدام الأرقام والمسافات والشرطات والأقواس، ويمكن استخدام + في البداية فقط.",
+      fixHighlightedFields: "يرجى تصحيح الحقول المحددة.",
       saveProfile: "حفظ الملف الشخصي",
       saving: "جاري الحفظ...",
       backToAccount: "العودة للحساب",

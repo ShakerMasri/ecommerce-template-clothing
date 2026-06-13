@@ -12,6 +12,7 @@ describe("registerSchema", () => {
     const result = registerSchema.safeParse({
       name: "Test User",
       email: "TEST@EXAMPLE.COM",
+      phone: "+972 59-123-4567",
       password: "password123",
     });
 
@@ -19,6 +20,7 @@ describe("registerSchema", () => {
 
     if (result.success) {
       expect(result.data.email).toBe("test@example.com");
+      expect(result.data.phone).toBe("+972591234567");
     }
   });
 
@@ -26,6 +28,7 @@ describe("registerSchema", () => {
     const result = registerSchema.safeParse({
       name: "Test User",
       email: "not-an-email",
+      phone: "+972591234567",
       password: "password123",
     });
 
@@ -36,7 +39,19 @@ describe("registerSchema", () => {
     const result = registerSchema.safeParse({
       name: "Test User",
       email: "test@example.com",
+      phone: "+972591234567",
       password: "123",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid phone characters", () => {
+    const result = registerSchema.safeParse({
+      name: "Test User",
+      email: "test@example.com",
+      phone: "abc-phone",
+      password: "password123",
     });
 
     expect(result.success).toBe(false);
