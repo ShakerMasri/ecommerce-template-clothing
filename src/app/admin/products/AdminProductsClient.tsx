@@ -207,7 +207,19 @@ function variantToForm(variant: ProductVariant): VariantForm {
 }
 
 function formatPrice(price: string | number) {
-  return `$${Number(price).toFixed(2)}`;
+  return `₪${Number(price).toFixed(2)}`;
+}
+
+function toOptionMessage(message: string | undefined, fallback: string) {
+  if (!message) {
+    return fallback;
+  }
+
+  return message
+    .replaceAll("Variants", "Options")
+    .replaceAll("variants", "options")
+    .replaceAll("Variant", "Option")
+    .replaceAll("variant", "option");
 }
 
 function getDisplayPrice(
@@ -283,6 +295,7 @@ type ProductFormLabels = {
   discountPricePlaceholder: string;
   discountPriceHelp: string;
   stock: string;
+  stockHelp: string;
   category: string;
   selectCategory: string;
   featuredProduct: string;
@@ -472,15 +485,13 @@ function ProductFormFields({
           <FieldError message={errors.discountPrice?.[0]} />
         </div>
 
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
-          <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-            Stock
+        <div className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
+          <p className="text-sm font-semibold text-[var(--ink)]">
+            {labels.stock}
           </p>
 
-          <p className="mt-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-            Product stock is calculated from the size/color options you add
-            below. Add at least one active option with stock before customers can
-            order this product.
+          <p className="mt-2 text-xs leading-5 text-[var(--ink-muted)]">
+            {labels.stockHelp}
           </p>
 
           <FieldError message={errors.stock?.[0]} />
@@ -623,8 +634,32 @@ function ProductFormFields({
   );
 }
 
+type ProductOptionLabels = {
+  optionsTitle: string;
+  optionsDescription: string;
+  optionCount: string;
+  optionsCountLabel: string;
+  optionsCountHelp: string;
+  activeOptionStock: string;
+  activeOptionStockHelp: string;
+  size: string;
+  color: string;
+  stock: string;
+  sortOrder: string;
+  active: string;
+  saveOption: string;
+  savingOption: string;
+  makeInactive: string;
+  makingInactive: string;
+  addOption: string;
+  addingOption: string;
+  sizePlaceholder: string;
+  colorPlaceholder: string;
+};
+
 type VariantManagementSectionProps = {
   product: AdminProduct;
+  labels: ProductOptionLabels;
   variantDraft: VariantForm;
   variantEditDrafts: Record<string, VariantForm>;
   updatingVariantKey: string | null;
@@ -645,6 +680,7 @@ type VariantManagementSectionProps = {
 
 function VariantManagementSection({
   product,
+  labels,
   variantDraft,
   variantEditDrafts,
   updatingVariantKey,
@@ -658,48 +694,45 @@ function VariantManagementSection({
   const isCreatingVariant = updatingVariantKey === `new:${product.id}`;
 
   return (
-    <section className="mt-6 rounded-3xl border border-dashed border-zinc-300 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-950">
+    <section className="mt-6 rounded-3xl border border-[var(--line-soft)] bg-[var(--surface-card)] p-4 shadow-sm sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-lg font-black text-zinc-950 dark:text-white">
-            Variants and inventory
+          <h3 className="text-lg font-black text-[var(--ink)]">
+            {labels.optionsTitle}
           </h3>
 
-          <p className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-            Manage clothing sizes/colors and stock for this product. Customer
-            availability is calculated from active option stock.
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--ink-muted)]">
+            {labels.optionsDescription}
           </p>
         </div>
 
-        <span className="w-fit rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-          {product.variants.length} variants
+        <span className="w-fit rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent-strong)]">
+          {labels.optionCount.replace("{count}", String(product.variants.length))}
         </span>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-            Legacy product stock
+        <div className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
+          <p className="text-xs font-semibold tracking-wide text-[var(--ink-muted)] uppercase">
+            {labels.optionsCountLabel}
           </p>
-          <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
-            {product.stock}
+          <p className="mt-2 text-2xl font-black text-[var(--ink)]">
+            {product.variants.length}
           </p>
-          <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-            This field is kept only for old data. New customer checkout uses
-            option stock.
+          <p className="mt-1 text-xs leading-5 text-[var(--ink-muted)]">
+            {labels.optionsCountHelp}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-            Active option stock total
+        <div className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
+          <p className="text-xs font-semibold tracking-wide text-[var(--ink-muted)] uppercase">
+            {labels.activeOptionStock}
           </p>
-          <p className="mt-2 text-2xl font-black text-zinc-950 dark:text-white">
+          <p className="mt-2 text-2xl font-black text-[var(--ink)]">
             {activeVariantStockTotal}
           </p>
-          <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-            This is the customer-facing product stock total when exact stock
-            visibility is enabled.
+          <p className="mt-1 text-xs leading-5 text-[var(--ink-muted)]">
+            {labels.activeOptionStockHelp}
           </p>
         </div>
       </div>
@@ -717,12 +750,12 @@ function VariantManagementSection({
             return (
               <div
                 key={variant.id}
-                className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
+                className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-elevated)] p-3"
               >
                 <div className="grid gap-3 md:grid-cols-4">
                   <div>
-                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                      Size
+                    <label className="text-xs font-semibold text-[var(--ink)]">
+                      {labels.size}
                     </label>
                     <input
                       value={draft.sizeLabel}
@@ -733,14 +766,14 @@ function VariantManagementSection({
                           event.target.value,
                         )
                       }
-                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
                       placeholder="M"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                      Color
+                    <label className="text-xs font-semibold text-[var(--ink)]">
+                      {labels.color}
                     </label>
                     <input
                       value={draft.colorLabel}
@@ -751,15 +784,14 @@ function VariantManagementSection({
                           event.target.value,
                         )
                       }
-                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
                       placeholder="Black"
                     />
                   </div>
 
-
                   <div>
-                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-Option stock
+                    <label className="text-xs font-semibold text-[var(--ink)]">
+                      {labels.stock}
                     </label>
                     <input
                       type="number"
@@ -773,13 +805,13 @@ Option stock
                           event.target.value,
                         )
                       }
-                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-                      Sort
+                    <label className="text-xs font-semibold text-[var(--ink)]">
+                      {labels.sortOrder}
                     </label>
                     <input
                       type="number"
@@ -793,13 +825,13 @@ Option stock
                           event.target.value,
                         )
                       }
-                      className="mt-1 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
                     />
                   </div>
                 </div>
 
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <label className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
                     <input
                       type="checkbox"
                       checked={draft.isActive}
@@ -811,17 +843,17 @@ Option stock
                         )
                       }
                     />
-                    Active
+                    {labels.active}
                   </label>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
                     <button
                       type="button"
                       disabled={isSavingVariant}
                       onClick={() => onUpdateVariant(product.id, variant.id)}
-                      className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                      className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--surface-card)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {isSavingVariant ? "Saving..." : "Save variant"}
+                      {isSavingVariant ? labels.savingOption : labels.saveOption}
                     </button>
 
                     {variant.isActive && (
@@ -831,11 +863,11 @@ Option stock
                         onClick={() =>
                           onDeactivateVariant(product.id, variant.id)
                         }
-                        className="rounded-full border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950"
+                        className="rounded-full border border-[var(--danger-ink)] px-4 py-2 text-sm font-semibold text-[var(--danger-ink)] transition hover:bg-[var(--danger-soft)] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isDeactivatingVariant
-                          ? "Deactivating..."
-                          : "Deactivate"}
+                          ? labels.makingInactive
+                          : labels.makeInactive}
                       </button>
                     )}
                   </div>
@@ -846,50 +878,64 @@ Option stock
         </div>
       )}
 
-      <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-        <h4 className="text-sm font-black text-zinc-950 dark:text-white">
-Add option
+      <div className="mt-4 rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-elevated)] p-3">
+        <h4 className="text-sm font-black text-[var(--ink)]">
+          {labels.addOption}
         </h4>
 
-        <div className="mt-3 grid gap-3 md:grid-cols-4">
-          <input
-            value={variantDraft.sizeLabel}
-            onChange={(event) =>
-              onUpdateVariantDraft(product.id, "sizeLabel", event.target.value)
-            }
-            className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-            placeholder="Size, e.g. M"
-          />
+        <div className="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+          <div>
+            <label className="text-xs font-semibold text-[var(--ink)]">
+              {labels.size}
+            </label>
+            <input
+              value={variantDraft.sizeLabel}
+              onChange={(event) =>
+                onUpdateVariantDraft(product.id, "sizeLabel", event.target.value)
+              }
+              className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+              placeholder={labels.sizePlaceholder}
+            />
+          </div>
 
-          <input
-            value={variantDraft.colorLabel}
-            onChange={(event) =>
-              onUpdateVariantDraft(product.id, "colorLabel", event.target.value)
-            }
-            className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-            placeholder="Color, e.g. Black"
-          />
+          <div>
+            <label className="text-xs font-semibold text-[var(--ink)]">
+              {labels.color}
+            </label>
+            <input
+              value={variantDraft.colorLabel}
+              onChange={(event) =>
+                onUpdateVariantDraft(product.id, "colorLabel", event.target.value)
+              }
+              className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+              placeholder={labels.colorPlaceholder}
+            />
+          </div>
 
-
-          <input
-            type="number"
-            min="0"
-            step="1"
-            value={variantDraft.stock}
-            onChange={(event) =>
-              onUpdateVariantDraft(product.id, "stock", event.target.value)
-            }
-            className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
-            placeholder="Stock"
-          />
+          <div>
+            <label className="text-xs font-semibold text-[var(--ink)]">
+              {labels.stock}
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={variantDraft.stock}
+              onChange={(event) =>
+                onUpdateVariantDraft(product.id, "stock", event.target.value)
+              }
+              className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+              placeholder="0"
+            />
+          </div>
 
           <button
             type="button"
             disabled={isCreatingVariant}
             onClick={() => onCreateVariant(product.id)}
-            className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--surface-card)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isCreatingVariant ? "Adding..." : "Add variant"}
+            {isCreatingVariant ? labels.addingOption : labels.addOption}
           </button>
         </div>
       </div>
@@ -1366,11 +1412,14 @@ export function AdminProductsClient() {
 
       if (!response.ok) {
         setProductErrors(data.errors ?? {});
-        showMessage("error", data.message ?? "Failed to create variant.");
+        showMessage(
+          "error",
+          toOptionMessage(data.message, labels.failedToCreateOption),
+        );
         return;
       }
 
-      showMessage("success", data.message ?? "Variant created successfully.");
+      showMessage("success", toOptionMessage(data.message, labels.optionCreated));
       setVariantDrafts((current) => ({
         ...current,
         [productId]: getEmptyVariantForm(),
@@ -1412,11 +1461,14 @@ export function AdminProductsClient() {
 
       if (!response.ok) {
         setProductErrors(data.errors ?? {});
-        showMessage("error", data.message ?? "Failed to update variant.");
+        showMessage(
+          "error",
+          toOptionMessage(data.message, labels.failedToUpdateOption),
+        );
         return;
       }
 
-      showMessage("success", data.message ?? "Variant updated successfully.");
+      showMessage("success", toOptionMessage(data.message, labels.optionUpdated));
       await loadAdminData(productPage, productFilters);
     } catch {
       showMessage("error", labels.failedToConnect);
@@ -1443,14 +1495,14 @@ export function AdminProductsClient() {
       const data = (await response.json()) as VariantResponse;
 
       if (!response.ok) {
-        showMessage("error", data.message ?? "Failed to deactivate variant.");
+        showMessage(
+          "error",
+          toOptionMessage(data.message, labels.failedToDeactivateOption),
+        );
         return;
       }
 
-      showMessage(
-        "success",
-        data.message ?? "Variant deactivated successfully.",
-      );
+      showMessage("success", toOptionMessage(data.message, labels.optionDeactivated));
       await loadAdminData(productPage, productFilters);
     } catch {
       showMessage("error", labels.failedToConnect);
@@ -1690,6 +1742,7 @@ export function AdminProductsClient() {
               {selectedEditProduct && (
                 <VariantManagementSection
                   product={selectedEditProduct}
+                  labels={labels}
                   variantDraft={
                     variantDrafts[selectedEditProduct.id] ??
                     getEmptyVariantForm()
@@ -2085,14 +2138,13 @@ export function AdminProductsClient() {
 
                       <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
                         <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-                          Active option stock
+                          {labels.activeOptionStock}
                         </p>
                         <p className="mt-1 text-2xl font-black text-zinc-950 dark:text-white">
                           {getActiveVariantStockTotal(product)}
                         </p>
                         <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                          Product stock is calculated from active size/color options.
-                          Edit stock inside the product options below.
+                          {labels.activeOptionStockHelp}
                         </p>
                       </div>
                     </div>

@@ -565,6 +565,32 @@ export type TranslationDictionary = {
       discountPricePlaceholder: string;
       discountPriceHelp: string;
       stock: string;
+      stockHelp: string;
+      optionsTitle: string;
+      optionsDescription: string;
+      optionCount: string;
+      optionsCountLabel: string;
+      optionsCountHelp: string;
+      activeOptionStock: string;
+      activeOptionStockHelp: string;
+      size: string;
+      color: string;
+      sortOrder: string;
+      active: string;
+      saveOption: string;
+      savingOption: string;
+      makeInactive: string;
+      makingInactive: string;
+      addOption: string;
+      addingOption: string;
+      sizePlaceholder: string;
+      colorPlaceholder: string;
+      failedToCreateOption: string;
+      optionCreated: string;
+      failedToUpdateOption: string;
+      optionUpdated: string;
+      failedToDeactivateOption: string;
+      optionDeactivated: string;
       category: string;
       selectCategory: string;
       featuredProduct: string;
@@ -1262,6 +1288,36 @@ export const translations: Record<Language, TranslationDictionary> = {
         discountPriceHelp:
           "Leave empty for no discount. Must be lower than the regular price.",
         stock: "Stock",
+        stockHelp:
+          "Manage stock in Options after saving the product. Customers can order only active size/color options with stock.",
+        optionsTitle: "Options",
+        optionsDescription:
+          "Manage sizes, colors, stock, and active status. Customers can order only active options with stock.",
+        optionCount: "{count} options",
+        optionsCountLabel: "Options",
+        optionsCountHelp:
+          "Each option represents a customer choice such as size, color, or both.",
+        activeOptionStock: "Active option stock",
+        activeOptionStockHelp:
+          "This is the customer-facing stock total when exact stock visibility is enabled.",
+        size: "Size",
+        color: "Color",
+        sortOrder: "Sort order",
+        active: "Active",
+        saveOption: "Save option",
+        savingOption: "Saving...",
+        makeInactive: "Make inactive",
+        makingInactive: "Saving...",
+        addOption: "Add option",
+        addingOption: "Adding...",
+        sizePlaceholder: "Size, e.g. M",
+        colorPlaceholder: "Color, e.g. Black",
+        failedToCreateOption: "Failed to create option.",
+        optionCreated: "Option created successfully.",
+        failedToUpdateOption: "Failed to update option.",
+        optionUpdated: "Option updated successfully.",
+        failedToDeactivateOption: "Failed to make option inactive.",
+        optionDeactivated: "Option is now inactive.",
         category: "Category",
         selectCategory: "Select category",
         featuredProduct: "Featured product",
@@ -1953,6 +2009,36 @@ export const translations: Record<Language, TranslationDictionary> = {
         discountPriceHelp:
           "اتركه فارغاً بدون خصم. يجب أن يكون أقل من السعر الأساسي.",
         stock: "المخزون",
+        stockHelp:
+          "أدر المخزون من الخيارات بعد حفظ المنتج. يستطيع العميل طلب الخيارات النشطة التي تحتوي على مخزون فقط.",
+        optionsTitle: "الخيارات",
+        optionsDescription:
+          "أدر المقاسات والألوان والمخزون وحالة التفعيل. يستطيع العميل طلب الخيارات النشطة التي تحتوي على مخزون فقط.",
+        optionCount: "{count} خيار",
+        optionsCountLabel: "الخيارات",
+        optionsCountHelp:
+          "كل خيار يمثل اختياراً يظهر للعميل مثل المقاس أو اللون أو الاثنين معاً.",
+        activeOptionStock: "مخزون الخيارات النشطة",
+        activeOptionStockHelp:
+          "هذا هو مجموع المخزون الذي يظهر للعميل عند تفعيل إظهار رقم المخزون.",
+        size: "المقاس",
+        color: "اللون",
+        sortOrder: "ترتيب العرض",
+        active: "نشط",
+        saveOption: "حفظ الخيار",
+        savingOption: "جار الحفظ...",
+        makeInactive: "جعله غير نشط",
+        makingInactive: "جار الحفظ...",
+        addOption: "إضافة خيار",
+        addingOption: "جار الإضافة...",
+        sizePlaceholder: "المقاس، مثال M",
+        colorPlaceholder: "اللون، مثال أسود",
+        failedToCreateOption: "فشل إنشاء الخيار.",
+        optionCreated: "تم إنشاء الخيار بنجاح.",
+        failedToUpdateOption: "فشل تحديث الخيار.",
+        optionUpdated: "تم تحديث الخيار بنجاح.",
+        failedToDeactivateOption: "فشل جعل الخيار غير نشط.",
+        optionDeactivated: "أصبح الخيار غير نشط.",
         category: "التصنيف",
         selectCategory: "اختر التصنيف",
         featuredProduct: "منتج مميز",
