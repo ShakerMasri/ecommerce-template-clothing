@@ -109,3 +109,81 @@ a {
 .premium-divider {
   background: linear-gradient(90deg, transparent, var(--line-soft), transparent);
 }
+
+.workspace-ui {
+  color: var(--ink);
+}
+
+.workspace-ui :where(.font-black) {
+  font-weight: 750;
+}
+
+.workspace-ui :where(.shadow-sm) {
+  box-shadow: 0 16px 42px rgba(32, 25, 20, 0.06);
+}
+
+.dark .workspace-ui :where(.shadow-sm) {
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.24);
+}
+
+.workspace-ui :where([class*="bg-white"], [class*="bg-zinc-900"]) {
+  background-color: var(--surface-card);
+}
+
+.workspace-ui :where([class*="bg-zinc-50"], [class*="bg-zinc-100"], [class*="bg-zinc-200"], [class*="bg-orange-50"], [class*="bg-orange-100"], [class*="bg-orange-950"]) {
+  background-color: var(--surface-muted);
+}
+
+.workspace-ui :where([class*="border-zinc-"], [class*="border-orange-"]) {
+  border-color: var(--line-soft);
+}
+
+.workspace-ui :where([class*="text-zinc-950"], [class*="text-zinc-900"], [class*="text-zinc-800"], [class*="text-zinc-100"]) {
+  color: var(--ink);
+}
+
+.workspace-ui :where([class*="text-zinc-700"], [class*="text-zinc-600"], [class*="text-zinc-500"], [class*="text-zinc-400"], [class*="text-orange-800"], [class*="text-orange-900"]) {
+  color: var(--ink-muted);
+}
+
+.workspace-ui :where([class*="text-orange-600"], [class*="text-orange-700"], [class*="text-orange-400"], [class*="text-orange-300"], [class*="text-orange-200"]) {
+  color: var(--accent-strong);
+}
+
+.workspace-ui input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.workspace-ui select,
+.workspace-ui textarea {
+  background-color: var(--surface-elevated);
+  border-color: var(--line-soft);
+  color: var(--ink);
+}
+
+.workspace-ui input::placeholder,
+.workspace-ui textarea::placeholder {
+  color: color-mix(in srgb, var(--ink-muted) 72%, transparent);
+}
+
+.workspace-ui input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+.workspace-ui select:focus,
+.workspace-ui textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-soft) 70%, transparent);
+}
+
+.workspace-ui input[type="file"]::file-selector-button {
+  background-color: var(--accent-strong);
+  color: var(--surface-card);
+}
+
+.workspace-ui :where(button[class*="bg-zinc-950"], a[class*="bg-zinc-950"]) {
+  background-color: var(--accent-strong);
+  color: var(--surface-card);
+}
+
+.workspace-ui :where(button[class*="border-zinc-"], a[class*="border-zinc-"]) {
+  color: var(--ink);
+}
+
+.workspace-ui :where(button[class*="border-zinc-"]:hover, a[class*="border-zinc-"]:hover) {
+  background-color: var(--surface-muted);
+}

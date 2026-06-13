@@ -553,6 +553,9 @@ export type TranslationDictionary = {
       categories: string;
       createProduct: string;
       createProductDescription: string;
+      addProduct: string;
+      hideCreateProduct: string;
+      manageCategories: string;
       productName: string;
       productNamePlaceholder: string;
       slug: string;
@@ -1274,7 +1277,10 @@ export const translations: Record<Language, TranslationDictionary> = {
         categories: "Categories",
         createProduct: "Create product",
         createProductDescription:
-          "Add a new product to the store. Product visibility depends on archive state and stock.",
+          "Keep this closed during daily stock work. Open it only when adding a new clothing item.",
+        addProduct: "Add product",
+        hideCreateProduct: "Hide form",
+        manageCategories: "Manage categories",
         productName: "Product name",
         productNamePlaceholder: "Classic cotton t-shirt",
         slug: "Slug",
@@ -1995,7 +2001,10 @@ export const translations: Record<Language, TranslationDictionary> = {
         categories: "التصنيفات",
         createProduct: "إنشاء منتج",
         createProductDescription:
-          "أضف منتجاً جديداً إلى المتجر. ظهور المنتج يعتمد على حالة الأرشفة والمخزون.",
+          "أبقِ هذا النموذج مغلقاً أثناء تحديث المخزون اليومي. افتحه فقط عند إضافة قطعة ملابس جديدة.",
+        addProduct: "إضافة منتج",
+        hideCreateProduct: "إخفاء النموذج",
+        manageCategories: "إدارة التصنيفات",
         productName: "اسم المنتج",
         productNamePlaceholder: "تيشيرت قطني كلاسيكي",
         slug: "الرابط المختصر",
