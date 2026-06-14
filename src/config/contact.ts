@@ -88,7 +88,7 @@ export const contactConfig = {
     href: "tel:+970000000000",
   },
   whatsapp: {
-    display: "tel:+970000000000",
+    display: "+970000000000",
     href: "https://wa.me/970000000000",
   },
   supportHours: {

@@ -6,7 +6,7 @@ This guide explains the day-to-day admin workflow for a store built from this cl
 
 The admin can safely manage:
 
-- products, including title, description, price, discount price, category, image, stock, and archive/restore status
+- products, including title, description, price, discount price, category, image, size/color variants, variant stock, and archive/restore status
 - categories, including safe deletion only when no products are attached
 - order status, payment status, internal notes, and pending order confirmation
 - per-product customer stock visibility
@@ -15,7 +15,7 @@ The admin should not receive database credentials, hosting secrets, OAuth secret
 
 ## Product Management
 
-Current product management uses product-level stock only. Size/color variants are planned but not implemented yet. Do not promise variant support to a client until `docs/product-variants-plan.md` is implemented and tested.
+Current product management supports clothing size/color variants. Customer-orderable stock lives on active product variants, and product-level customer stock is derived from active variant stock. Cart rows identify the selected variant, and order items snapshot selected size/color details for historical accuracy.
 
 When adding or editing products:
 
@@ -23,8 +23,9 @@ When adding or editing products:
 2. Use only images that the store has the right to use commercially.
 3. Set the real product price on the server-managed product record.
 4. Add `discountPrice` only when the discounted price is greater than 0 and lower than the original price.
-5. Set stock to the real quantity available for sale.
-6. Enable customer stock visibility only when the store wants customers to see the exact stock count.
+5. Add the real available quantity to the relevant active size/color variants.
+6. Keep unavailable combinations inactive or at `0` stock so customers cannot order them.
+7. Enable customer stock visibility only when the store wants customers to see the exact stock count.
 
 Customer-facing prices and order item prices are calculated by the server. The client browser must never be trusted to submit product prices.
 
@@ -43,15 +44,16 @@ Recommended workflow:
 Current stock flow:
 
 1. Customer places an order.
-2. The order is created as pending.
-3. Stock is not deducted yet.
-4. Store owner confirms the order with the customer by WhatsApp or phone.
-5. Admin confirms the order in the dashboard.
-6. Stock decreases once during admin confirmation.
+2. Checkout validates product, variant, stock, delivery, and pricing server-side inside the checkout transaction.
+3. The order is created as pending.
+4. Checkout immediately reserves/decreases the selected variant stock.
+5. Store owner confirms the order with the customer by WhatsApp or phone.
+6. Admin moves the order forward without deducting stock again.
+7. If the order is cancelled, reserved stock is restored exactly once when applicable.
 
-This protects the client from losing stock for fake, duplicate, or unconfirmed orders.
+This prevents customers from ordering stock that was already reserved by another pending order, while also protecting against double deduction or double restoration.
 
-If stock is no longer enough when the admin confirms, the app should block confirmation and show a safe error. The admin should contact the customer before changing the order status manually.
+If stock is no longer enough during checkout, the app should block checkout and show a safe error. The admin should not manually adjust order status to bypass stock or reservation rules.
 
 ## Delivery Pricing
 
@@ -135,7 +137,7 @@ Ask a developer for:
 - hosting changes
 - OAuth callback changes
 - email provider changes
-- size/color variants
+- variant schema/checkout changes beyond normal admin-managed size/color setup
 - new discount types or coupon features
 - POS, online payments, SMS, CSV import, accounting, or delivery-company integrations
 - PWA/install support
@@ -148,10 +150,10 @@ Before launch, review these with the client:
 
 - admin login works
 - admin can add/edit/archive/restore products
-- admin can set stock and discounts
+- admin can manage size/color variants, variant stock, and discounts
 - admin can manage categories
 - customer can place an order
-- admin can confirm an order and stock decreases once
+- admin can move a pending order forward without deducting stock again
 - delivery prices are correct
 - legal/customer policy pages are customized, client-reviewed, and acceptable
 - client understands that delivery pricing is code-managed for now

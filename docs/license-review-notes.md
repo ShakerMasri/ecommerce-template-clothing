@@ -31,7 +31,7 @@ unknown: 1
 
 ## Manual Review Findings
 
-### @better-fetch/fetch@1.1.21
+### @better-fetch/fetch@1.2.2
 
 Status: accepted with upstream MIT evidence
 

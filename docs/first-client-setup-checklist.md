@@ -100,9 +100,11 @@ https://your-production-domain.com/api/auth/callback/google
 - [ ] Add a small set of real or approved demo products.
 - [ ] Confirm each product image is license-safe.
 - [ ] Confirm prices and discounts are correct.
-- [ ] Confirm stock values are realistic.
+- [ ] Confirm variant size/color combinations are accurate.
+- [ ] Confirm active variant stock values are realistic.
+- [ ] Keep unavailable variant combinations inactive or at `0` stock.
 - [ ] Decide per product whether exact stock count should be visible to customers.
-- [ ] Do not promise variants, coupons, POS, online payments, SMS, CSV import, accounting integration, delivery-company integration, or PWA unless intentionally built, enforced server-side where needed, and tested.
+- [ ] Do not promise coupons, POS, online payments, SMS, CSV import, accounting integration, delivery-company integration, or PWA unless intentionally built, enforced server-side where needed, and tested.
 
 ## 8. Manual staging verification
 
@@ -115,16 +117,19 @@ Run these before showing the store seriously to the client:
 - [ ] Login works.
 - [ ] Logout works.
 - [ ] Password reset works in the intended email mode.
+- [ ] Customer can select an available size/color variant.
+- [ ] Customer cannot order unavailable or inactive variant combinations.
 - [ ] Customer can add an item to cart.
 - [ ] Customer can update and remove cart items.
 - [ ] Checkout shows product total, delivery price, and final total.
-- [ ] Checkout creates a pending order without reducing stock immediately.
+- [ ] Checkout creates a pending order and reserves/decreases selected variant stock immediately.
 - [ ] Customer sees the WhatsApp/phone confirmation message after ordering.
 - [ ] Customer orders page shows only that customer's orders.
 - [ ] Admin products page works for admins only.
 - [ ] Admin categories page works for admins only.
 - [ ] Admin orders page works for admins only.
-- [ ] Admin can confirm a pending order and stock decreases once.
+- [ ] Admin can confirm/process a pending order without deducting stock again.
+- [ ] Cancellation restores reserved stock exactly once when applicable.
 - [ ] Non-admin users cannot access admin pages or admin APIs.
 - [ ] Signed-out users cannot access protected pages or protected APIs.
 - [ ] Public policy pages show client-reviewed or clearly placeholder text.
@@ -155,7 +160,7 @@ Before real launch, review these with the client:
 - [ ] What still requires a developer.
 - [ ] Delivery prices and receive/pickup rules.
 - [ ] Order confirmation workflow.
-- [ ] Stock confirmation workflow.
+- [ ] Checkout-time stock reservation and cancellation restore workflow.
 - [ ] Product image/license responsibility.
 - [ ] Public policy text and legal responsibility.
 - [ ] Support contact workflow.

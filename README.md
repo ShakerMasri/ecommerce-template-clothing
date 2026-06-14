@@ -4,7 +4,7 @@ Clothing Ecommerce Template is a reusable private full-stack e-commerce starter 
 
 This project was forked from an existing hardened ecommerce starter and is now maintained as a separate clothing-store template. It is being prepared as a real client-ready application, not just a demo. The backend, authentication, authorization, environment configuration, deployment flow, and production safety checks should be treated seriously before launch.
 
-This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, checkout-time stock reservation, the `v0.1.0-post-reservation-audit` checkpoint, and a customer-facing clothing-store UI refresh for storefront, product detail, cart, orders, and auth flows. The next checkpoint is admin UI simplification and remaining production/client handoff review.
+This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, checkout-time stock reservation, the `v0.1.0-post-reservation-audit` checkpoint, a customer-facing clothing-store UI refresh, and admin/account UI alignment. The next checkpoint is Render demo/staging verification, followed by documentation/license cleanup and a broader production-readiness/security audit.
 
 ## Tech Stack
 
@@ -76,7 +76,7 @@ Completed:
 
 Not started yet:
 
-- Admin UI simplification pass.
+- Broader production-readiness/security audit after staging is stable.
 - Caching.
 
 Not supported in this clothing template yet:
@@ -99,11 +99,10 @@ Postponed intentionally:
 
 Planned next checkpoints:
 
-- Verify the refreshed customer UI on mobile and staging after checks pass.
-- Simplify admin product/options/stock screens now that the customer UI foundation is stable.
-- Simplify admin orders UI after product admin UI is reviewed.
-- Clean up remaining hardcoded visible strings through translations/config where appropriate.
-- Complete production readiness and client handoff review.
+- Deploy and verify a Render demo/staging environment with disposable data.
+- Keep documentation, license notes, and asset notes aligned with the current clothing-store behavior.
+- Run a light UI/accessibility/license review on staging.
+- Complete a broader production-readiness and security audit after staging is stable.
 - Review caching/performance only after core business rules are stable and real usage or smoke-load results show a need.
 
 ## Main Features
@@ -876,7 +875,7 @@ Stock reservation is tracked with `stockDeductedAt`, which now means inventory h
 
 Known next checkpoint:
 
-- Verify the completed customer clothing-store UI refresh on staging, then move to admin UI simplification without changing checkout, order, stock reservation, or authorization business logic.
+- Verify the completed clothing-store UI and admin/account alignment on Render staging, then run a broader production-readiness/security audit without changing checkout, order, stock reservation, or authorization business logic.
 
 ### Filtering and Pagination
 

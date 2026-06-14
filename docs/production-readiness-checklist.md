@@ -104,13 +104,16 @@ On staging or production candidate:
 - [ ] Logout works.
 - [ ] Product listing works.
 - [ ] Product details work.
+- [ ] Customer can select an available size/color variant.
+- [ ] Unavailable or inactive variant combinations cannot be ordered.
 - [ ] Discounted product shows old and new price.
 - [ ] Stock visibility follows the admin setting.
-- [ ] Customer can add item to cart.
+- [ ] Customer can add the selected variant to cart.
 - [ ] Cart totals use the effective server price.
 - [ ] Customer can select delivery area/details.
 - [ ] Checkout confirmation shows product total, delivery price, and final total.
 - [ ] Order is created as pending.
+- [ ] Checkout reserves/decreases selected variant stock exactly once.
 - [ ] Customer sees the post-order confirmation/contact message.
 - [ ] Customer orders page shows only that customer's orders.
 
@@ -121,7 +124,7 @@ On staging or production candidate:
 - [ ] Admin dashboard loads.
 - [ ] Admin products page loads.
 - [ ] Admin can create/edit/archive/restore product.
-- [ ] Admin can update stock.
+- [ ] Admin can manage size/color variants and variant stock.
 - [ ] Admin can set and remove discount price.
 - [ ] Admin can toggle customer stock visibility.
 - [ ] Admin categories page loads.
@@ -130,10 +133,10 @@ On staging or production candidate:
 - [ ] Admin orders page loads.
 - [ ] Admin can filter/paginate orders.
 - [ ] Admin can view contact and delivery details.
-- [ ] Admin can confirm a pending order.
-- [ ] Stock decreases exactly once after confirmation.
-- [ ] Duplicate checkout/admin confirmation does not double-deduct stock.
-- [ ] Insufficient-stock confirmation fails safely.
+- [ ] Admin can confirm/process a pending order without deducting stock again.
+- [ ] Duplicate checkout/order status actions do not double-deduct stock.
+- [ ] Insufficient-stock checkout fails safely.
+- [ ] Cancellation restores reserved stock exactly once when applicable.
 - [ ] Admin can update payment status and internal notes.
 
 ## 9. Observability
