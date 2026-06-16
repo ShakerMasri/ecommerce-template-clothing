@@ -13,10 +13,6 @@ type AddToCartControlsProps = {
   disabledReason?: string | null;
 };
 
-type AddCartResponse = {
-  message?: string;
-};
-
 export function AddToCartControls({
   productId,
   productVariantId = null,
@@ -83,7 +79,7 @@ export function AddToCartControls({
         }),
       });
 
-      const data = (await response.json()) as AddCartResponse;
+      await response.json().catch(() => null);
 
       if (response.status === 401) {
         router.push(`/login?callbackUrl=${encodeURIComponent("/cart")}`);
@@ -92,12 +88,12 @@ export function AddToCartControls({
 
       if (!response.ok) {
         setStatus("error");
-        setMessage(data.message ?? t.cart.failedToAddItem);
+        setMessage(t.cart.failedToAddItem);
         return;
       }
 
       setStatus("success");
-      setMessage(data.message ?? t.cart.itemAddedToCart);
+      setMessage(t.cart.itemAddedToCart);
       router.refresh();
     } catch {
       setStatus("error");

@@ -133,6 +133,13 @@ type VariantResponse = {
 };
 
 type MessageType = "success" | "error";
+type MessageContext =
+  | "create"
+  | "edit"
+  | `new:${string}`
+  | `update:${string}`
+  | `delete:${string}`
+  | null;
 
 const MAX_PRODUCT_IMAGE_SIZE_MB = 10;
 const MAX_PRODUCT_IMAGE_SIZE_BYTES = MAX_PRODUCT_IMAGE_SIZE_MB * 1024 * 1024;
@@ -213,18 +220,6 @@ function formatPrice(price: string | number) {
   return `₪${Number(price).toFixed(2)}`;
 }
 
-function toOptionMessage(message: string | undefined, fallback: string) {
-  if (!message) {
-    return fallback;
-  }
-
-  return message
-    .replaceAll("Variants", "Options")
-    .replaceAll("variants", "options")
-    .replaceAll("Variant", "Option")
-    .replaceAll("variant", "option");
-}
-
 function getDisplayPrice(
   product: Pick<AdminProduct, "price" | "discountPrice">,
 ) {
@@ -282,7 +277,105 @@ function FieldError({ message }: { message?: string }) {
     return null;
   }
 
-  return <p className="mt-1 text-sm font-medium text-red-600">{message}</p>;
+  return (
+    <p className="mt-1 text-sm font-medium text-[var(--danger-ink)]">
+      {message}
+    </p>
+  );
+}
+
+function InlineFeedback({
+  message,
+  type,
+}: {
+  message: string;
+  type: MessageType;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-4 text-sm font-semibold ${
+        type === "success"
+          ? "border-[var(--success-line)] bg-[var(--success-soft)] text-[var(--success-ink)]"
+          : "border-[var(--danger-line)] bg-[var(--danger-soft)] text-[var(--danger-ink)]"
+      }`}
+    >
+      {message}
+    </div>
+  );
+}
+
+type ProductFieldErrorLabels = {
+  checkHighlightedFields: string;
+  invalidProductName: string;
+  invalidProductSlug: string;
+  productSlugAlreadyUsed: string;
+  invalidDescription: string;
+  invalidPrice: string;
+  invalidDiscountPrice: string;
+  invalidCategory: string;
+  invalidImage: string;
+  invalidOptionSizeOrColor: string;
+  invalidOptionStock: string;
+  invalidOptionSortOrder: string;
+};
+
+function getLocalizedFieldError(
+  field: string,
+  messages: string[] | undefined,
+  labels: ProductFieldErrorLabels,
+) {
+  const firstMessage = messages?.[0]?.toLowerCase() ?? "";
+
+  if (field === "slug" && firstMessage.includes("already")) {
+    return labels.productSlugAlreadyUsed;
+  }
+
+  switch (field) {
+    case "_form":
+      return labels.checkHighlightedFields;
+    case "name":
+      return labels.invalidProductName;
+    case "slug":
+      return labels.invalidProductSlug;
+    case "description":
+      return labels.invalidDescription;
+    case "price":
+      return labels.invalidPrice;
+    case "discountPrice":
+      return labels.invalidDiscountPrice;
+    case "categoryId":
+      return labels.invalidCategory;
+    case "images":
+    case "file":
+      return labels.invalidImage;
+    case "sizeLabel":
+    case "colorLabel":
+      return labels.invalidOptionSizeOrColor;
+    case "stock":
+      return labels.invalidOptionStock;
+    case "sortOrder":
+      return labels.invalidOptionSortOrder;
+    default:
+      return labels.checkHighlightedFields;
+  }
+}
+
+function getLocalizedFieldErrors(
+  errors: FieldErrors,
+  labels: ProductFieldErrorLabels,
+): FieldErrors {
+  return Object.entries(errors).reduce<FieldErrors>(
+    (localizedErrors, [field, messages]) => {
+      const normalizedField = field === "file" ? "images" : field;
+
+      localizedErrors[normalizedField] = [
+        getLocalizedFieldError(field, messages, labels),
+      ];
+
+      return localizedErrors;
+    },
+    {},
+  );
 }
 
 type ProductFormLabels = {
@@ -310,6 +403,18 @@ type ProductFormLabels = {
   imageTooLarge: string;
   productPreview: string;
   remove: string;
+  checkHighlightedFields: string;
+  invalidProductName: string;
+  invalidProductSlug: string;
+  productSlugAlreadyUsed: string;
+  invalidDescription: string;
+  invalidPrice: string;
+  invalidDiscountPrice: string;
+  invalidCategory: string;
+  invalidImage: string;
+  invalidOptionSizeOrColor: string;
+  invalidOptionStock: string;
+  invalidOptionSortOrder: string;
 };
 
 type ProductFormFieldsProps = {
@@ -645,6 +750,18 @@ type ProductOptionLabels = {
   addingOption: string;
   sizePlaceholder: string;
   colorPlaceholder: string;
+  checkHighlightedFields: string;
+  invalidProductName: string;
+  invalidProductSlug: string;
+  productSlugAlreadyUsed: string;
+  invalidDescription: string;
+  invalidPrice: string;
+  invalidDiscountPrice: string;
+  invalidCategory: string;
+  invalidImage: string;
+  invalidOptionSizeOrColor: string;
+  invalidOptionStock: string;
+  invalidOptionSortOrder: string;
 };
 
 type VariantManagementSectionProps = {
@@ -653,6 +770,10 @@ type VariantManagementSectionProps = {
   variantDraft: VariantForm;
   variantEditDrafts: Record<string, VariantForm>;
   updatingVariantKey: string | null;
+  errors: FieldErrors;
+  message: string;
+  messageType: MessageType;
+  messageContext: MessageContext;
   onUpdateVariantDraft: (
     productId: string,
     field: keyof VariantForm,
@@ -674,6 +795,10 @@ function VariantManagementSection({
   variantDraft,
   variantEditDrafts,
   updatingVariantKey,
+  errors,
+  message,
+  messageType,
+  messageContext,
   onUpdateVariantDraft,
   onUpdateVariantEditDraft,
   onCreateVariant,
@@ -682,6 +807,8 @@ function VariantManagementSection({
 }: VariantManagementSectionProps) {
   const activeVariantStockTotal = getActiveVariantStockTotal(product);
   const isCreatingVariant = updatingVariantKey === `new:${product.id}`;
+  const createVariantContext: MessageContext = `new:${product.id}`;
+  const showCreateVariantErrors = messageContext === createVariantContext;
 
   return (
     <section className="mt-6 rounded-3xl border border-[var(--line-soft)] bg-[var(--surface-card)] p-4 shadow-sm sm:p-5">
@@ -697,7 +824,10 @@ function VariantManagementSection({
         </div>
 
         <span className="w-fit rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent-strong)]">
-          {labels.optionCount.replace("{count}", String(product.variants.length))}
+          {labels.optionCount.replace(
+            "{count}",
+            String(product.variants.length),
+          )}
         </span>
       </div>
 
@@ -727,21 +857,37 @@ function VariantManagementSection({
         </div>
       </div>
 
+      {showCreateVariantErrors && message && (
+        <div className="mt-4">
+          <InlineFeedback message={message} type={messageType} />
+        </div>
+      )}
+
       {product.variants.length > 0 && (
         <div className="mt-4 space-y-3">
           {product.variants.map((variant) => {
             const draft =
               variantEditDrafts[variant.id] ?? variantToForm(variant);
-            const isSavingVariant =
-              updatingVariantKey === `update:${variant.id}`;
+            const updateVariantContext: MessageContext = `update:${variant.id}`;
+            const deleteVariantContext: MessageContext = `delete:${variant.id}`;
+            const isSavingVariant = updatingVariantKey === updateVariantContext;
             const isDeactivatingVariant =
-              updatingVariantKey === `delete:${variant.id}`;
+              updatingVariantKey === deleteVariantContext;
+            const showVariantErrors =
+              messageContext === updateVariantContext ||
+              messageContext === deleteVariantContext;
 
             return (
               <div
                 key={variant.id}
                 className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-elevated)] p-3"
               >
+                {showVariantErrors && message && (
+                  <div className="mb-3">
+                    <InlineFeedback message={message} type={messageType} />
+                  </div>
+                )}
+
                 <div className="grid gap-3 md:grid-cols-4">
                   <div>
                     <label className="text-xs font-semibold text-[var(--ink)]">
@@ -756,9 +902,12 @@ function VariantManagementSection({
                           event.target.value,
                         )
                       }
-                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
                       placeholder="M"
                     />
+                    {showVariantErrors && (
+                      <FieldError message={errors.sizeLabel?.[0]} />
+                    )}
                   </div>
 
                   <div>
@@ -774,9 +923,12 @@ function VariantManagementSection({
                           event.target.value,
                         )
                       }
-                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
                       placeholder="Black"
                     />
+                    {showVariantErrors && (
+                      <FieldError message={errors.colorLabel?.[0]} />
+                    )}
                   </div>
 
                   <div>
@@ -795,8 +947,11 @@ function VariantManagementSection({
                           event.target.value,
                         )
                       }
-                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
                     />
+                    {showVariantErrors && (
+                      <FieldError message={errors.stock?.[0]} />
+                    )}
                   </div>
 
                   <div>
@@ -815,8 +970,11 @@ function VariantManagementSection({
                           event.target.value,
                         )
                       }
-                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+                      className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
                     />
+                    {showVariantErrors && (
+                      <FieldError message={errors.sortOrder?.[0]} />
+                    )}
                   </div>
                 </div>
 
@@ -841,9 +999,11 @@ function VariantManagementSection({
                       type="button"
                       disabled={isSavingVariant}
                       onClick={() => onUpdateVariant(product.id, variant.id)}
-                      className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--surface-card)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="workspace-primary-action rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {isSavingVariant ? labels.savingOption : labels.saveOption}
+                      {isSavingVariant
+                        ? labels.savingOption
+                        : labels.saveOption}
                     </button>
 
                     {variant.isActive && (
@@ -881,11 +1041,18 @@ function VariantManagementSection({
             <input
               value={variantDraft.sizeLabel}
               onChange={(event) =>
-                onUpdateVariantDraft(product.id, "sizeLabel", event.target.value)
+                onUpdateVariantDraft(
+                  product.id,
+                  "sizeLabel",
+                  event.target.value,
+                )
               }
-              className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+              className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
               placeholder={labels.sizePlaceholder}
             />
+            {showCreateVariantErrors && (
+              <FieldError message={errors.sizeLabel?.[0]} />
+            )}
           </div>
 
           <div>
@@ -895,11 +1062,18 @@ function VariantManagementSection({
             <input
               value={variantDraft.colorLabel}
               onChange={(event) =>
-                onUpdateVariantDraft(product.id, "colorLabel", event.target.value)
+                onUpdateVariantDraft(
+                  product.id,
+                  "colorLabel",
+                  event.target.value,
+                )
               }
-              className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+              className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
               placeholder={labels.colorPlaceholder}
             />
+            {showCreateVariantErrors && (
+              <FieldError message={errors.colorLabel?.[0]} />
+            )}
           </div>
 
           <div>
@@ -914,16 +1088,19 @@ function VariantManagementSection({
               onChange={(event) =>
                 onUpdateVariantDraft(product.id, "stock", event.target.value)
               }
-              className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+              className="mt-1 w-full rounded-xl border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink)] transition outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
               placeholder="0"
             />
+            {showCreateVariantErrors && (
+              <FieldError message={errors.stock?.[0]} />
+            )}
           </div>
 
           <button
             type="button"
             disabled={isCreatingVariant}
             onClick={() => onCreateVariant(product.id)}
-            className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--surface-card)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="workspace-primary-action rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isCreatingVariant ? labels.addingOption : labels.addOption}
           </button>
@@ -964,7 +1141,6 @@ export function AdminProductsClient() {
   const [createImageUrl, setCreateImageUrl] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
 
-
   const [variantDrafts, setVariantDrafts] = useState<
     Record<string, VariantForm>
   >({});
@@ -975,6 +1151,7 @@ export function AdminProductsClient() {
   const [productErrors, setProductErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<MessageType>("success");
+  const [messageContext, setMessageContext] = useState<MessageContext>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
@@ -988,9 +1165,23 @@ export function AdminProductsClient() {
     null,
   );
 
-  function showMessage(type: MessageType, value: string) {
+  function showMessage(
+    type: MessageType,
+    value: string,
+    context: MessageContext = null,
+  ) {
     setMessageType(type);
     setMessage(value);
+    setMessageContext(context);
+  }
+
+  function clearFeedback() {
+    setMessage("");
+    setMessageContext(null);
+  }
+
+  function setLocalizedProductErrors(errors: FieldErrors) {
+    setProductErrors(getLocalizedFieldErrors(errors, labels));
   }
 
   function setEditProductForm(nextForm: SetStateAction<ProductForm>) {
@@ -1019,20 +1210,14 @@ export function AdminProductsClient() {
       ])) as [ProductsResponse, CategoriesResponse];
 
       if (!productsResponse.ok) {
-        showMessage(
-          "error",
-          productsData.message ?? labels.failedToLoadProducts,
-        );
+        showMessage("error", labels.failedToLoadProducts);
         setProducts([]);
         setProductPagination(defaultPagination);
         return;
       }
 
       if (!categoriesResponse.ok) {
-        showMessage(
-          "error",
-          categoriesData.message ?? labels.failedToLoadCategories,
-        );
+        showMessage("error", labels.failedToLoadCategories);
         setCategories([]);
         return;
       }
@@ -1148,7 +1333,7 @@ export function AdminProductsClient() {
 
   async function uploadImage(file: File, target: "create" | "edit") {
     setProductErrors({});
-    setMessage("");
+    clearFeedback();
 
     if (file.size > MAX_PRODUCT_IMAGE_SIZE_BYTES) {
       const message = labels.imageTooLarge.replace(
@@ -1157,7 +1342,7 @@ export function AdminProductsClient() {
       );
 
       setProductErrors({ images: [message] });
-      showMessage("error", message);
+      showMessage("error", message, target);
       return;
     }
 
@@ -1175,8 +1360,12 @@ export function AdminProductsClient() {
       const data = (await response.json()) as UploadResponse;
 
       if (!response.ok || !data.image) {
-        setProductErrors(data.errors ?? {});
-        showMessage("error", data.message ?? labels.failedToUploadImage);
+        setLocalizedProductErrors(
+          data.errors && Object.keys(data.errors).length > 0
+            ? data.errors
+            : { images: [labels.invalidImage] },
+        );
+        showMessage("error", labels.failedToUploadImage, target);
         return;
       }
 
@@ -1198,9 +1387,9 @@ export function AdminProductsClient() {
         );
       }
 
-      showMessage("success", data.message ?? labels.imageUploaded);
+      showMessage("success", labels.imageUploaded, target);
     } catch {
-      showMessage("error", labels.failedToConnect);
+      showMessage("error", labels.failedToConnect, target);
     } finally {
       setUploadingMode(null);
     }
@@ -1211,7 +1400,7 @@ export function AdminProductsClient() {
 
     setIsSavingProduct(true);
     setProductErrors({});
-    setMessage("");
+    clearFeedback();
 
     try {
       const response = await fetch("/api/admin/products", {
@@ -1225,18 +1414,18 @@ export function AdminProductsClient() {
       const data = (await response.json()) as ProductsResponse;
 
       if (!response.ok) {
-        setProductErrors(data.errors ?? {});
-        showMessage("error", data.message ?? labels.failedToCreateProduct);
+        setLocalizedProductErrors(data.errors ?? {});
+        showMessage("error", labels.failedToCreateProduct, "create");
         return;
       }
 
       setCreateForm(getEmptyProductForm());
       setCreateImageUrl("");
       setIsCreateFormOpen(false);
-      showMessage("success", data.message ?? labels.productCreated);
+      showMessage("success", labels.productCreated, "create");
       await loadAdminData(productPage, productFilters);
     } catch {
-      showMessage("error", labels.failedToConnect);
+      showMessage("error", labels.failedToConnect, "create");
     } finally {
       setIsSavingProduct(false);
     }
@@ -1244,7 +1433,7 @@ export function AdminProductsClient() {
 
   function startEditingProduct(product: AdminProduct) {
     setProductErrors({});
-    setMessage("");
+    clearFeedback();
     setEditProductId(product.id);
     setPendingEditScrollId(product.id);
     setEditImageUrl("");
@@ -1280,7 +1469,7 @@ export function AdminProductsClient() {
 
     setIsSavingProduct(true);
     setProductErrors({});
-    setMessage("");
+    clearFeedback();
 
     try {
       const response = await fetch(`/api/admin/products/${editProductId}`, {
@@ -1294,16 +1483,16 @@ export function AdminProductsClient() {
       const data = (await response.json()) as ProductsResponse;
 
       if (!response.ok) {
-        setProductErrors(data.errors ?? {});
-        showMessage("error", data.message ?? labels.failedToUpdateProduct);
+        setLocalizedProductErrors(data.errors ?? {});
+        showMessage("error", labels.failedToUpdateProduct, "edit");
         return;
       }
 
-      showMessage("success", data.message ?? labels.productUpdated);
+      showMessage("success", labels.productUpdated, "edit");
       cancelEditingProduct();
       await loadAdminData(productPage, productFilters);
     } catch {
-      showMessage("error", labels.failedToConnect);
+      showMessage("error", labels.failedToConnect, "edit");
     } finally {
       setIsSavingProduct(false);
     }
@@ -1311,21 +1500,21 @@ export function AdminProductsClient() {
 
   async function archiveProduct(productId: string) {
     setUpdatingProductId(productId);
-    setMessage("");
+    clearFeedback();
 
     try {
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: "DELETE",
       });
 
-      const data = (await response.json()) as ProductsResponse;
+      await response.json().catch(() => null);
 
       if (!response.ok) {
-        showMessage("error", data.message ?? labels.failedToArchiveProduct);
+        showMessage("error", labels.failedToArchiveProduct);
         return;
       }
 
-      showMessage("success", data.message ?? labels.productArchived);
+      showMessage("success", labels.productArchived);
       await loadAdminData(productPage, productFilters);
     } catch {
       showMessage("error", labels.failedToConnect);
@@ -1336,21 +1525,21 @@ export function AdminProductsClient() {
 
   async function restoreProduct(productId: string) {
     setUpdatingProductId(productId);
-    setMessage("");
+    clearFeedback();
 
     try {
       const response = await fetch(`/api/admin/products/${productId}/restore`, {
         method: "POST",
       });
 
-      const data = (await response.json()) as ProductsResponse;
+      await response.json().catch(() => null);
 
       if (!response.ok) {
-        showMessage("error", data.message ?? labels.failedToRestoreProduct);
+        showMessage("error", labels.failedToRestoreProduct);
         return;
       }
 
-      showMessage("success", data.message ?? labels.productRestored);
+      showMessage("success", labels.productRestored);
       await loadAdminData(productPage, productFilters);
     } catch {
       showMessage("error", labels.failedToConnect);
@@ -1389,11 +1578,11 @@ export function AdminProductsClient() {
 
   async function createVariant(productId: string) {
     const draft = variantDrafts[productId] ?? getEmptyVariantForm();
-    const variantKey = `new:${productId}`;
+    const variantKey: MessageContext = `new:${productId}`;
 
     setUpdatingVariantKey(variantKey);
     setProductErrors({});
-    setMessage("");
+    clearFeedback();
 
     try {
       const response = await fetch(
@@ -1410,22 +1599,19 @@ export function AdminProductsClient() {
       const data = (await response.json()) as VariantResponse;
 
       if (!response.ok) {
-        setProductErrors(data.errors ?? {});
-        showMessage(
-          "error",
-          toOptionMessage(data.message, labels.failedToCreateOption),
-        );
+        setLocalizedProductErrors(data.errors ?? {});
+        showMessage("error", labels.failedToCreateOption, variantKey);
         return;
       }
 
-      showMessage("success", toOptionMessage(data.message, labels.optionCreated));
+      showMessage("success", labels.optionCreated, variantKey);
       setVariantDrafts((current) => ({
         ...current,
         [productId]: getEmptyVariantForm(),
       }));
       await loadAdminData(productPage, productFilters);
     } catch {
-      showMessage("error", labels.failedToConnect);
+      showMessage("error", labels.failedToConnect, variantKey);
     } finally {
       setUpdatingVariantKey(null);
     }
@@ -1438,11 +1624,11 @@ export function AdminProductsClient() {
       return;
     }
 
-    const variantKey = `update:${variantId}`;
+    const variantKey: MessageContext = `update:${variantId}`;
 
     setUpdatingVariantKey(variantKey);
     setProductErrors({});
-    setMessage("");
+    clearFeedback();
 
     try {
       const response = await fetch(
@@ -1459,29 +1645,26 @@ export function AdminProductsClient() {
       const data = (await response.json()) as VariantResponse;
 
       if (!response.ok) {
-        setProductErrors(data.errors ?? {});
-        showMessage(
-          "error",
-          toOptionMessage(data.message, labels.failedToUpdateOption),
-        );
+        setLocalizedProductErrors(data.errors ?? {});
+        showMessage("error", labels.failedToUpdateOption, variantKey);
         return;
       }
 
-      showMessage("success", toOptionMessage(data.message, labels.optionUpdated));
+      showMessage("success", labels.optionUpdated, variantKey);
       await loadAdminData(productPage, productFilters);
     } catch {
-      showMessage("error", labels.failedToConnect);
+      showMessage("error", labels.failedToConnect, variantKey);
     } finally {
       setUpdatingVariantKey(null);
     }
   }
 
   async function deactivateVariant(productId: string, variantId: string) {
-    const variantKey = `delete:${variantId}`;
+    const variantKey: MessageContext = `delete:${variantId}`;
 
     setUpdatingVariantKey(variantKey);
     setProductErrors({});
-    setMessage("");
+    clearFeedback();
 
     try {
       const response = await fetch(
@@ -1491,20 +1674,17 @@ export function AdminProductsClient() {
         },
       );
 
-      const data = (await response.json()) as VariantResponse;
+      await response.json().catch(() => null);
 
       if (!response.ok) {
-        showMessage(
-          "error",
-          toOptionMessage(data.message, labels.failedToDeactivateOption),
-        );
+        showMessage("error", labels.failedToDeactivateOption, variantKey);
         return;
       }
 
-      showMessage("success", toOptionMessage(data.message, labels.optionDeactivated));
+      showMessage("success", labels.optionDeactivated, variantKey);
       await loadAdminData(productPage, productFilters);
     } catch {
-      showMessage("error", labels.failedToConnect);
+      showMessage("error", labels.failedToConnect, variantKey);
     } finally {
       setUpdatingVariantKey(null);
     }
@@ -1662,6 +1842,12 @@ export function AdminProductsClient() {
               {labels.createProductDescription}
             </p>
 
+            {messageContext === "create" && message && (
+              <div className="mt-5">
+                <InlineFeedback message={message} type={messageType} />
+              </div>
+            )}
+
             <div className="mt-6">
               <ProductFormFields
                 form={createForm}
@@ -1681,7 +1867,7 @@ export function AdminProductsClient() {
             <button
               type="submit"
               disabled={isSavingProduct}
-              className="mt-6 w-full rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="workspace-primary-action mt-6 w-full rounded-full px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSavingProduct ? labels.creating : labels.createProductButton}
             </button>
@@ -1689,78 +1875,87 @@ export function AdminProductsClient() {
         )}
 
         {editForm && editProductId && (
-            <form
-              ref={editFormRef}
-              onSubmit={handleUpdateProduct}
-              className="scroll-mt-24 rounded-3xl border border-orange-200 bg-orange-50 p-5 shadow-sm sm:p-6 dark:border-orange-900 dark:bg-orange-950"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-xl font-black text-zinc-950 dark:text-white">
-                    {labels.editProduct}
-                  </h2>
+          <form
+            ref={editFormRef}
+            onSubmit={handleUpdateProduct}
+            className="scroll-mt-24 rounded-3xl border border-orange-200 bg-orange-50 p-5 shadow-sm sm:p-6 dark:border-orange-900 dark:bg-orange-950"
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-xl font-black text-zinc-950 dark:text-white">
+                  {labels.editProduct}
+                </h2>
 
-                  <p className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
-                    {labels.editProductDescription}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={cancelEditingProduct}
-                  className="w-fit rounded-full border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:bg-white dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
-                >
-                  {labels.cancel}
-                </button>
+                <p className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+                  {labels.editProductDescription}
+                </p>
               </div>
-
-              <div className="mt-6">
-                <ProductFormFields
-                  form={editForm}
-                  setForm={setEditProductForm}
-                  categories={categories}
-                  errors={productErrors}
-                  imageUrl={editImageUrl}
-                  setImageUrl={setEditImageUrl}
-                  onAddImageUrl={addEditImageUrl}
-                  onRemoveImage={removeEditImage}
-                  onUpload={(file) => void uploadImage(file, "edit")}
-                  isUploading={uploadingMode === "edit"}
-                  labels={labels}
-                />
-              </div>
-
-              {selectedEditProduct && (
-                <VariantManagementSection
-                  product={selectedEditProduct}
-                  labels={labels}
-                  variantDraft={
-                    variantDrafts[selectedEditProduct.id] ??
-                    getEmptyVariantForm()
-                  }
-                  variantEditDrafts={variantEditDrafts}
-                  updatingVariantKey={updatingVariantKey}
-                  onUpdateVariantDraft={updateVariantDraft}
-                  onUpdateVariantEditDraft={updateVariantEditDraft}
-                  onCreateVariant={(productId) => void createVariant(productId)}
-                  onUpdateVariant={(productId, variantId) =>
-                    void updateVariant(productId, variantId)
-                  }
-                  onDeactivateVariant={(productId, variantId) =>
-                    void deactivateVariant(productId, variantId)
-                  }
-                />
-              )}
 
               <button
-                type="submit"
-                disabled={isSavingProduct}
-                className="mt-6 w-full rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                type="button"
+                onClick={cancelEditingProduct}
+                className="w-fit rounded-full border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:bg-white dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
               >
-                {isSavingProduct ? labels.saving : labels.saveProduct}
+                {labels.cancel}
               </button>
-            </form>
-          )}
+            </div>
+
+            {messageContext === "edit" && message && (
+              <div className="mt-5">
+                <InlineFeedback message={message} type={messageType} />
+              </div>
+            )}
+
+            <div className="mt-6">
+              <ProductFormFields
+                form={editForm}
+                setForm={setEditProductForm}
+                categories={categories}
+                errors={productErrors}
+                imageUrl={editImageUrl}
+                setImageUrl={setEditImageUrl}
+                onAddImageUrl={addEditImageUrl}
+                onRemoveImage={removeEditImage}
+                onUpload={(file) => void uploadImage(file, "edit")}
+                isUploading={uploadingMode === "edit"}
+                labels={labels}
+              />
+            </div>
+
+            {selectedEditProduct && (
+              <VariantManagementSection
+                product={selectedEditProduct}
+                labels={labels}
+                variantDraft={
+                  variantDrafts[selectedEditProduct.id] ?? getEmptyVariantForm()
+                }
+                variantEditDrafts={variantEditDrafts}
+                updatingVariantKey={updatingVariantKey}
+                errors={productErrors}
+                message={message}
+                messageType={messageType}
+                messageContext={messageContext}
+                onUpdateVariantDraft={updateVariantDraft}
+                onUpdateVariantEditDraft={updateVariantEditDraft}
+                onCreateVariant={(productId) => void createVariant(productId)}
+                onUpdateVariant={(productId, variantId) =>
+                  void updateVariant(productId, variantId)
+                }
+                onDeactivateVariant={(productId, variantId) =>
+                  void deactivateVariant(productId, variantId)
+                }
+              />
+            )}
+
+            <button
+              type="submit"
+              disabled={isSavingProduct}
+              className="workspace-primary-action mt-6 w-full rounded-full px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSavingProduct ? labels.saving : labels.saveProduct}
+            </button>
+          </form>
+        )}
       </div>
 
       <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">

@@ -611,6 +611,18 @@ export type TranslationDictionary = {
       addUrl: string;
       imageHelp: string;
       imageTooLarge: string;
+      checkHighlightedFields: string;
+      invalidProductName: string;
+      invalidProductSlug: string;
+      productSlugAlreadyUsed: string;
+      invalidDescription: string;
+      invalidPrice: string;
+      invalidDiscountPrice: string;
+      invalidCategory: string;
+      invalidImage: string;
+      invalidOptionSizeOrColor: string;
+      invalidOptionStock: string;
+      invalidOptionSortOrder: string;
       productPreview: string;
       remove: string;
       createProductButton: string;
@@ -1353,6 +1365,20 @@ export const translations: Record<Language, TranslationDictionary> = {
           "JPG, PNG, or WEBP. Max 10MB. Uploaded images are optimized by Cloudinary after upload.",
         imageTooLarge:
           "Image is too large. Please upload a JPG, PNG, or WEBP image up to {size}MB.",
+        checkHighlightedFields: "Please check the highlighted fields.",
+        invalidProductName: "Enter a product name.",
+        invalidProductSlug:
+          "Use lowercase letters, numbers, and hyphens only. Example: classic-shirt.",
+        productSlugAlreadyUsed: "This product slug is already used.",
+        invalidDescription: "Description is too long.",
+        invalidPrice: "Enter a valid price.",
+        invalidDiscountPrice:
+          "Discount price must be lower than the regular price.",
+        invalidCategory: "Select a category.",
+        invalidImage: "Upload a valid JPG, PNG, or WEBP image up to 10MB.",
+        invalidOptionSizeOrColor: "Enter at least a size or color.",
+        invalidOptionStock: "Enter a valid whole stock number.",
+        invalidOptionSortOrder: "Enter a valid whole sort order.",
         productPreview: "Product preview",
         remove: "Remove",
         createProductButton: "Create product",
@@ -2087,6 +2113,19 @@ export const translations: Record<Language, TranslationDictionary> = {
           "JPG أو PNG أو WEBP. الحد الأقصى 10MB. يتم تحسين الصور عبر Cloudinary بعد الرفع.",
         imageTooLarge:
           "الصورة كبيرة جداً. يرجى رفع صورة JPG أو PNG أو WEBP بحجم لا يتجاوز {size}MB.",
+        checkHighlightedFields: "راجع الحقول المحددة.",
+        invalidProductName: "أدخل اسم المنتج.",
+        invalidProductSlug:
+          "استخدم أحرفاً إنجليزية صغيرة وأرقاماً وشرطات فقط. مثال: classic-shirt.",
+        productSlugAlreadyUsed: "رابط هذا المنتج مستخدم بالفعل.",
+        invalidDescription: "الوصف طويل جداً.",
+        invalidPrice: "أدخل سعراً صحيحاً.",
+        invalidDiscountPrice: "يجب أن يكون سعر الخصم أقل من السعر الأساسي.",
+        invalidCategory: "اختر تصنيفاً.",
+        invalidImage: "ارفع صورة JPG أو PNG أو WEBP صالحة بحجم لا يزيد عن 10MB.",
+        invalidOptionSizeOrColor: "أدخل المقاس أو اللون على الأقل.",
+        invalidOptionStock: "أدخل رقم مخزون صحيحاً بدون كسور.",
+        invalidOptionSortOrder: "أدخل رقم ترتيب صحيحاً بدون كسور.",
         productPreview: "معاينة المنتج",
         remove: "حذف",
         createProductButton: "إنشاء المنتج",
