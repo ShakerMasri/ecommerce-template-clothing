@@ -134,6 +134,9 @@ type VariantResponse = {
 
 type MessageType = "success" | "error";
 
+const MAX_PRODUCT_IMAGE_SIZE_MB = 10;
+const MAX_PRODUCT_IMAGE_SIZE_BYTES = MAX_PRODUCT_IMAGE_SIZE_MB * 1024 * 1024;
+
 const defaultProductFilters: ProductFilters = {
   q: "",
   categoryId: "",
@@ -304,6 +307,7 @@ type ProductFormLabels = {
   imageUrlPlaceholder: string;
   addUrl: string;
   imageHelp: string;
+  imageTooLarge: string;
   productPreview: string;
   remove: string;
 };
@@ -1143,9 +1147,21 @@ export function AdminProductsClient() {
   }
 
   async function uploadImage(file: File, target: "create" | "edit") {
-    setUploadingMode(target);
     setProductErrors({});
     setMessage("");
+
+    if (file.size > MAX_PRODUCT_IMAGE_SIZE_BYTES) {
+      const message = labels.imageTooLarge.replace(
+        "{size}",
+        String(MAX_PRODUCT_IMAGE_SIZE_MB),
+      );
+
+      setProductErrors({ images: [message] });
+      showMessage("error", message);
+      return;
+    }
+
+    setUploadingMode(target);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -1619,7 +1635,7 @@ export function AdminProductsClient() {
             <button
               type="button"
               onClick={() => setIsCreateFormOpen((current) => !current)}
-              className="rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="workspace-primary-action rounded-full px-5 py-2.5 text-sm font-semibold transition"
             >
               {isCreateFormOpen ? labels.hideCreateProduct : labels.addProduct}
             </button>

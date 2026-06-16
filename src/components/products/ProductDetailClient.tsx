@@ -294,11 +294,11 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
               </div>
 
               {isOutOfStock ? (
-                <span className="rounded-full bg-[var(--danger-soft)] px-3 py-1 text-sm font-semibold text-[var(--danger-ink)]">
+                <span className="rounded-full border border-[var(--danger-line)] bg-[var(--danger-soft)] px-3 py-1 text-sm font-semibold text-[var(--danger-ink)]">
                   {t.products.outOfStock}
                 </span>
               ) : (
-                <span className="rounded-full bg-[var(--success-soft)] px-3 py-1 text-sm font-semibold text-[var(--success-ink)]">
+                <span className="rounded-full border border-[var(--success-line)] bg-[var(--success-soft)] px-3 py-1 text-sm font-semibold text-[var(--success-ink)]">
                   {product.showStock &&
                   (selectedVariant ? selectedStock : product.stock) !== null
                     ? `${selectedVariant ? selectedStock : product.stock} ${t.products.left}`
@@ -364,8 +364,8 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                           <span
                             className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${
                               isVariantOutOfStock
-                                ? "bg-[var(--danger-soft)] text-[var(--danger-ink)]"
-                                : "bg-[var(--success-soft)] text-[var(--success-ink)]"
+                                ? "border border-[var(--danger-line)] bg-[var(--danger-soft)] text-[var(--danger-ink)]"
+                                : "border border-[var(--success-line)] bg-[var(--success-soft)] text-[var(--success-ink)]"
                             }`}
                           >
                             {isVariantOutOfStock

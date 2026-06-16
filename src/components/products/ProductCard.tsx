@@ -27,11 +27,12 @@ type ProductCardProps = {
     out: string;
     left: string;
     inStock: string;
+    optionsAvailable: string;
   };
 };
 
 function formatPrice(price: string) {
-  return `₪${Number(price).toFixed(2)}`;
+  return `₪${Number(price)}`;
 }
 
 function getDisplayPrice(product: ProductCardProps["product"]) {
@@ -70,7 +71,7 @@ export function ProductCard({ product, labels }: ProductCardProps) {
 
           <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
             {product.isFeatured ? (
-              <span className="rounded-full bg-[var(--surface-card)]/92 px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[var(--accent-strong)] shadow-sm backdrop-blur">
+              <span className="rounded-full bg-[var(--surface-card)]/92 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.16em] text-[var(--accent-strong)] uppercase shadow-sm backdrop-blur">
                 {labels.featured}
               </span>
             ) : (
@@ -78,7 +79,7 @@ export function ProductCard({ product, labels }: ProductCardProps) {
             )}
 
             {isOutOfStock ? (
-              <span className="rounded-full bg-[var(--danger-soft)] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[var(--danger-ink)] shadow-sm">
+              <span className="rounded-full bg-[var(--danger-soft)] px-3 py-1 text-[0.68rem] font-semibold tracking-[0.16em] text-[var(--danger-ink)] uppercase shadow-sm">
                 {labels.soldOut}
               </span>
             ) : null}
@@ -87,21 +88,21 @@ export function ProductCard({ product, labels }: ProductCardProps) {
 
         <div className="flex flex-1 flex-col gap-3 p-3 sm:p-5">
           <div className="space-y-2">
-            <p className="truncate text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[var(--accent)] sm:text-[0.68rem]">
+            <p className="truncate text-[0.65rem] font-semibold tracking-[0.18em] text-[var(--accent)] uppercase sm:text-[0.68rem]">
               {product.category.name}
             </p>
 
-            <h3 className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-[var(--ink)] transition group-hover:text-[var(--accent-strong)] sm:min-h-12 sm:text-base sm:leading-6">
+            <h3 className="line-clamp-2 min-h-10 text-sm leading-5 font-semibold text-[var(--ink)] transition group-hover:text-[var(--accent-strong)] sm:min-h-12 sm:text-base sm:leading-6">
               {product.name}
             </h3>
           </div>
 
-          <div>
+          <div className="flex flex-wrap gap-2">
             <span
-              className={`inline-flex rounded-full px-2.5 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] sm:px-3 sm:text-[0.68rem] ${
+              className={`inline-flex rounded-full px-2.5 py-1 text-[0.64rem] font-semibold tracking-[0.12em] uppercase sm:px-3 sm:text-[0.68rem] ${
                 isOutOfStock
-                  ? "bg-[var(--danger-soft)] text-[var(--danger-ink)]"
-                  : "bg-[var(--success-soft)] text-[var(--success-ink)]"
+                  ? "border border-[var(--danger-line)] bg-[var(--danger-soft)] text-[var(--danger-ink)]"
+                  : "border border-[var(--success-line)] bg-[var(--success-soft)] text-[var(--success-ink)]"
               }`}
             >
               {isOutOfStock
@@ -110,6 +111,12 @@ export function ProductCard({ product, labels }: ProductCardProps) {
                   ? `${product.stock} ${labels.left}`
                   : labels.inStock}
             </span>
+
+            {product.hasVariants && !isOutOfStock ? (
+              <span className="inline-flex rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-[0.64rem] font-semibold tracking-[0.12em] text-[var(--accent-strong)] uppercase sm:px-3 sm:text-[0.68rem]">
+                {labels.optionsAvailable}
+              </span>
+            ) : null}
           </div>
 
           <div className="mt-auto min-h-[3.25rem] border-t border-[var(--line-soft)] pt-3">

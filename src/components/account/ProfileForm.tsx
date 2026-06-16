@@ -260,7 +260,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                className="workspace-primary-action rounded-full px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSaving ? t.profile.saving : t.profile.saveProfile}
               </button>

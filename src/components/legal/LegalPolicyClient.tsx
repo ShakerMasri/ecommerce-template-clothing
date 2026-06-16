@@ -23,7 +23,7 @@ export function LegalPolicyClient({ pageKey }: LegalPolicyClientProps) {
     >
       {page.sections.map((section) => (
         <section key={section.title}>
-          <h2 className="text-xl font-black text-zinc-950 dark:text-white">
+          <h2 className="text-xl font-bold text-[var(--ink)]">
             {section.title}
           </h2>
 
@@ -46,7 +46,7 @@ export function LegalPolicyClient({ pageKey }: LegalPolicyClientProps) {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
+                    className="font-semibold text-[var(--accent-strong)] underline-offset-4 hover:underline"
                   >
                     {link.label}
                   </Link>
@@ -59,31 +59,31 @@ export function LegalPolicyClient({ pageKey }: LegalPolicyClientProps) {
 
       {pageKey === "contact" ? (
         <section>
-          <h2 className="text-xl font-black text-zinc-950 dark:text-white">
+          <h2 className="text-xl font-bold text-[var(--ink)]">
             {t.legal.common.usefulLinks}
           </h2>
 
           <div className="mt-3 flex flex-wrap gap-3">
             <Link
-              className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400"
+              className="font-semibold text-[var(--accent-strong)] underline-offset-4 hover:underline"
               href="/terms"
             >
               {t.legal.common.footerLinks.terms}
             </Link>
             <Link
-              className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400"
+              className="font-semibold text-[var(--accent-strong)] underline-offset-4 hover:underline"
               href="/privacy"
             >
               {t.legal.common.footerLinks.privacy}
             </Link>
             <Link
-              className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400"
+              className="font-semibold text-[var(--accent-strong)] underline-offset-4 hover:underline"
               href="/shipping"
             >
               {t.legal.common.footerLinks.shipping}
             </Link>
             <Link
-              className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400"
+              className="font-semibold text-[var(--accent-strong)] underline-offset-4 hover:underline"
               href="/returns"
             >
               {t.legal.common.footerLinks.returns}

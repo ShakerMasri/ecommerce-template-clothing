@@ -96,6 +96,7 @@ export type TranslationDictionary = {
     left: string;
     inStock: string;
     options: string;
+    optionsAvailable: string;
     size: string;
     color: string;
     option: string;
@@ -609,6 +610,7 @@ export type TranslationDictionary = {
       imageUrlPlaceholder: string;
       addUrl: string;
       imageHelp: string;
+      imageTooLarge: string;
       productPreview: string;
       remove: string;
       createProductButton: string;
@@ -795,6 +797,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       left: "left",
       inStock: "Available",
       options: "Options",
+      optionsAvailable: "Options available",
       size: "Size",
       color: "Color",
       option: "Option",
@@ -1347,7 +1350,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         imageUrlPlaceholder: "https://...",
         addUrl: "Add URL",
         imageHelp:
-          "JPG, PNG, or WEBP. Max 2MB. Uploaded images are sent to your protected admin upload route.",
+          "JPG, PNG, or WEBP. Max 10MB. Uploaded images are optimized by Cloudinary after upload.",
+        imageTooLarge:
+          "Image is too large. Please upload a JPG, PNG, or WEBP image up to {size}MB.",
         productPreview: "Product preview",
         remove: "Remove",
         createProductButton: "Create product",
@@ -1532,6 +1537,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       left: "متبقي",
       inStock: "متوفر",
       options: "الخيارات",
+      optionsAvailable: "خيارات متوفرة",
       size: "المقاس",
       color: "اللون",
       option: "خيار",
@@ -2078,7 +2084,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         imageUrlPlaceholder: "https://...",
         addUrl: "إضافة رابط",
         imageHelp:
-          "JPG أو PNG أو WEBP. الحد الأقصى 2MB. يتم رفع الصور من خلال مسار رفع محمي للإدارة.",
+          "JPG أو PNG أو WEBP. الحد الأقصى 10MB. يتم تحسين الصور عبر Cloudinary بعد الرفع.",
+        imageTooLarge:
+          "الصورة كبيرة جداً. يرجى رفع صورة JPG أو PNG أو WEBP بحجم لا يتجاوز {size}MB.",
         productPreview: "معاينة المنتج",
         remove: "حذف",
         createProductButton: "إنشاء المنتج",
