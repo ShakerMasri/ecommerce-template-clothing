@@ -147,7 +147,7 @@ export function Footer() {
 
       <div className="border-t border-[var(--footer-line)]">
         <nav
-          aria-label="Legal links"
+          aria-label={t.footer.legalLinksLabel}
           className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-3 px-4 py-5 text-xs font-semibold tracking-[0.18em] text-[var(--footer-muted)] uppercase sm:px-6 lg:px-8"
         >
           {legalLinks.map((link) => (

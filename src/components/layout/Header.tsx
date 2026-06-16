@@ -105,7 +105,7 @@ export function Header() {
             type="button"
             onClick={toggleLanguage}
             className="min-h-10 rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]"
-            aria-label="Toggle language"
+            aria-label={t.actions.toggleLanguage}
           >
             {language === "en"
               ? t.actions.switchToArabic
@@ -127,7 +127,7 @@ export function Header() {
       </div>
 
       <nav
-        aria-label="Mobile navigation"
+        aria-label={t.nav.mobileNavigation}
         className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold sm:px-6 md:hidden"
       >
         {navLinks.map((link) => {
