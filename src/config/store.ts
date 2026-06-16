@@ -11,7 +11,7 @@ export const storeConfig = {
   name: "Clothing Store Template",
   shortName: "Clothing Store",
   description:
-    "A reusable clothing ecommerce storefront for everyday pieces, size and color options, and cash-on-delivery ordering.",
+    "A clothing ecommerce storefront for everyday pieces, size and color options, and cash-on-delivery ordering.",
   metadata: {
     title: "Clothing Store Template",
     description:

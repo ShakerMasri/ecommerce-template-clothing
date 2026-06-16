@@ -90,9 +90,7 @@ export function AccountClient({ user }: AccountClientProps) {
       });
 
       if (error) {
-        setVerificationMessage(
-          error.message ?? t.account.failedToSendVerificationEmail,
-        );
+        setVerificationMessage(t.account.failedToSendVerificationEmail);
         return;
       }
 

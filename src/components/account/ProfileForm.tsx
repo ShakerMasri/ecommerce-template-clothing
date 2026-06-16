@@ -91,8 +91,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
       if (!response.ok) {
         const nextFieldErrors: ProfileFieldErrors = {
-          name: data.errors?.name?.[0],
-          phone: data.errors?.phone?.[0],
+          name: data.errors?.name?.length
+            ? t.profile.nameInvalid
+            : undefined,
+          phone: data.errors?.phone?.length
+            ? t.profile.phoneInvalid
+            : undefined,
         };
         const hasFieldErrors = Boolean(
           nextFieldErrors.name ?? nextFieldErrors.phone,
@@ -103,13 +107,13 @@ export function ProfileForm({ user }: ProfileFormProps) {
         setMessage(
           hasFieldErrors
             ? t.profile.fixHighlightedFields
-            : (data.message ?? t.profile.failedToUpdate),
+            : t.profile.failedToUpdate,
         );
         return;
       }
 
       setStatus("success");
-      setMessage(data.message ?? t.profile.updatedSuccessfully);
+      setMessage(t.profile.updatedSuccessfully);
       router.refresh();
     } catch {
       setStatus("error");

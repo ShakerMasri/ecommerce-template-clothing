@@ -195,7 +195,7 @@ export function OrdersClient() {
           setIsAuthRequired(true);
         }
 
-        setMessage(data.message ?? t.orders.failedToLoad);
+        setMessage(t.orders.failedToLoad);
         return;
       }
 

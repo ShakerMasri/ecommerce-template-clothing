@@ -91,7 +91,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
 
         if (!response.ok || !data.product) {
           setProduct(null);
-          setMessage(data.message ?? t.products.productNotFound);
+          setMessage(t.products.productNotFound);
           return;
         }
 

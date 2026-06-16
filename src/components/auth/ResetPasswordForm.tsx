@@ -72,7 +72,7 @@ export function ResetPasswordForm() {
 
     if (error) {
       setStatus("error");
-      setMessage(error.message ?? t.auth.resetPasswordFailed);
+      setMessage(t.auth.resetPasswordFailed);
       return;
     }
 

@@ -71,7 +71,7 @@ function getFriendlyRegisterError(
   return {
     message: hasFieldError
       ? t.auth.fixHighlightedFields
-      : (rawMessage ?? t.auth.failedToRegister),
+      : t.auth.failedToRegister,
     fieldErrors,
   };
 }
@@ -153,7 +153,7 @@ export function RegisterForm({ googleSignInEnabled }: RegisterFormProps) {
 
     if (error) {
       setStatus("error");
-      setMessage(error.message ?? t.auth.googleSignInFailed);
+      setMessage(t.auth.googleSignInFailed);
     }
   }
 
