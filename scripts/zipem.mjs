@@ -8,24 +8,29 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  "src/app/api/orders/route.ts",
-  "src/app/api/orders/route.test.ts",
+  // Homepage and public storefront
+  "src/app/page.tsx",
+  "src/app/products/page.tsx",
+  "src/app/contact/page.tsx",
 
-  "src/server/email.ts",
-  "src/env.js",
+  // Customer-facing components
+  "src/components/products/ProductListingClient.tsx",
+  "src/components/products/CategoryTabs.tsx",
+  "src/components/products/ProductCard.tsx",
+  "src/components/layout/Header.tsx",
+  "src/components/layout/Footer.tsx",
+  "src/components/layout/WhatsappSupportShortcut.tsx",
 
-  "src/config/contact.ts",
+  // Config and translations
   "src/config/store.ts",
-
-  "src/lib/logger.ts",
+  "src/config/contact.ts",
   "src/lib/translations.ts",
 
-  ".env.example",
+  // Tests and documentation
+  "tests/e2e/customer-pages.e2e.ts",
+  "tests/e2e/smoke.e2e.ts",
   "README.md",
-
-  "prisma/schema.prisma",
 ];
-
 function fail(message) {
   console.error(message);
   process.exit(1);

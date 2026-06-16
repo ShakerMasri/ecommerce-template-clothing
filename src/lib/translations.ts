@@ -34,10 +34,12 @@ export type TranslationDictionary = {
     cart: string;
     orders: string;
     account: string;
+    mobileNavigation: string;
   };
   actions: {
     switchToArabic: string;
     switchToEnglish: string;
+    toggleLanguage: string;
     lightMode: string;
     darkMode: string;
     browseProducts: string;
@@ -54,6 +56,7 @@ export type TranslationDictionary = {
     email: string;
     socialLinks: string;
     openSocialLink: string;
+    legalLinksLabel: string;
     locationNote: string;
     onlineStoreCtaTitle: string;
     onlineStoreCtaDescription: string;
@@ -724,10 +727,12 @@ export const translations: Record<Language, TranslationDictionary> = {
       cart: "Cart",
       orders: "Orders",
       account: "Account",
+      mobileNavigation: "Mobile navigation",
     },
     actions: {
       switchToArabic: "عربي",
       switchToEnglish: "EN",
+      toggleLanguage: "Switch language",
       lightMode: "Light",
       darkMode: "Dark",
       browseProducts: "Browse products",
@@ -737,88 +742,84 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     footer: {
       rights: "All rights reserved.",
-      description:
-        "Premium, simple clothing shopping with cash on delivery and secure server-side order handling.",
-      contactTitle: "Contact",
+      description: "Everyday clothing, easy ordering, and cash on delivery.",
+      contactTitle: "Contact us",
       whatsapp: "WhatsApp",
       phone: "Phone",
       email: "Email",
       socialLinks: "Social and location links",
       openSocialLink: "Open contact link:",
+      legalLinksLabel: "Store policies and contact links",
       locationNote:
-        "Use the location icon for the store or pickup point. Delivery and pickup details are confirmed by WhatsApp or phone before completing the order.",
-      onlineStoreCtaTitle: "Want your own online store?",
+        "Use the location icon to find the store or pickup point. Contact us on WhatsApp or by phone to confirm delivery or pickup details.",
+      onlineStoreCtaTitle: "Want an online store for your business?",
       onlineStoreCtaDescription:
-        "Launch a secure, mobile-friendly storefront with products, size and color options, cart, and cash-on-delivery ordering.",
-      onlineStoreCtaAction: "Discuss your store on WhatsApp",
+        "Show your products, offer size and color options, and let customers order easily with cash on delivery.",
+      onlineStoreCtaAction: "Chat with us on WhatsApp",
     },
     whatsappShortcut: {
       label: "Need help?",
-      title: "Ask the store on WhatsApp",
+      title: "Chat with us on WhatsApp",
       ariaLabel:
-        "Open WhatsApp to ask the store for help with products, login, or ordering",
-      defaultMessage: `Hello, I need help ordering from ${englishStoreName}.`,
+        "Open WhatsApp to ask about products, login, or placing an order",
+      defaultMessage: `Hi, I need help with a product or order from ${englishStoreName}.`,
     },
     home: {
-      badge: "New season essentials",
+      badge: "New arrivals",
       titleStart: "Everyday pieces",
       titleBrand: "styled simply",
       description:
-        "A clean clothing storefront for daily outfits. Browse by category, choose size and color, and place a cash-on-delivery order from any device.",
-      flowTitle: "How shopping works",
+        "Browse the collection, choose the size and color that work for you, and order easily with cash on delivery.",
+      flowTitle: "How to order",
       highlights: [
         {
-          title: "Browse pieces",
-          description:
-            "Explore clothing pieces with clear pricing, availability, and product photos.",
+          title: "Browse the collection",
+          description: "See available pieces, prices, photos, and options.",
         },
         {
-          title: "Choose size and color",
-          description:
-            "Select an available size and color before adding the piece to your cart.",
+          title: "Choose your options",
+          description: "Pick the available size and color that suit you.",
         },
         {
           title: "Review and order",
           description:
-            "Review delivery and totals before checkout, then track the order from your account.",
+            "Check your items and delivery details, then place your order.",
         },
       ],
       stats: [
         {
-          title: "Mobile-first",
-          description:
-            "Large tap targets, readable product cards, and a browsing flow designed first for phones.",
+          title: "Something for every day",
+          description: "Find pieces for work, outings, and special occasions.",
         },
         {
-          title: "Secure checkout",
-          description:
-            "Prices, stock, orders, and permissions stay validated by the server behind the UI.",
+          title: "Cash on delivery",
+          description: "Order online and pay when your order arrives.",
         },
         {
-          title: "Original UI",
+          title: "Need help?",
           description:
-            "Built with custom CSS and existing dependencies only: no copied templates, icon packs, or paid UI kits.",
+            "Message us on WhatsApp if you need help choosing or ordering.",
         },
       ],
     },
     products: {
-      badge: "Shop products",
-      title: "Clothing made easy to browse",
+      badge: "Our collection",
+      title: "Find the piece that suits you",
       description:
-        "Search by name, filter by category, and open each product to choose available size and color before adding it to your cart.",
-      searchLabel: "Search products",
+        "Search by name or category, then open a product to see available sizes and colors.",
+      searchLabel: "Search the collection",
       searchPlaceholder: "Search by name or category...",
       searchButton: "Search",
-      loadMore: "Load more",
+      loadMore: "Show more",
       loadingMore: "Loading...",
       allProducts: "All products",
       selectedCategory: "Selected category",
       showing: "Showing",
       productSingular: "product",
       productPlural: "products",
-      noProductsTitle: "No products found",
+      noProductsTitle: "No matching products",
       noProductsDescription:
-        "Try changing the category or searching with a different word.",
+        "Try another category or search with a different word.",
       failedToLoad: "Failed to load products.",
       failedToConnect: "Failed to connect to the server.",
       noImage: "Image coming soon",
@@ -1490,10 +1491,12 @@ export const translations: Record<Language, TranslationDictionary> = {
       cart: "السلة",
       orders: "طلباتي",
       account: "الحساب",
+      mobileNavigation: "التنقل على الجوال",
     },
     actions: {
       switchToArabic: "عربي",
       switchToEnglish: "EN",
+      toggleLanguage: "تغيير اللغة",
       lightMode: "فاتح",
       darkMode: "داكن",
       browseProducts: "تصفح المنتجات",
@@ -1503,89 +1506,84 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     footer: {
       rights: "جميع الحقوق محفوظة.",
-      description:
-        "تسوق ملابس بسيط وراقي مع الدفع عند الاستلام ومعالجة آمنة للطلبات من جهة الخادم.",
-      contactTitle: "التواصل",
+      description: "ملابس لكل يوم، طلب سهل، ودفع عند الاستلام.",
+      contactTitle: "تواصل معنا",
       whatsapp: "واتساب",
       phone: "الهاتف",
       email: "البريد الإلكتروني",
       socialLinks: "روابط التواصل والموقع",
       openSocialLink: "افتح رابط التواصل:",
+      legalLinksLabel: "سياسات المتجر وروابط التواصل",
       locationNote:
-        "استخدم أيقونة الموقع للوصول إلى موقع المتجر أو نقطة الاستلام. يتم تأكيد تفاصيل التوصيل أو الاستلام عبر واتساب أو الهاتف قبل إكمال الطلب.",
-      onlineStoreCtaTitle: "هل تريد متجرًا إلكترونيًا خاصًا؟",
+        "اضغط على أيقونة الموقع للوصول للمتجر أو نقطة الاستلام. تفاصيل التوصيل أو الاستلام بنأكدها معك على واتساب أو الهاتف.",
+      onlineStoreCtaTitle: "بدك متجر إلكتروني لمشروعك؟",
       onlineStoreCtaDescription:
-        "ابدأ بواجهة متجر آمنة ومتجاوبة مع الجوال، تشمل المنتجات وخيارات المقاس واللون والسلة والدفع عند الاستلام.",
-      onlineStoreCtaAction: "ناقش متجرك عبر واتساب",
+        "اعرض منتجاتك وخيارات المقاسات والألوان، وخلي الزبائن يطلبوا بسهولة مع الدفع عند الاستلام.",
+      onlineStoreCtaAction: "احكي معنا على واتساب",
     },
     whatsappShortcut: {
-      label: "تحتاج مساعدة؟",
-      title: "اسأل المتجر عبر واتساب",
+      label: "بدك مساعدة؟",
+      title: "احكي معنا على واتساب",
       ariaLabel:
-        "افتح واتساب لطلب المساعدة من المتجر بخصوص المنتجات أو تسجيل الدخول أو الطلب",
-      defaultMessage: `مرحباً، أحتاج مساعدة في الطلب من ${arabicStoreName}.`,
+        "افتح واتساب واسألنا عن المنتجات أو تسجيل الدخول أو طريقة الطلب",
+      defaultMessage: `مرحبا، بدي مساعدة بخصوص قطعة أو طلب من ${arabicStoreName}.`,
     },
     home: {
-      badge: "قطع يومية مختارة",
+      badge: "وصل حديثاً",
       titleStart: "إطلالات يومية",
       titleBrand: "مختارة بعناية",
       description:
-        "واجهة ملابس بسيطة وواضحة للقطع اليومية. تصفح حسب التصنيف، اختر المقاس واللون، ثم أنشئ طلب الدفع عند الاستلام من أي جهاز.",
-      flowTitle: "طريقة التسوق",
+        "تصفّح التشكيلة، اختار المقاس واللون المناسبين إلك، واطلب بسهولة مع الدفع عند الاستلام.",
+      flowTitle: "كيف تطلب",
       highlights: [
         {
-          title: "تصفح القطع",
-          description: "استكشف قطع الملابس مع صور وأسعار وتوفر واضح.",
+          title: "شوف التشكيلة",
+          description: "تصفّح القطع، الأسعار، الصور والخيارات المتوفرة.",
         },
         {
-          title: "اختر المقاس واللون",
-          description:
-            "اختر المقاس واللون المتوفرين قبل إضافة القطعة إلى السلة.",
+          title: "اختار المقاس واللون",
+          description: "حدّد المقاس واللون اللي بناسبك من الخيارات المتوفرة.",
         },
         {
           title: "راجع واطلب",
-          description:
-            "راجع التوصيل والمجموع النهائي قبل تأكيد الطلب، ثم تابعه من حسابك.",
+          description: "تأكد من القطع وتفاصيل التوصيل، وبعدها كمّل طلبك.",
         },
       ],
       stats: [
         {
-          title: "مصمم للجوال",
-          description:
-            "أزرار واضحة، بطاقات منتجات مقروءة، وتجربة تصفح مريحة أولاً على الهاتف.",
+          title: "خيارات لكل يوم",
+          description: "قطع مناسبة للدوام، الطلعات والمناسبات.",
         },
         {
-          title: "دفع آمن",
-          description:
-            "الأسعار والمخزون والطلبات والصلاحيات تبقى محمية ومتحققة من جهة الخادم.",
+          title: "الدفع عند الاستلام",
+          description: "اطلب أونلاين وادفع لما تستلم طلبك.",
         },
         {
-          title: "واجهة أصلية",
-          description:
-            "مصمم بـ CSS مخصص والاعتمادات الموجودة فقط، بدون قوالب منسوخة أو أيقونات أو UI kits مدفوعة.",
+          title: "بدك مساعدة؟",
+          description: "احكي معنا على واتساب ومنساعدك بالاختيار أو الطلب.",
         },
       ],
     },
     products: {
-      badge: "تسوق المنتجات",
-      title: "تصفح ملابس بشكل أوضح",
+      badge: "تشكيلتنا",
+      title: "دور على القطعة اللي بتناسبك",
       description:
-        "ابحث بالاسم، فلتر حسب التصنيف، وافتح كل منتج لاختيار المقاس واللون المتوفرين قبل إضافته إلى السلة.",
-      searchLabel: "البحث في المنتجات",
-      searchPlaceholder: "ابحث بالاسم أو التصنيف...",
+        "ابحث بالاسم أو التصنيف، وافتح القطعة عشان تشوف المقاسات والألوان المتوفرة.",
+      searchLabel: "دور على منتج",
+      searchPlaceholder: "اكتب اسم القطعة أو التصنيف...",
       searchButton: "بحث",
-      loadMore: "تحميل المزيد",
-      loadingMore: "جار التحميل...",
+      loadMore: "عرض المزيد",
+      loadingMore: "جاري التحميل...",
       allProducts: "كل المنتجات",
-      selectedCategory: "التصنيف المحدد",
-      showing: "عرض",
+      selectedCategory: "التصنيف المختار",
+      showing: "النتائج:",
       productSingular: "منتج",
       productPlural: "منتجات",
-      noProductsTitle: "لا توجد منتجات",
-      noProductsDescription: "جرب تغيير التصنيف أو البحث باستخدام كلمة مختلفة.",
+      noProductsTitle: "ما لقينا منتجات",
+      noProductsDescription: "جرّب تغيّر التصنيف أو ابحث بكلمة ثانية.",
       failedToLoad: "فشل تحميل المنتجات.",
       failedToConnect: "فشل الاتصال بالخادم.",
-      noImage: "الصورة قريباً",
+      noImage: "الصورة بتنضاف قريباً",
       featured: "مميز",
       soldOut: "نفذ المخزون",
       out: "غير متوفر",
@@ -1598,12 +1596,11 @@ export const translations: Record<Language, TranslationDictionary> = {
       option: "خيار",
       selected: "محدد",
       selectOptionHelp:
-        "اختر المقاس واللون المتوفرين قبل إضافة القطعة إلى السلة.",
-      selectOptionRequired:
-        "يرجى اختيار مقاس أو لون متوفر قبل الإضافة إلى السلة.",
+        "اختار المقاس واللون المتوفرين قبل ما تضيف القطعة للسلة.",
+      selectOptionRequired: "اختار مقاس أو لون متوفر قبل ما تضيف القطعة للسلة.",
       outOfStock: "غير متوفر",
       descriptionTitle: "الوصف",
-      noDescription: "لا يوجد وصف لهذا المنتج بعد.",
+      noDescription: "ما في وصف لهاي القطعة حالياً.",
       payment: "الدفع",
       cashOnDelivery: "الدفع عند الاستلام",
       category: "التصنيف",
@@ -2151,7 +2148,8 @@ export const translations: Record<Language, TranslationDictionary> = {
         invalidPrice: "أدخل سعراً صحيحاً.",
         invalidDiscountPrice: "يجب أن يكون سعر الخصم أقل من السعر الأساسي.",
         invalidCategory: "اختر تصنيفاً.",
-        invalidImage: "ارفع صورة JPG أو PNG أو WEBP صالحة بحجم لا يزيد عن 10MB.",
+        invalidImage:
+          "ارفع صورة JPG أو PNG أو WEBP صالحة بحجم لا يزيد عن 10MB.",
         invalidOptionSizeOrColor: "أدخل المقاس أو اللون على الأقل.",
         invalidOptionStock: "أدخل رقم مخزون صحيحاً بدون كسور.",
         invalidOptionSortOrder: "أدخل رقم ترتيب صحيحاً بدون كسور.",

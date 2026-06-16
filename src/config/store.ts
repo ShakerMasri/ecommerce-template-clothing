@@ -11,11 +11,11 @@ export const storeConfig = {
   name: "Clothing Store Template",
   shortName: "Clothing Store",
   description:
-    "A clothing ecommerce storefront for everyday pieces, size and color options, and cash-on-delivery ordering.",
+    "A clothing storefront for browsing everyday pieces, choosing size and color, and ordering with cash on delivery.",
   metadata: {
     title: "Clothing Store Template",
     description:
-      "A premium, simple clothing storefront for browsing everyday pieces and placing cash-on-delivery orders.",
+      "Browse clothing, choose available size and color options, and order with cash on delivery.",
   },
   contact: contactConfig,
   locales: {

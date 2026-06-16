@@ -4,7 +4,7 @@ Clothing Ecommerce Template is a reusable private full-stack e-commerce starter 
 
 This project was forked from an existing hardened ecommerce starter and is now maintained as a separate clothing-store template. It is being prepared as a real client-ready application, not just a demo. The backend, authentication, authorization, environment configuration, deployment flow, and production safety checks should be treated seriously before launch.
 
-This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, checkout-time stock reservation, the `v0.1.0-post-reservation-audit` checkpoint, a customer-facing clothing-store UI refresh, server-side public product pagination/search/category filtering, a configurable WhatsApp support shortcut, and admin/account UI alignment. The next checkpoint is Render demo/staging verification, followed by documentation/license cleanup and a broader production-readiness/security audit.
+This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, checkout-time stock reservation, the `v0.1.0-post-reservation-audit` checkpoint, a customer-facing clothing-store UI refresh, server-side public product pagination/search/category filtering, a configurable WhatsApp support shortcut, optional store-owner order email notifications, natural English/Palestinian-Arabic storefront copy, and admin/account UI alignment. The current checkpoint is staging re-verification of these recent storefront changes, followed by a broader production-readiness/security audit.
 
 ## Tech Stack
 
@@ -75,6 +75,7 @@ Completed:
 - Customer-facing form validation polish with inline/mobile-friendly errors and friendlier messages for registration/login/profile fields
 - Public products page uses server-side search, category filtering, and capped "Load more" pagination instead of loading every product into the browser
 - Configurable floating WhatsApp support shortcut for customers who need help with products, login, or ordering questions
+- Public storefront marketing copy rewritten as natural English and Palestinian Arabic instead of literal developer-facing or machine-like wording
 
 Not started yet:
 
@@ -101,9 +102,9 @@ Postponed intentionally:
 
 Planned next checkpoints:
 
-- Deploy and verify a Render demo/staging environment with disposable data.
+- Re-verify the recent product pagination, WhatsApp shortcut, owner notification, and storefront-copy changes on Render staging with disposable data.
 - Keep documentation, license notes, and asset notes aligned with the current clothing-store behavior.
-- Run a light UI/accessibility/license review on staging.
+- Run a light bilingual UI/accessibility/license review on staging.
 - Complete a broader production-readiness and security audit after staging is stable.
 - Review caching/performance only after core business rules are stable and real usage or smoke-load results show a need.
 
@@ -849,9 +850,12 @@ Public client-safe template values live in typed config files:
 - `src/config/store.ts` for public store name, description, metadata, and localized logo text.
 - `src/config/delivery.ts` for delivery areas, prices, labels, defaults, and receive/pickup-point rules.
 - `src/config/contact.ts` for public support email, phone, WhatsApp, support hours, footer contact display, contact-page text, and public social links.
+- `src/lib/translations.ts` for bilingual UI labels and customer-facing storefront copy.
 - `src/config/policies.ts` for public terms, privacy, shipping, returns, contact policy copy, last-updated labels, and legal-page footer labels.
 
 Only public display and storefront policy values belong in these files. Secrets, SMTP credentials, OAuth credentials, database URLs, private webhooks, internal admin-only contacts, and private client agreements must stay out of source code and in the correct server-side environment/secrets system. Public policy copy in the template is placeholder text, not legal advice, and must be reviewed/replaced for each client before launch.
+
+English and Arabic storefront marketing copy should be written naturally for each audience rather than translated word for word. The default Arabic tone is simple, professional Palestinian Arabic for customer-facing promotional text, while validation, accessibility, policy, and security messages should remain clear and unambiguous. Each client should review the wording for their audience, products, gender/age segment, and local delivery terms before launch.
 
 Footer contact, social, and location links are configured in `src/config/contact.ts`. They render inside one contact summary as small accessible inline SVG icons, use `currentColor` so they match the footer theme, and should point only to the client's real public profiles/location. The location link should point to the store or pickup point, while final delivery/pickup details are still confirmed by WhatsApp or phone. The default entries are placeholders and must be replaced or removed before launch. The optional footer "Want your own online store?" CTA is also configured there and is disabled by default so client sites do not advertise the template builder unless intentionally enabled. Social/brand icon source and trademark notes must stay documented in `docs/asset-license-notes.md`.
 
@@ -956,6 +960,8 @@ See `docs/product-variants-plan.md` and `docs/product-variants-design-contract.m
 ### Customer UI Refresh Status
 
 The customer-facing UI has been refreshed toward a premium, simple clothing-store style using the existing dependencies, system fonts, original CSS/React, and the shared storefront theme variables. This includes the homepage, products listing, category tabs, product cards, product detail option selection, cart, checkout summary/error display, customer orders, and customer auth forms.
+
+Public homepage, product-listing, contact, footer, and WhatsApp-support copy uses natural English and Palestinian Arabic. Avoid exposing developer-focused claims such as implementation details, mobile-first design notes, server-side validation, or dependency/license choices as storefront marketing content.
 
 Customer UI work must remain presentation-focused unless a specific validation or accessibility issue requires a small boundary-level fix. Do not change checkout reservation, order status, stock restoration, admin authorization, CSRF/same-origin checks, rate limiting, or server validation as part of visual polish.
 
@@ -1119,12 +1125,12 @@ This app is still being hardened for production as a clothing-store template. It
 
 Next safest checkpoints:
 
-1. Run full local checks and targeted E2E tests for the customer UI refresh.
-2. Verify the refreshed customer UI on staging, especially mobile product details, cart, checkout errors, orders, and auth forms.
-3. Simplify admin products/options/stock UI after customer-facing pages are stable.
-4. Simplify admin orders UI after product admin UI is reviewed.
+1. Run full local checks and targeted E2E tests for public product pagination, WhatsApp support, owner order notifications, and bilingual storefront copy.
+2. Re-verify the English and Arabic storefront on staging, especially mobile layout, product search/category filters, "Show more", contact links, and WhatsApp behavior.
+3. Verify store-owner order notifications in staging log mode, then with real production-ready SMTP only when the client email is configured.
+4. Run a light accessibility, legal-copy, placeholder-data, and asset-license review on staging.
 5. Verify Google sign-in on staging/production with exact callback URLs and separate environment secrets if OAuth is enabled for the client.
-6. Complete the production readiness checklist and client handoff guide.
-7. Review caching/performance after launch testing or measured usage shows a real need.
+6. Complete the broader production-readiness/security audit, production checklist, and client handoff guide.
+7. Review caching/performance only after measured usage or smoke-load results show a need.
 
 Before launch, complete the production deployment checklist, review the handoff docs with the client, and test the full customer and admin flows on the deployed domain.

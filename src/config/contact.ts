@@ -95,13 +95,13 @@ export const contactConfig = {
     href: "https://wa.me/970000000000",
   },
   supportHours: {
-    en: "Support requests are handled as soon as reasonably possible during normal working days.",
-    ar: "يتم التعامل مع طلبات الدعم في أقرب وقت ممكن خلال أيام العمل العادية.",
+    en: "We reply to support questions as soon as possible during normal working days.",
+    ar: "بنرد على استفساراتكم بأقرب وقت خلال أيام الدوام.",
   },
   contactPage: {
     description: {
-      en: "Contact the store about clothing orders, delivery, returns, or general questions.",
-      ar: "تواصل مع المتجر بخصوص طلبات الملابس، التوصيل، الإرجاع، أو الاستفسارات العامة.",
+      en: "Contact us with questions about products, orders, delivery, exchanges, or returns.",
+      ar: "عندك سؤال عن قطعة، طلب، توصيل، استبدال أو إرجاع؟ تواصل معنا.",
     },
   },
   footer: {
