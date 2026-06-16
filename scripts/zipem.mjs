@@ -8,18 +8,13 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  "src/app/admin/products/AdminProductsClient.tsx",
-  "src/components/admin/AdminCategoriesClient.tsx",
-  "src/components/admin/AdminOrdersClient.tsx",
-  "src/lib/translations.ts",
-  "src/styles/globals.css",
-  "src/server/validations/product.ts",
-  "src/server/validations/product-variant.ts",
-  "src/app/api/admin/products/route.ts",
-  "src/app/api/admin/products/[id]/route.ts",
-  "src/app/api/admin/products/[id]/variants/route.ts",
-  "src/app/api/admin/products/[id]/variants/[variantId]/route.ts",
-  "src/app/api/admin/uploads/product-images/route.ts",
+  "src/components/products/ProductDetailClient.tsx",
+  "src/components/ui/OptimizedImage.tsx",
+  "src/components/ui/OptimizedImage.test.tsx",
+  "src/lib/cloudinary.ts",
+  "src/app/products/[slug]/page.tsx",
+  "src/app/api/products/[slug]/route.ts",
+  "next.config.js",
 ];
 
 function fail(message) {

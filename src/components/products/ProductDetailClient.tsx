@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AddToCartControls } from "~/components/cart/AddToCartControls";
 import { useAppPreferences } from "~/components/providers/AppPreferencesProvider";
-import { OptimizedImage } from "~/components/ui/OptimizedImage";
+import {
+  OptimizedImage,
+  getOptimizedCloudinarySrc,
+} from "~/components/ui/OptimizedImage";
 
 type ProductVariant = {
   id: string;
@@ -117,6 +120,32 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
     };
   }, [slug, t.products.failedToConnect, t.products.productNotFound]);
 
+  useEffect(() => {
+    if (!product || !selectedImage || product.images.length < 2) {
+      return;
+    }
+
+    const imagesToWarm = product.images
+      .filter((image) => image !== selectedImage)
+      .slice(0, 3);
+
+    if (imagesToWarm.length === 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      imagesToWarm.forEach((src) => {
+        const image = new window.Image();
+        image.decoding = "async";
+        image.src = getOptimizedCloudinarySrc(src, 1400);
+      });
+    }, 400);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [product, selectedImage]);
+
   if (isLoading) {
     return (
       <div className="grid gap-8 lg:grid-cols-2">
@@ -204,6 +233,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                 alt={product.name}
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
+                cloudinaryWidth={1400}
                 className="object-cover"
               />
             ) : (
@@ -245,7 +275,9 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                     <OptimizedImage
                       src={image}
                       alt={`${product.name} ${t.products.image} ${index + 1}`}
-                      sizes="96px"
+                      sizes="(max-width: 640px) 22vw, 96px"
+                      loading={index < 4 ? "eager" : "lazy"}
+                      cloudinaryWidth={220}
                       className="object-cover"
                     />
                   </button>
