@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Footer } from "~/components/layout/Footer";
 import { Header } from "~/components/layout/Header";
+import { WhatsappSupportShortcut } from "~/components/layout/WhatsappSupportShortcut";
 import { storeConfig } from "~/config/store";
 import { AppPreferencesProvider } from "~/components/providers/AppPreferencesProvider";
 
@@ -28,6 +29,7 @@ export default function RootLayout({
           <Header />
           <main>{children}</main>
           <Footer />
+          <WhatsappSupportShortcut />
         </AppPreferencesProvider>
       </body>
     </html>

@@ -78,6 +78,7 @@ Finding:
 
 - The scan did not show committed SVG packs, illustration packs, or downloaded UI kits in `public`.
 - The footer uses a small dependency-free inline SVG map for optional public social profile links.
+- The optional floating WhatsApp support shortcut reuses the same dependency-free WhatsApp inline SVG approach.
 - Current supported brand icons are Instagram, WhatsApp, and Facebook.
 - The location/map-pin icon is an original simple geometric inline SVG created for this template, not a copied brand or icon-pack asset.
 
@@ -89,6 +90,7 @@ Decision:
 - CC0 reduces copyright risk for the icon path data, but it does not remove trademark, brand-guideline, endorsement, or unfair-competition concerns.
 - Use brand icons only as neutral links to the store's real public profiles. Do not use them in a way that suggests Meta, Instagram, WhatsApp, Facebook, or any other platform sponsors, endorses, or partners with the store.
 - Keep the footer social/location icons grouped inside the contact summary so they read as navigation/contact links, not as a separate brand partnership section.
+- Use the floating WhatsApp support shortcut only as a neutral customer-support/contact entry point. Do not present it as an official WhatsApp/Meta partnership or as a replacement for server-validated website checkout.
 - Replace placeholder social/location URLs in `src/config/contact.ts` before launch. Remove any social platform the client does not actually use.
 - Keep icons monochrome with `currentColor` in this footer so they match the theme and are presented as navigation icons, not modified brand lockups.
 - Before commercial launch, review the current official brand-resource pages for each enabled platform and keep this file updated.

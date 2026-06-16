@@ -59,6 +59,12 @@ export type TranslationDictionary = {
     onlineStoreCtaDescription: string;
     onlineStoreCtaAction: string;
   };
+  whatsappShortcut: {
+    label: string;
+    title: string;
+    ariaLabel: string;
+    defaultMessage: string;
+  };
   home: {
     badge: string;
     titleStart: string;
@@ -745,6 +751,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       onlineStoreCtaDescription:
         "Launch a secure, mobile-friendly storefront with products, size and color options, cart, and cash-on-delivery ordering.",
       onlineStoreCtaAction: "Discuss your store on WhatsApp",
+    },
+    whatsappShortcut: {
+      label: "Need help?",
+      title: "Ask the store on WhatsApp",
+      ariaLabel:
+        "Open WhatsApp to ask the store for help with products, login, or ordering",
+      defaultMessage: `Hello, I need help ordering from ${englishStoreName}.`,
     },
     home: {
       badge: "New season essentials",
@@ -1504,6 +1517,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       onlineStoreCtaDescription:
         "ابدأ بواجهة متجر آمنة ومتجاوبة مع الجوال، تشمل المنتجات وخيارات المقاس واللون والسلة والدفع عند الاستلام.",
       onlineStoreCtaAction: "ناقش متجرك عبر واتساب",
+    },
+    whatsappShortcut: {
+      label: "تحتاج مساعدة؟",
+      title: "اسأل المتجر عبر واتساب",
+      ariaLabel:
+        "افتح واتساب لطلب المساعدة من المتجر بخصوص المنتجات أو تسجيل الدخول أو الطلب",
+      defaultMessage: `مرحباً، أحتاج مساعدة في الطلب من ${arabicStoreName}.`,
     },
     home: {
       badge: "قطع يومية مختارة",

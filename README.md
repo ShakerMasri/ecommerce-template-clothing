@@ -4,7 +4,7 @@ Clothing Ecommerce Template is a reusable private full-stack e-commerce starter 
 
 This project was forked from an existing hardened ecommerce starter and is now maintained as a separate clothing-store template. It is being prepared as a real client-ready application, not just a demo. The backend, authentication, authorization, environment configuration, deployment flow, and production safety checks should be treated seriously before launch.
 
-This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, checkout-time stock reservation, the `v0.1.0-post-reservation-audit` checkpoint, a customer-facing clothing-store UI refresh, and admin/account UI alignment. The next checkpoint is Render demo/staging verification, followed by documentation/license cleanup and a broader production-readiness/security audit.
+This clothing template now includes size/color product variants, admin variant management, customer-side variant selection/cart/order snapshots, checkout-time stock reservation, the `v0.1.0-post-reservation-audit` checkpoint, a customer-facing clothing-store UI refresh, server-side public product pagination/search/category filtering, a configurable WhatsApp support shortcut, and admin/account UI alignment. The next checkpoint is Render demo/staging verification, followed by documentation/license cleanup and a broader production-readiness/security audit.
 
 ## Tech Stack
 
@@ -73,6 +73,8 @@ Completed:
 - Customer product detail, size/color option selection, cart, checkout summary/error display, and customer orders UI polish
 - Customer auth form visual refresh for login, registration, forgot-password, and reset-password flows
 - Customer-facing form validation polish with inline/mobile-friendly errors and friendlier messages for registration/login/profile fields
+- Public products page uses server-side search, category filtering, and capped "Load more" pagination instead of loading every product into the browser
+- Configurable floating WhatsApp support shortcut for customers who need help with products, login, or ordering questions
 
 Not started yet:
 
@@ -126,6 +128,7 @@ Planned next checkpoints:
 - See inline, mobile-friendly checkout/delivery validation errors near the relevant fields and submit area
 - Receive a post-order message explaining that the store owner will confirm the order by WhatsApp or phone
 - View public contact/support details from the shared contact config
+- Open a configurable WhatsApp support shortcut for product, login, or ordering help without bypassing website checkout validation
 - View own orders with capped pagination, including delivery details and selected size/color snapshots
 - View and update profile information
 
@@ -176,8 +179,10 @@ This project follows these rules:
 - Rate limiting should be enabled for auth routes, public APIs, and protected mutation routes.
 - Resend verification email requests must have a stricter backend rate limit, not only a frontend cooldown.
 - CSRF or same-origin checks should protect cookie-based state-changing requests.
+- Public product filters and pagination must be validated server-side; the frontend must not load every product and filter locally.
 - Admin filters and pagination must be validated server-side; the frontend must not load everything and filter sensitive data locally.
 - Product prices and stock decisions must be calculated on the server, not trusted from client-submitted values.
+- WhatsApp support links are contact shortcuts only; they must not replace checkout, cart, stock reservation, order snapshots, or admin confirmation rules.
 - Discount pricing must be validated server-side and order items must store price snapshots.
 - Hiding stock counts from customers is display-only; backend stock validation must still run.
 - UI components must not reveal exact stock counts through quantity controls, helper text, or cart warnings when customer stock visibility is disabled.
@@ -844,6 +849,8 @@ Only public display and storefront policy values belong in these files. Secrets,
 
 Footer contact, social, and location links are configured in `src/config/contact.ts`. They render inside one contact summary as small accessible inline SVG icons, use `currentColor` so they match the footer theme, and should point only to the client's real public profiles/location. The location link should point to the store or pickup point, while final delivery/pickup details are still confirmed by WhatsApp or phone. The default entries are placeholders and must be replaced or removed before launch. The optional footer "Want your own online store?" CTA is also configured there and is disabled by default so client sites do not advertise the template builder unless intentionally enabled. Social/brand icon source and trademark notes must stay documented in `docs/asset-license-notes.md`.
 
+The floating WhatsApp support shortcut is also controlled by `src/config/contact.ts` and uses translated copy from `src/lib/translations.ts`. It is intended as a customer-help shortcut for product questions, login trouble, or ordering guidance. It does not create website orders and must not be treated as a replacement for server-side checkout, stock reservation, price validation, or order snapshots.
+
 ### Checkout and Delivery
 
 Delivery areas/prices currently live in code configuration, not in an admin-editable database table.
@@ -879,7 +886,7 @@ Known next checkpoint:
 
 ### Filtering and Pagination
 
-Public product browsing uses server-side search, category filtering, and capped "Load more" pagination instead of loading every product into the browser. The public products API validates query parameters, caps page size, and returns only customer-safe fields.
+Public product browsing uses server-side search, category filtering, and capped "Load more" pagination instead of loading every product into the browser. The public products API validates query parameters, caps page size, and returns only customer-safe fields. This keeps large demo/product catalogs usable on mobile without exposing hidden inventory fields.
 
 Admin orders, products, and categories use server-side filters and capped pagination instead of loading every record into the browser. Customer order history also uses capped pagination. This keeps storefront, dashboards, and account pages faster as data grows and avoids exposing or loading more data than the current screen needs.
 

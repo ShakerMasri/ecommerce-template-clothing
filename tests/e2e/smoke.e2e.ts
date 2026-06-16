@@ -55,3 +55,19 @@ test("footer renders configured public contact sections", async ({ page }) => {
     ).toBeVisible();
   }
 });
+
+test("whatsapp support shortcut renders when enabled", async ({ page }) => {
+  await page.goto("/products");
+
+  const shortcut = page.getByTestId("whatsapp-support-shortcut");
+
+  if (contactConfig.whatsappShortcut.enabled) {
+    await expect(shortcut).toBeVisible();
+    await expect(shortcut).toHaveAttribute(
+      "href",
+      /^https:\/\/wa\.me\/[^?]+\?text=.+/,
+    );
+  } else {
+    await expect(shortcut).toHaveCount(0);
+  }
+});

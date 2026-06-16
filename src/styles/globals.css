@@ -352,3 +352,25 @@ a {
   background-color: color-mix(in srgb, var(--success-ink) 82%, var(--ink));
   color: var(--surface-card);
 }
+
+.whatsapp-support-shortcut {
+  position: fixed;
+  inset-block-end: calc(1rem + env(safe-area-inset-bottom));
+  inset-inline-end: 1rem;
+  z-index: 50;
+  box-shadow: 0 18px 38px
+    color-mix(in srgb, var(--success-ink) 28%, transparent);
+}
+
+@media (min-width: 640px) {
+  .whatsapp-support-shortcut {
+    inset-block-end: calc(1.5rem + env(safe-area-inset-bottom));
+    inset-inline-end: 1.5rem;
+  }
+}
+
+@media print {
+  .whatsapp-support-shortcut {
+    display: none;
+  }
+}

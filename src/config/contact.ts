@@ -50,6 +50,9 @@ type PublicContactConfig = {
       };
     };
   };
+  whatsappShortcut: {
+    enabled: boolean;
+  };
   socialLinks: readonly PublicSocialLink[];
 };
 
@@ -110,6 +113,9 @@ export const contactConfig = {
         href: "https://wa.me/970599355107",
       },
     },
+  },
+  whatsappShortcut: {
+    enabled: true,
   },
   socialLinks,
 } as const satisfies PublicContactConfig;
