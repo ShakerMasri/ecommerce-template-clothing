@@ -1,10 +1,15 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { env } from "~/env";
 import { validateSameOriginRequest } from "~/lib/csrf";
 import { getDeliveryAreaByKey } from "~/lib/delivery";
 import { prisma } from "~/lib/prisma";
 import { getReferenceMessage, logError } from "~/lib/logger";
 import { rateLimit } from "~/lib/rate-limit";
+import {
+  sendOrderNotificationEmail,
+  type SendOrderNotificationEmailInput,
+} from "~/server/email";
 import { auth } from "~/server/auth";
 import { getEffectiveProductPrice } from "~/server/pricing";
 import {
@@ -44,6 +49,8 @@ const orderSelect = {
 type OrderWithItems = Prisma.OrderGetPayload<{
   select: typeof orderSelect;
 }>;
+
+type CreatedOrderNotification = SendOrderNotificationEmailInput;
 
 function serializeOrder(order: OrderWithItems) {
   return {
@@ -212,7 +219,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const order = await prisma.$transaction(async (tx) => {
+    const orderResult = await prisma.$transaction(async (tx) => {
       const customer = await tx.user.findUnique({
         where: {
           id: userId,
@@ -248,7 +255,10 @@ export async function POST(request: Request) {
       });
 
       if (existingOrder) {
-        return existingOrder;
+        return {
+          order: existingOrder,
+          notification: null satisfies CreatedOrderNotification | null,
+        };
       }
 
       const cartItems = await tx.cartItem.findMany({
@@ -389,13 +399,40 @@ export async function POST(request: Request) {
         },
       });
 
-      return createdOrder;
+      const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+      return {
+        order: createdOrder,
+        notification: {
+          orderId: createdOrder.id,
+          totalAmount: createdOrder.totalAmount.toString(),
+          deliveryAreaKey: createdOrder.deliveryAreaKey ?? deliveryArea.key,
+          deliveryCity: createdOrder.deliveryCity ?? deliveryCity,
+          customerName: customer.name,
+          customerPhone: customer.phone,
+          itemCount,
+          createdAt: createdOrder.createdAt,
+        } satisfies CreatedOrderNotification,
+      };
     });
+
+    if (env.ORDER_NOTIFICATION_EMAIL && orderResult.notification) {
+      await sendOrderNotificationEmail(orderResult.notification).catch(
+        (error) => {
+          logError("Failed to send store owner order notification.", error, {
+            action: "orders.notifyOwner",
+            route: "/api/orders",
+            userId,
+            orderId: orderResult.order.id,
+          });
+        },
+      );
+    }
 
     return NextResponse.json({
       message:
         "Order placed successfully. The store owner will confirm it by WhatsApp or phone before processing.",
-      order: serializeOrder(order),
+      order: serializeOrder(orderResult.order),
     });
   } catch (error) {
     if (error instanceof Error && error.message === "USER_NOT_FOUND") {

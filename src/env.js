@@ -57,6 +57,11 @@ export const env = createEnv({
     SMTP_FROM_EMAIL: z.string().email(),
     SMTP_FROM_NAME: z.string().min(1),
 
+    ORDER_NOTIFICATION_EMAIL: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.string().email().optional(),
+    ),
+
     EMAIL_DELIVERY_MODE: z.enum(["smtp", "log"]).default("smtp"),
 
     UPSTASH_REDIS_REST_URL:
@@ -97,6 +102,7 @@ export const env = createEnv({
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
     SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL,
     SMTP_FROM_NAME: process.env.SMTP_FROM_NAME,
+    ORDER_NOTIFICATION_EMAIL: process.env.ORDER_NOTIFICATION_EMAIL,
 
     EMAIL_DELIVERY_MODE: process.env.EMAIL_DELIVERY_MODE,
 

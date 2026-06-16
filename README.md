@@ -17,7 +17,7 @@ This clothing template now includes size/color product variants, admin variant m
 - Zod
 - Cloudinary for product image uploads
 - Upstash Redis for production-safe rate limiting
-- Nodemailer / SMTP for email verification and password reset emails
+- Nodemailer / SMTP for email verification, password reset emails, and optional store-owner order notifications
 - Docker Compose for local PostgreSQL development
 - ESLint and Prettier
 - Vitest and React Testing Library for unit/component tests
@@ -148,6 +148,7 @@ Planned next checkpoints:
 - Filter, sort, and paginate admin categories server-side
 - Safely delete categories only when no products are related
 - View customer orders with contact and delivery details
+- Receive optional store-owner email notifications when new customer orders are placed
 - Filter and paginate admin orders server-side
 - View order cards and open a details/edit panel for each order
 - Confirm pending orders as an approval/status step without deducting stock again
@@ -245,6 +246,9 @@ SMTP_USER=""
 SMTP_PASSWORD=""
 SMTP_FROM_EMAIL=""
 SMTP_FROM_NAME="Clothing Ecommerce Template"
+
+# Optional store-owner notification for new orders. Leave empty to disable.
+ORDER_NOTIFICATION_EMAIL=""
 
 # Email delivery mode
 # Use "log" for local/staging without real SMTP sending.
@@ -699,6 +703,7 @@ Important production rules:
 - [ ] If Google sign-in is enabled, `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are configured only in the hosting provider.
 - [ ] If Google sign-in is enabled, the Google Cloud OAuth client includes the exact production callback URL.
 - [ ] SMTP credentials are production-ready.
+- [ ] `ORDER_NOTIFICATION_EMAIL` is configured for the store owner if new-order emails are enabled.
 - [ ] Upstash Redis variables are configured.
 - [ ] Cloudinary variables are configured.
 - [ ] No secret is exposed through a `NEXT_PUBLIC_` variable.
@@ -750,6 +755,7 @@ Important production rules:
 - [ ] Checkout requires delivery area/details where applicable.
 - [ ] Checkout confirmation dialog shows product total, delivery price, and final total.
 - [ ] Checkout creates a pending order and reserves stock immediately.
+- [ ] Store-owner order notification email is sent or logged after successful checkout when configured.
 - [ ] Admin confirmation approves the order without deducting stock again.
 - [ ] Checkout/order item price snapshots use the server-calculated effective product price.
 - [ ] Order items snapshot selected size/color for variant orders.
@@ -864,6 +870,14 @@ Current delivery options:
 - West Jerusalem + Ein Rafa + Ein Naqouba + Abu Ghosh: 45 NIS
 
 Orders store a snapshot of the selected delivery area, delivery price, city/address/details, notes, and pickup agreement status. This is intentional so old orders remain historically accurate even if delivery prices change later.
+
+### Store-Owner Order Notifications
+
+If `ORDER_NOTIFICATION_EMAIL` is configured, the app sends a best-effort email to the store owner after a customer order is successfully created and stock has been reserved. This notification is intentionally outside the checkout database transaction so an SMTP outage does not roll back a valid order.
+
+For local development and staging, keep `EMAIL_DELIVERY_MODE="log"` so notification emails are printed to server logs instead of sent. For production, configure a real transactional SMTP provider and keep the notification email address in environment variables, not in public config files.
+
+The notification contains only a small summary such as order ID, total, item count, delivery city, and a masked phone hint. Full order, contact, delivery, and item details should be reviewed inside the protected admin orders page.
 
 ### Current Stock Reservation Flow
 
@@ -1064,6 +1078,14 @@ For production, configure a real SMTP provider and use:
 ```env
 EMAIL_DELIVERY_MODE="smtp"
 ```
+
+To notify the store owner when a new order is placed, configure:
+
+```env
+ORDER_NOTIFICATION_EMAIL="owner@example.com"
+```
+
+Leave `ORDER_NOTIFICATION_EMAIL` empty to disable owner notifications. Order notification emails are sent only after a successful checkout transaction and are best-effort: if the email provider is unavailable, the customer order should still succeed and the failure should be logged for review. The notification intentionally contains only a small order summary; the owner should open the admin orders page for full customer and delivery details.
 
 Do not use personal Gmail SMTP for production client email. Use a real transactional email provider and verify the sending domain.
 
