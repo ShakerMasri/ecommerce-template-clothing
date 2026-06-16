@@ -44,6 +44,12 @@ type ProductResponse = {
     category: ProductCategory;
   }>;
   categories: ProductCategory[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    hasMore: boolean;
+    nextPage: number | null;
+  };
 };
 
 type ErrorResponse = {
@@ -58,8 +64,8 @@ describe("GET /api/products", () => {
   const categories: ProductCategory[] = [
     {
       id: "category-1",
-      name: "Figures",
-      slug: "figures",
+      name: "Suits",
+      slug: "suits",
     },
   ];
 
@@ -97,13 +103,33 @@ describe("GET /api/products", () => {
     mocks.rateLimit.mockResolvedValue({ ok: true });
   });
 
-  it("returns products and categories", async () => {
+  it("returns the first capped page of products and categories", async () => {
     const request = createRequest("/api/products");
     const response = await GET(request);
     const body = (await response.json()) as ProductResponse;
 
     expect(response.status).toBe(200);
     expect(mocks.rateLimit).toHaveBeenCalledWith(request, "publicRead");
+    expect(mocks.productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          isArchived: false,
+        },
+        skip: 0,
+        take: 13,
+        orderBy: [
+          { isFeatured: "desc" },
+          { createdAt: "desc" },
+          { id: "asc" },
+        ],
+        select: expect.objectContaining({
+          discountPrice: true,
+          showStock: true,
+          _count: expect.any(Object),
+          variants: expect.any(Object),
+        }),
+      }),
+    );
     expect(body.products).toHaveLength(1);
     expect(body.categories).toHaveLength(1);
     expect(body.products[0]?.name).toBe("Test Product");
@@ -113,6 +139,12 @@ describe("GET /api/products", () => {
     expect(body.products[0]?.isInStock).toBe(true);
     expect(body.products[0]?.showStock).toBe(false);
     expect(body.products[0]?.hasVariants).toBe(true);
+    expect(body.pagination).toEqual({
+      page: 1,
+      pageSize: 12,
+      hasMore: false,
+      nextPage: null,
+    });
   });
 
   it("returns 429 when the public read rate limit is exceeded", async () => {
@@ -150,42 +182,101 @@ describe("GET /api/products", () => {
     expect(body.products[0]?.isInStock).toBe(true);
   });
 
-  it("only returns non-archived products", async () => {
-    await GET(createRequest("/api/products"));
-
-    expect(mocks.productFindMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: {
-          isArchived: false,
-        },
-        select: expect.objectContaining({
-          discountPrice: true,
-          showStock: true,
-          _count: expect.any(Object),
-          variants: expect.any(Object),
-        }),
-      }),
-    );
-  });
-
   it("filters products by category slug", async () => {
-    await GET(createRequest("/api/products?category=figures"));
+    await GET(createRequest("/api/products?category=suits"));
 
     expect(mocks.productFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
           isArchived: false,
           category: {
-            slug: "figures",
+            slug: "suits",
           },
         },
       }),
     );
   });
 
-  it("returns 400 for invalid category query", async () => {
+  it("searches products server-side by product or category name", async () => {
+    await GET(createRequest("/api/products?search=linen%20suit"));
+
+    expect(mocks.productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          isArchived: false,
+          OR: [
+            {
+              name: {
+                contains: "linen suit",
+                mode: "insensitive",
+              },
+            },
+            {
+              category: {
+                name: {
+                  contains: "linen suit",
+                  mode: "insensitive",
+                },
+              },
+            },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it("uses validated page and capped pageSize query parameters", async () => {
+    const response = await GET(createRequest("/api/products?page=3&pageSize=500"));
+    const body = (await response.json()) as ProductResponse;
+
+    expect(response.status).toBe(200);
+    expect(mocks.productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skip: 48,
+        take: 25,
+      }),
+    );
+    expect(body.pagination.page).toBe(3);
+    expect(body.pagination.pageSize).toBe(24);
+  });
+
+  it("trims one extra product from the response to determine hasMore", async () => {
+    mocks.productFindMany.mockResolvedValue(
+      Array.from({ length: 13 }, (_, index) => ({
+        ...products[0],
+        id: `product-${index + 1}`,
+        slug: `test-product-${index + 1}`,
+      })),
+    );
+
+    const response = await GET(createRequest("/api/products"));
+    const body = (await response.json()) as ProductResponse;
+
+    expect(response.status).toBe(200);
+    expect(body.products).toHaveLength(12);
+    expect(body.pagination).toEqual({
+      page: 1,
+      pageSize: 12,
+      hasMore: true,
+      nextPage: 2,
+    });
+  });
+
+  it("returns 400 for invalid query parameters", async () => {
     const response = await GET(
-      createRequest("/api/products?category=Invalid Category!"),
+      createRequest("/api/products?category=Invalid Category!&page=abc"),
+    );
+    const body = (await response.json()) as ErrorResponse;
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe("Invalid query parameters.");
+    expect(mocks.productFindMany).not.toHaveBeenCalled();
+    expect(mocks.categoryFindMany).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for an overly long search query", async () => {
+    const response = await GET(
+      createRequest(`/api/products?search=${"a".repeat(81)}`),
     );
     const body = (await response.json()) as ErrorResponse;
 

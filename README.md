@@ -112,7 +112,7 @@ Planned next checkpoints:
 - Register and log in with email/password
 - Sign in with Google when OAuth is configured
 - Use refreshed mobile-friendly auth forms with inline validation feedback
-- View public products through a premium, simple clothing-store storefront
+- View public products through a premium, simple clothing-store storefront with server-side search, category filtering, and capped "Load more" pagination
 - View product details with refreshed size/color option selection
 - Select available size/color variants when a product has active variants
 - See discounted product prices when an admin discount is active
@@ -732,7 +732,7 @@ Important production rules:
 - [ ] Logout works on the deployed domain.
 - [ ] Password reset emails work.
 - [ ] Email verification flow works, if enabled.
-- [ ] Public product listing works.
+- [ ] Public product listing works with server-side search, category filtering, and capped "Load more" pagination.
 - [ ] Public product details work.
 - [ ] Product stock count visibility follows the admin product setting.
 - [ ] Variant products show selectable size/color choices without exposing internal inventory-only fields to customers.
@@ -879,7 +879,9 @@ Known next checkpoint:
 
 ### Filtering and Pagination
 
-Admin orders, products, and categories use server-side filters and capped pagination instead of loading every record into the browser. Customer order history also uses capped pagination. This keeps dashboards and account pages faster as data grows and avoids exposing or loading more data than the current screen needs.
+Public product browsing uses server-side search, category filtering, and capped "Load more" pagination instead of loading every product into the browser. The public products API validates query parameters, caps page size, and returns only customer-safe fields.
+
+Admin orders, products, and categories use server-side filters and capped pagination instead of loading every record into the browser. Customer order history also uses capped pagination. This keeps storefront, dashboards, and account pages faster as data grows and avoids exposing or loading more data than the current screen needs.
 
 ### Order Retention
 

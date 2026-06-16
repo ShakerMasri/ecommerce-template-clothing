@@ -1,7 +1,78 @@
 import { NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
 import { rateLimit } from "~/lib/rate-limit";
-import { productQuerySchema } from "~/server/validations/product";
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 12;
+const MAX_PAGE_SIZE = 24;
+const MAX_PAGE = 10_000;
+const MAX_SEARCH_LENGTH = 80;
+const MAX_CATEGORY_LENGTH = 80;
+const CATEGORY_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+type ProductListQuery = {
+  category?: string;
+  search?: string;
+  page: number;
+  pageSize: number;
+};
+
+function parsePositiveInteger(value: string | null, fallback: number) {
+  if (value === null || value.trim() === "") {
+    return fallback;
+  }
+
+  if (!/^\d+$/.test(value)) {
+    return null;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isSafeInteger(parsed) || parsed < 1) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function normalizeOptionalText(value: string | null) {
+  const normalized = value?.trim().replace(/\s+/g, " ");
+
+  return normalized ?? undefined;
+}
+
+function parseProductListQuery(searchParams: URLSearchParams) {
+  const category = normalizeOptionalText(searchParams.get("category"));
+  const search = normalizeOptionalText(searchParams.get("search"));
+  const page = parsePositiveInteger(searchParams.get("page"), DEFAULT_PAGE);
+  const requestedPageSize = parsePositiveInteger(
+    searchParams.get("pageSize"),
+    DEFAULT_PAGE_SIZE,
+  );
+
+  if (page === null || requestedPageSize === null || page > MAX_PAGE) {
+    return null;
+  }
+
+  if (
+    category &&
+    (category.length > MAX_CATEGORY_LENGTH ||
+      !CATEGORY_SLUG_PATTERN.test(category))
+  ) {
+    return null;
+  }
+
+  if (search && search.length > MAX_SEARCH_LENGTH) {
+    return null;
+  }
+
+  return {
+    category,
+    search,
+    page,
+    pageSize: Math.min(requestedPageSize, MAX_PAGE_SIZE),
+  } satisfies ProductListQuery;
+}
 
 export async function GET(request: Request) {
   const limited = await rateLimit(request, "publicRead");
@@ -11,36 +82,56 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
+  const parsed = parseProductListQuery(searchParams);
 
-  const parsed = productQuerySchema.safeParse({
-    category: searchParams.get("category") ?? undefined,
-  });
-
-  if (!parsed.success) {
+  if (!parsed) {
     return NextResponse.json(
       { message: "Invalid query parameters." },
       { status: 400 },
     );
   }
 
-  const { category } = parsed.data;
+  const { category, search, page, pageSize } = parsed;
+  const skip = (page - 1) * pageSize;
 
   try {
+    const productWhere = {
+      isArchived: false,
+      ...(category
+        ? {
+            category: {
+              slug: category,
+            },
+          }
+        : {}),
+      ...(search
+        ? {
+            OR: [
+              {
+                name: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                category: {
+                  name: {
+                    contains: search,
+                    mode: "insensitive" as const,
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
     const [products, categories] = await Promise.all([
       prisma.product.findMany({
-        where: {
-          isArchived: false,
-          ...(category
-            ? {
-                category: {
-                  slug: category,
-                },
-              }
-            : {}),
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
+        where: productWhere,
+        skip,
+        take: pageSize + 1,
+        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }, { id: "asc" }],
         select: {
           id: true,
           name: true,
@@ -85,7 +176,10 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const safeProducts = products.map((product) => {
+    const pageProducts = products.slice(0, pageSize);
+    const hasMore = products.length > pageSize;
+
+    const safeProducts = pageProducts.map((product) => {
       const activeVariantStock = product.variants.reduce(
         (sum, variant) => sum + variant.stock,
         0,
@@ -111,6 +205,12 @@ export async function GET(request: Request) {
     return NextResponse.json({
       products: safeProducts,
       categories,
+      pagination: {
+        page,
+        pageSize,
+        hasMore,
+        nextPage: hasMore ? page + 1 : null,
+      },
     });
   } catch {
     return NextResponse.json(
