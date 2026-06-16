@@ -28,6 +28,10 @@ const mocks = vi.hoisted(() => {
     validateSameOriginRequest: vi.fn(),
     getDeliveryAreaByKey: vi.fn(),
     isDeliveryAreaKey: vi.fn(),
+    sendOrderNotificationEmail: vi.fn(),
+    env: {
+      ORDER_NOTIFICATION_EMAIL: "owner@example.com",
+    },
     tx,
     prisma: {
       $transaction: vi.fn(),
@@ -56,6 +60,14 @@ vi.mock("~/lib/csrf", () => ({
 vi.mock("~/lib/delivery", () => ({
   getDeliveryAreaByKey: mocks.getDeliveryAreaByKey,
   isDeliveryAreaKey: mocks.isDeliveryAreaKey,
+}));
+
+vi.mock("~/env", () => ({
+  env: mocks.env,
+}));
+
+vi.mock("~/server/email", () => ({
+  sendOrderNotificationEmail: mocks.sendOrderNotificationEmail,
 }));
 
 vi.mock("~/lib/prisma", () => ({
@@ -112,6 +124,8 @@ describe("customer order route", () => {
     });
 
     mocks.isDeliveryAreaKey.mockReturnValue(true);
+    mocks.env.ORDER_NOTIFICATION_EMAIL = "owner@example.com";
+    mocks.sendOrderNotificationEmail.mockResolvedValue(undefined);
 
     mocks.prisma.$transaction.mockImplementation(
       async (callback: (tx: typeof mocks.tx) => Promise<unknown>) => {
@@ -383,6 +397,16 @@ describe("customer order route", () => {
 
     expect(createPayload?.data.deliveryPrice.toString()).toBe("20");
     expect(createPayload?.data.totalAmount.toString()).toBe("100");
+    expect(mocks.sendOrderNotificationEmail).toHaveBeenCalledWith({
+      orderId: "order-1",
+      totalAmount: "100",
+      deliveryAreaKey: "west_bank_cities",
+      deliveryCity: "Ramallah",
+      customerName: "Test Customer",
+      customerPhone: "+970599000000",
+      itemCount: 2,
+      createdAt: new Date("2026-05-24T10:00:00.000Z"),
+    });
   });
 
   it("snapshots selected variant details for variant cart items", async () => {
@@ -515,6 +539,55 @@ describe("customer order route", () => {
     expect(body.message).toContain("do not have enough stock");
     expect(mocks.tx.order.create).not.toHaveBeenCalled();
     expect(mocks.tx.cartItem.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("does not fail checkout when owner notification email fails", async () => {
+    mocks.sendOrderNotificationEmail.mockRejectedValueOnce(
+      new Error("SMTP temporarily unavailable"),
+    );
+
+    const response = await POST(createRequest(createOrderInput()));
+    const body = (await response.json()) as {
+      order: { id?: string; status: string };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.order.status).toBe("PENDING");
+    expect(mocks.sendOrderNotificationEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips owner notification when no notification recipient is configured", async () => {
+    Reflect.deleteProperty(mocks.env, "ORDER_NOTIFICATION_EMAIL");
+
+    const response = await POST(createRequest(createOrderInput()));
+
+    expect(response.status).toBe(200);
+    expect(mocks.sendOrderNotificationEmail).not.toHaveBeenCalled();
+  });
+
+  it("does not send an owner notification for an idempotent existing order response", async () => {
+    mocks.tx.order.findUnique.mockResolvedValueOnce({
+      id: "order-1",
+      status: "PENDING",
+      paymentMethod: "CASH_ON_DELIVERY",
+      paymentStatus: "UNPAID",
+      totalAmount: new Prisma.Decimal("100.00"),
+      deliveryAreaKey: "west_bank_cities",
+      deliveryPrice: new Prisma.Decimal("20.00"),
+      deliveryCity: "Ramallah",
+      deliveryAddress: "Main street, building 12",
+      deliveryNotes: "Call before arriving",
+      pickupAgreementAccepted: false,
+      createdAt: new Date("2026-05-24T10:00:00.000Z"),
+      items: [],
+    });
+
+    const response = await POST(createRequest(createOrderInput()));
+
+    expect(response.status).toBe(200);
+    expect(mocks.tx.cartItem.findMany).not.toHaveBeenCalled();
+    expect(mocks.tx.order.create).not.toHaveBeenCalled();
+    expect(mocks.sendOrderNotificationEmail).not.toHaveBeenCalled();
   });
 
   it("rejects client-supplied delivery prices", async () => {
