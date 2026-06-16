@@ -34,6 +34,7 @@ describe("ProductCard", () => {
     out: "Out",
     left: "left",
     inStock: "In stock",
+    optionsAvailable: "Options available",
   };
 
   it("renders product name", () => {

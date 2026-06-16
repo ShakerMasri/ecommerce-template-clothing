@@ -92,16 +92,17 @@ export function ProductListingClient() {
 
   const visibleProducts = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
+    const filteredProducts = normalizedSearch
+      ? products.filter((product) => {
+          return (
+            product.name.toLowerCase().includes(normalizedSearch) ||
+            product.category.name.toLowerCase().includes(normalizedSearch)
+          );
+        })
+      : products;
 
-    if (!normalizedSearch) {
-      return products;
-    }
-
-    return products.filter((product) => {
-      return (
-        product.name.toLowerCase().includes(normalizedSearch) ||
-        product.category.name.toLowerCase().includes(normalizedSearch)
-      );
+    return [...filteredProducts].sort((firstProduct, secondProduct) => {
+      return Number(secondProduct.isFeatured) - Number(firstProduct.isFeatured);
     });
   }, [products, searchTerm]);
 
@@ -112,19 +113,19 @@ export function ProductListingClient() {
           ?.name ?? t.products.selectedCategory);
 
   return (
-    <section className="space-y-6">
-      <div className="rounded-[1.75rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-4 shadow-sm sm:p-5 lg:p-6">
+    <section className="space-y-5 sm:space-y-6">
+      <div className="rounded-[1.5rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-4 shadow-sm sm:rounded-[1.75rem] sm:p-5 lg:p-6">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
               {t.products.badge}
             </p>
 
-            <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-tight tracking-[-0.035em] text-[var(--ink)] sm:text-4xl lg:text-5xl">
+            <h1 className="mt-2 max-w-3xl text-2xl font-bold leading-tight tracking-[-0.035em] text-[var(--ink)] sm:mt-3 sm:text-4xl lg:text-5xl">
               {t.products.title}
             </h1>
 
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--ink-muted)]">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--ink-muted)] sm:mt-3 sm:leading-7">
               {t.products.description}
             </p>
           </div>
@@ -143,27 +144,31 @@ export function ProductListingClient() {
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder={t.products.searchPlaceholder}
-              className="mt-2 min-h-12 w-full rounded-full border border-[var(--line-soft)] bg-[var(--surface-elevated)] px-4 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)] focus:border-[var(--accent)] focus:bg-[var(--surface-card)]"
+              className="mt-2 min-h-11 w-full rounded-full border border-[var(--line-soft)] bg-[var(--surface-elevated)] px-4 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)] focus:border-[var(--accent)] focus:bg-[var(--surface-card)] sm:min-h-12"
             />
           </div>
         </div>
       </div>
 
-      <div className="rounded-[1.5rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-3 shadow-sm sm:p-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <CategoryTabs
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            allLabel={t.products.allProducts}
-          />
+      <div className="rounded-[1.35rem] border border-[var(--line-soft)] bg-[var(--surface-card)] p-3 shadow-sm sm:rounded-[1.5rem] sm:p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0 flex-1">
+            <CategoryTabs
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              allLabel={t.products.allProducts}
+            />
+          </div>
 
           <div className="shrink-0 text-sm">
-            <p className="font-semibold text-[var(--ink)]">{selectedCategoryName}</p>
+            <p className="font-semibold text-[var(--ink)]">
+              {selectedCategoryName}
+            </p>
 
             {!isLoading && !errorMessage ? (
               <p className="mt-1 text-[var(--ink-muted)]">
-                {t.products.showing} {visibleProducts.length} {" "}
+                {t.products.showing} {visibleProducts.length}{" "}
                 {visibleProducts.length === 1
                   ? t.products.productSingular
                   : t.products.productPlural}
@@ -221,6 +226,7 @@ export function ProductListingClient() {
                 out: t.products.out,
                 left: t.products.left,
                 inStock: t.products.inStock,
+                optionsAvailable: t.products.optionsAvailable,
               }}
             />
           ))}

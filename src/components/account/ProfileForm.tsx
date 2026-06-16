@@ -91,8 +91,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
       if (!response.ok) {
         const nextFieldErrors: ProfileFieldErrors = {
-          name: data.errors?.name?.[0],
-          phone: data.errors?.phone?.[0],
+          name: data.errors?.name?.length
+            ? t.profile.nameInvalid
+            : undefined,
+          phone: data.errors?.phone?.length
+            ? t.profile.phoneInvalid
+            : undefined,
         };
         const hasFieldErrors = Boolean(
           nextFieldErrors.name ?? nextFieldErrors.phone,
@@ -103,13 +107,13 @@ export function ProfileForm({ user }: ProfileFormProps) {
         setMessage(
           hasFieldErrors
             ? t.profile.fixHighlightedFields
-            : (data.message ?? t.profile.failedToUpdate),
+            : t.profile.failedToUpdate,
         );
         return;
       }
 
       setStatus("success");
-      setMessage(data.message ?? t.profile.updatedSuccessfully);
+      setMessage(t.profile.updatedSuccessfully);
       router.refresh();
     } catch {
       setStatus("error");
@@ -260,7 +264,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                className="workspace-primary-action rounded-full px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSaving ? t.profile.saving : t.profile.saveProfile}
               </button>

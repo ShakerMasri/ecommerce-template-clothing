@@ -23,10 +23,16 @@
   --accent-strong: #51351f;
   --accent-soft: #ead9c6;
   --sale-ink: #9b3f24;
-  --success-soft: #e7f0e5;
+  --success-soft: #dcebd9;
   --success-ink: #315f36;
+  --success-line: #afcdaa;
   --danger-soft: #f3dfdb;
   --danger-ink: #8a342a;
+  --danger-line: #dfb8b1;
+  --primary-action-bg: #8f653f;
+  --primary-action-hover-bg: #51351f;
+  --primary-action-ink: #fffdf8;
+  --primary-action-line: #8f653f;
   --footer-surface: #1b1612;
   --footer-ink: #f8efe4;
   --footer-muted: #c7b9aa;
@@ -49,8 +55,14 @@ html.dark {
   --sale-ink: #ffb08b;
   --success-soft: #1d3321;
   --success-ink: #a6d7ab;
+  --success-line: #3d6643;
   --danger-soft: #3a201d;
   --danger-ink: #f0aaa1;
+  --danger-line: #6b3b35;
+  --primary-action-bg: #f1d2ac;
+  --primary-action-hover-bg: #dfb983;
+  --primary-action-ink: #24170f;
+  --primary-action-line: #f1d2ac;
   --footer-surface: #0f0d0b;
   --footer-ink: #fbf5ed;
   --footer-muted: #b9aa9c;
@@ -121,6 +133,25 @@ a {
 
 .workspace-ui {
   color: var(--ink);
+}
+
+.workspace-ui .workspace-primary-action {
+  border: 1px solid var(--primary-action-line);
+  background-color: var(--primary-action-bg);
+  color: var(--primary-action-ink);
+  box-shadow: 0 8px 24px
+    color-mix(in srgb, var(--primary-action-line) 22%, transparent);
+}
+
+.workspace-ui .workspace-primary-action:not(:disabled):hover {
+  background-color: var(--primary-action-hover-bg);
+  color: var(--primary-action-ink);
+}
+
+.workspace-ui .workspace-primary-action:focus-visible {
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--primary-action-line) 22%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--accent-soft) 72%, transparent);
 }
 
 .workspace-ui :where(.font-black) {
@@ -221,6 +252,7 @@ a {
 }
 
 .workspace-ui :where(button[class*="border-zinc-"], a[class*="border-zinc-"]) {
+  background-color: var(--surface-elevated);
   color: var(--ink);
 }
 

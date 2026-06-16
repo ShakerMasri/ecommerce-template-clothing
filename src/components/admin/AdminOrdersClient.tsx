@@ -80,11 +80,6 @@ type AdminOrderDetailResponse = {
   message?: string;
 };
 
-type UpdateResponse = {
-  order?: Partial<AdminOrderDetail>;
-  message?: string;
-};
-
 type OrderFilters = {
   q: string;
   status: "ALL" | OrderStatus;
@@ -300,7 +295,7 @@ export function AdminOrdersClient() {
       if (!response.ok) {
         setOrders([]);
         setPagination(null);
-        setMessage(data.message ?? t.admin.orders.failedToLoad);
+        setMessage(t.admin.orders.failedToLoad);
         return;
       }
 
@@ -326,7 +321,7 @@ export function AdminOrdersClient() {
       if (!response.ok || !data.order) {
         setSelectedOrder(null);
         setNoteDraft("");
-        setMessage(data.message ?? t.admin.orders.failedToLoadDetails);
+        setMessage(t.admin.orders.failedToLoadDetails);
         return;
       }
 
@@ -388,10 +383,10 @@ export function AdminOrdersClient() {
         body: JSON.stringify({ status }),
       });
 
-      const data = (await response.json()) as UpdateResponse;
+      await response.json().catch(() => null);
 
       if (!response.ok) {
-        setMessage(data.message ?? t.admin.orders.failedToUpdateStatus);
+        setMessage(t.admin.orders.failedToUpdateStatus);
         return;
       }
 
@@ -416,10 +411,10 @@ export function AdminOrdersClient() {
         body: JSON.stringify({ paymentStatus: "PAID" }),
       });
 
-      const data = (await response.json()) as UpdateResponse;
+      await response.json().catch(() => null);
 
       if (!response.ok) {
-        setMessage(data.message ?? t.admin.orders.failedToUpdatePayment);
+        setMessage(t.admin.orders.failedToUpdatePayment);
         return;
       }
 
@@ -446,10 +441,10 @@ export function AdminOrdersClient() {
         }),
       });
 
-      const data = (await response.json()) as UpdateResponse;
+      await response.json().catch(() => null);
 
       if (!response.ok) {
-        setMessage(data.message ?? t.admin.orders.failedToSaveNote);
+        setMessage(t.admin.orders.failedToSaveNote);
         return;
       }
 

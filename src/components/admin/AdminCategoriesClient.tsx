@@ -149,7 +149,7 @@ export function AdminCategoriesClient() {
       if (!response.ok) {
         setCategories([]);
         setCategoryPagination(defaultPagination);
-        showMessage("error", data.message ?? labels.failedToLoad);
+        showMessage("error", labels.failedToLoad);
         return;
       }
 
@@ -189,12 +189,12 @@ export function AdminCategoriesClient() {
 
       if (!response.ok) {
         setCreateErrors(data.errors ?? {});
-        showMessage("error", data.message ?? labels.failedToCreate);
+        showMessage("error", labels.failedToCreate);
         return;
       }
 
       setCreateForm(getEmptyCategoryForm());
-      showMessage("success", data.message ?? labels.created);
+      showMessage("success", labels.created);
       await loadCategories(categoryPage, categoryFilters);
     } catch {
       showMessage("error", labels.failedToConnect);
@@ -243,11 +243,11 @@ export function AdminCategoriesClient() {
 
       if (!response.ok) {
         setEditErrors(data.errors ?? {});
-        showMessage("error", data.message ?? labels.failedToUpdate);
+        showMessage("error", labels.failedToUpdate);
         return;
       }
 
-      showMessage("success", data.message ?? labels.updated);
+      showMessage("success", labels.updated);
       cancelEditingCategory();
       await loadCategories(categoryPage, categoryFilters);
     } catch {
@@ -279,17 +279,14 @@ export function AdminCategoriesClient() {
         method: "DELETE",
       });
 
-      const data = (await response.json()) as CategoriesResponse;
+      await response.json().catch(() => null);
 
       if (!response.ok) {
-        showMessage(
-          "error",
-          data.errors?._form?.[0] ?? data.message ?? labels.failedToDelete,
-        );
+        showMessage("error", labels.failedToDelete);
         return;
       }
 
-      showMessage("success", data.message ?? labels.deleted);
+      showMessage("success", labels.deleted);
       await loadCategories(categoryPage, categoryFilters);
     } catch {
       showMessage("error", labels.failedToConnect);

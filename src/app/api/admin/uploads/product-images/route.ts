@@ -9,7 +9,8 @@ import { rateLimit } from "~/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 function isAllowedImageType(type: string) {
   return ["image/jpeg", "image/png", "image/webp"].includes(type);
@@ -146,7 +147,7 @@ export async function POST(request: Request) {
       {
         message: "Invalid input.",
         errors: {
-          file: ["Image must be 2MB or smaller."],
+          file: [`Image must be ${MAX_FILE_SIZE_MB}MB or smaller.`],
         },
       },
       { status: 400 },

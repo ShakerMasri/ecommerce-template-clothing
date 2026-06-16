@@ -205,7 +205,7 @@ export function CartClient() {
             setIsAuthRequired(true);
           }
 
-          setMessage(data.message ?? t.cart.failedToLoad);
+          setMessage(t.cart.failedToLoad);
           return;
         }
 
@@ -235,14 +235,13 @@ export function CartClient() {
         body: JSON.stringify({ quantity }),
       });
 
-      const data = (await response.json()) as CartResponse;
-
+      await response.json().catch(() => null);
       if (!response.ok) {
         if (response.status === 401) {
           setIsAuthRequired(true);
         }
 
-        setMessage(data.message ?? t.cart.failedToUpdate);
+        setMessage(t.cart.failedToUpdate);
         return;
       }
 
@@ -263,14 +262,13 @@ export function CartClient() {
         method: "DELETE",
       });
 
-      const data = (await response.json()) as CartResponse;
-
+      await response.json().catch(() => null);
       if (!response.ok) {
         if (response.status === 401) {
           setIsAuthRequired(true);
         }
 
-        setMessage(data.message ?? t.cart.failedToRemove);
+        setMessage(t.cart.failedToRemove);
         return;
       }
 
@@ -408,7 +406,7 @@ export function CartClient() {
 
         setCheckoutStatus("error");
         setIsConfirmingOrder(false);
-        setMessage(data.message ?? t.cart.failedToPlaceOrder);
+        setMessage(t.cart.failedToPlaceOrder);
         return;
       }
 

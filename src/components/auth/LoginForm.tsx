@@ -80,7 +80,7 @@ export function LoginForm({ googleSignInEnabled }: LoginFormProps) {
 
     if (error) {
       setStatus("error");
-      setMessage(error.message ?? t.auth.googleSignInFailed);
+      setMessage(t.auth.googleSignInFailed);
     }
   }
 

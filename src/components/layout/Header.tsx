@@ -13,6 +13,48 @@ const navLinks = [
   { href: "/account", key: "account" },
 ] as const;
 
+function SunIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2" />
+      <path d="M12 20v2" />
+      <path d="m4.93 4.93 1.41 1.41" />
+      <path d="m17.66 17.66 1.41 1.41" />
+      <path d="M2 12h2" />
+      <path d="M20 12h2" />
+      <path d="m6.34 17.66-1.41 1.41" />
+      <path d="m19.07 4.93-1.41 1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z" />
+    </svg>
+  );
+}
+
 export function Header() {
   const pathname = usePathname();
   const { theme, language, t, toggleTheme, toggleLanguage } =
@@ -73,10 +115,13 @@ export function Header() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="min-h-10 rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] px-3 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]"
-            aria-label="Toggle theme"
+            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[var(--line-soft)] bg-[var(--surface-card)] text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]"
+            aria-label={
+              theme === "dark" ? t.actions.lightMode : t.actions.darkMode
+            }
+            title={theme === "dark" ? t.actions.lightMode : t.actions.darkMode}
           >
-            {theme === "dark" ? t.actions.lightMode : t.actions.darkMode}
+            {theme === "dark" ? <SunIcon /> : <MoonIcon />}
           </button>
         </div>
       </div>
