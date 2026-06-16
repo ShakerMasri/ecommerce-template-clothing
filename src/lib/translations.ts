@@ -80,6 +80,9 @@ export type TranslationDictionary = {
     description: string;
     searchLabel: string;
     searchPlaceholder: string;
+    searchButton: string;
+    loadMore: string;
+    loadingMore: string;
     allProducts: string;
     selectedCategory: string;
     showing: string;
@@ -792,6 +795,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         "Search by name, filter by category, and open each product to choose available size and color before adding it to your cart.",
       searchLabel: "Search products",
       searchPlaceholder: "Search by name or category...",
+      searchButton: "Search",
+      loadMore: "Load more",
+      loadingMore: "Loading...",
       allProducts: "All products",
       selectedCategory: "Selected category",
       showing: "Showing",
@@ -1547,6 +1553,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         "ابحث بالاسم، فلتر حسب التصنيف، وافتح كل منتج لاختيار المقاس واللون المتوفرين قبل إضافته إلى السلة.",
       searchLabel: "البحث في المنتجات",
       searchPlaceholder: "ابحث بالاسم أو التصنيف...",
+      searchButton: "بحث",
+      loadMore: "تحميل المزيد",
+      loadingMore: "جار التحميل...",
       allProducts: "كل المنتجات",
       selectedCategory: "التصنيف المحدد",
       showing: "عرض",

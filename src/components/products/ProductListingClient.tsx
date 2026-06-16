@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { useAppPreferences } from "~/components/providers/AppPreferencesProvider";
 import { CategoryTabs } from "./CategoryTabs";
 import { ProductCard } from "./ProductCard";
 import { ProductCardSkeleton } from "./ProductCardSkeleton";
+
+const PRODUCTS_PAGE_SIZE = 12;
 
 type Category = {
   id: string;
@@ -19,6 +21,7 @@ type Product = {
   price: string;
   discountPrice: string | null;
   stock: number | null;
+  isInStock: boolean;
   showStock: boolean;
   images: string[];
   isFeatured: boolean;
@@ -26,11 +29,43 @@ type Product = {
   category: Category;
 };
 
+type ProductsPagination = {
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+  nextPage: number | null;
+};
+
 type ProductsResponse = {
   products?: Product[];
   categories?: Category[];
+  pagination?: ProductsPagination;
   message?: string;
 };
+
+type FetchMode = "replace" | "append";
+
+function buildProductsUrl(options: {
+  category: string | null;
+  search: string;
+  page: number;
+}) {
+  const searchParams = new URLSearchParams({
+    page: String(options.page),
+    pageSize: String(PRODUCTS_PAGE_SIZE),
+  });
+  const normalizedSearch = options.search.trim();
+
+  if (options.category) {
+    searchParams.set("category", options.category);
+  }
+
+  if (normalizedSearch) {
+    searchParams.set("search", normalizedSearch);
+  }
+
+  return `/api/products?${searchParams.toString()}`;
+}
 
 export function ProductListingClient() {
   const { t } = useAppPreferences();
@@ -38,79 +73,121 @@ export function ProductListingClient() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [pagination, setPagination] = useState<ProductsPagination>({
+    page: 1,
+    pageSize: PRODUCTS_PAGE_SIZE,
+    hasMore: false,
+    nextPage: null,
+  });
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    const controller = new AbortController();
+  const fetchProducts = useCallback(
+    async (page: number, mode: FetchMode, signal?: AbortSignal) => {
+      if (mode === "replace") {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
 
-    async function fetchProducts() {
-      setIsLoading(true);
       setErrorMessage("");
 
-      const url = selectedCategory
-        ? `/api/products?category=${encodeURIComponent(selectedCategory)}`
-        : "/api/products";
-
       try {
-        const response = await fetch(url, {
-          signal: controller.signal,
-        });
+        const response = await fetch(
+          buildProductsUrl({
+            category: selectedCategory,
+            search: appliedSearch,
+            page,
+          }),
+          { signal },
+        );
 
         const data = (await response.json()) as ProductsResponse;
 
         if (!response.ok) {
-          setProducts([]);
+          if (mode === "replace") {
+            setProducts([]);
+          }
+
           setErrorMessage(data.message ?? t.products.failedToLoad);
           return;
         }
 
-        setProducts(data.products ?? []);
+        const nextProducts = data.products ?? [];
+
+        setProducts((currentProducts) =>
+          mode === "append"
+            ? [...currentProducts, ...nextProducts]
+            : nextProducts,
+        );
 
         if (data.categories) {
           setCategories(data.categories);
+        }
+
+        if (data.pagination) {
+          setPagination(data.pagination);
         }
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
 
-        setProducts([]);
+        if (mode === "replace") {
+          setProducts([]);
+        }
+
         setErrorMessage(t.products.failedToConnect);
       } finally {
-        setIsLoading(false);
+        if (mode === "replace") {
+          setIsLoading(false);
+        } else {
+          setIsLoadingMore(false);
+        }
       }
-    }
+    },
+    [
+      appliedSearch,
+      selectedCategory,
+      t.products.failedToConnect,
+      t.products.failedToLoad,
+    ],
+  );
 
-    void fetchProducts();
+  useEffect(() => {
+    const controller = new AbortController();
+
+    void fetchProducts(1, "replace", controller.signal);
 
     return () => {
       controller.abort();
     };
-  }, [selectedCategory, t.products.failedToConnect, t.products.failedToLoad]);
-
-  const visibleProducts = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-    const filteredProducts = normalizedSearch
-      ? products.filter((product) => {
-          return (
-            product.name.toLowerCase().includes(normalizedSearch) ||
-            product.category.name.toLowerCase().includes(normalizedSearch)
-          );
-        })
-      : products;
-
-    return [...filteredProducts].sort((firstProduct, secondProduct) => {
-      return Number(secondProduct.isFeatured) - Number(firstProduct.isFeatured);
-    });
-  }, [products, searchTerm]);
+  }, [fetchProducts]);
 
   const selectedCategoryName =
     selectedCategory === null
       ? t.products.allProducts
       : (categories.find((category) => category.slug === selectedCategory)
           ?.name ?? t.products.selectedCategory);
+
+  const hasActiveFilters =
+    selectedCategory !== null || appliedSearch.trim() !== "";
+
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const nextSearch = searchInput.trim();
+
+    if (nextSearch === appliedSearch) {
+      void fetchProducts(1, "replace");
+      return;
+    }
+
+    setAppliedSearch(nextSearch);
+  }
 
   return (
     <section className="space-y-5 sm:space-y-6">
@@ -130,7 +207,7 @@ export function ProductListingClient() {
             </p>
           </div>
 
-          <div>
+          <form onSubmit={handleSearchSubmit}>
             <label
               htmlFor="product-search"
               className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent)]"
@@ -138,15 +215,25 @@ export function ProductListingClient() {
               {t.products.searchLabel}
             </label>
 
-            <input
-              id="product-search"
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder={t.products.searchPlaceholder}
-              className="mt-2 min-h-11 w-full rounded-full border border-[var(--line-soft)] bg-[var(--surface-elevated)] px-4 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)] focus:border-[var(--accent)] focus:bg-[var(--surface-card)] sm:min-h-12"
-            />
-          </div>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <input
+                id="product-search"
+                type="search"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder={t.products.searchPlaceholder}
+                className="min-h-11 w-full rounded-full border border-[var(--line-soft)] bg-[var(--surface-elevated)] px-4 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)] focus:border-[var(--accent)] focus:bg-[var(--surface-card)] sm:min-h-12"
+              />
+
+              <button
+                type="submit"
+                className="min-h-11 shrink-0 rounded-full bg-[var(--ink)] px-5 py-2 text-sm font-semibold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
+                disabled={isLoading || isLoadingMore}
+              >
+                {t.products.searchButton}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -168,8 +255,8 @@ export function ProductListingClient() {
 
             {!isLoading && !errorMessage ? (
               <p className="mt-1 text-[var(--ink-muted)]">
-                {t.products.showing} {visibleProducts.length}{" "}
-                {visibleProducts.length === 1
+                {t.products.showing} {products.length}{" "}
+                {products.length === 1
                   ? t.products.productSingular
                   : t.products.productPlural}
               </p>
@@ -190,7 +277,7 @@ export function ProductListingClient() {
             <ProductCardSkeleton key={index} />
           ))}
         </div>
-      ) : visibleProducts.length === 0 && !errorMessage ? (
+      ) : products.length === 0 && !errorMessage ? (
         <div className="rounded-[2rem] border border-dashed border-[var(--line-soft)] bg-[var(--surface-card)] p-10 text-center shadow-sm">
           <h2 className="text-xl font-semibold text-[var(--ink)]">
             {t.products.noProductsTitle}
@@ -200,12 +287,13 @@ export function ProductListingClient() {
             {t.products.noProductsDescription}
           </p>
 
-          {(selectedCategory ?? searchTerm) ? (
+          {hasActiveFilters ? (
             <button
               type="button"
               onClick={() => {
                 setSelectedCategory(null);
-                setSearchTerm("");
+                setSearchInput("");
+                setAppliedSearch("");
               }}
               className="mt-6 min-h-11 rounded-full bg-[var(--ink)] px-6 py-2 text-sm font-semibold text-[var(--surface-page)] transition hover:bg-[var(--accent-strong)]"
             >
@@ -214,23 +302,42 @@ export function ProductListingClient() {
           ) : null}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-          {visibleProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              labels={{
-                noImage: t.products.noImage,
-                featured: t.products.featured,
-                soldOut: t.products.soldOut,
-                out: t.products.out,
-                left: t.products.left,
-                inStock: t.products.inStock,
-                optionsAvailable: t.products.optionsAvailable,
-              }}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                labels={{
+                  noImage: t.products.noImage,
+                  featured: t.products.featured,
+                  soldOut: t.products.soldOut,
+                  out: t.products.out,
+                  left: t.products.left,
+                  inStock: t.products.inStock,
+                  optionsAvailable: t.products.optionsAvailable,
+                }}
+              />
+            ))}
+          </div>
+
+          {pagination.hasMore && pagination.nextPage !== null ? (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (pagination.nextPage !== null) {
+                    void fetchProducts(pagination.nextPage, "append");
+                  }
+                }}
+                className="min-h-11 rounded-full border border-[var(--ink)] bg-[var(--surface-card)] px-6 py-2 text-sm font-semibold text-[var(--ink)] transition hover:bg-[var(--ink)] hover:text-[var(--surface-page)] disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
+                disabled={isLoadingMore}
+              >
+                {isLoadingMore ? t.products.loadingMore : t.products.loadMore}
+              </button>
+            </div>
+          ) : null}
+        </>
       )}
     </section>
   );
