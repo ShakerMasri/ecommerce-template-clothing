@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LegalBusinessDetails } from "~/components/legal/LegalBusinessDetails";
 import { useAppPreferences } from "~/components/providers/AppPreferencesProvider";
 import { contactConfig, type ContactSocialIconName } from "~/config/contact";
 
@@ -30,7 +31,7 @@ function SocialIcon({ icon }: { icon: ContactSocialIconName }) {
 }
 
 export function Footer() {
-  const { t } = useAppPreferences();
+  const { language, t } = useAppPreferences();
   const onlineStoreCta = contactConfig.footer.onlineStoreCta;
 
   const legalLinks = [
@@ -113,6 +114,8 @@ export function Footer() {
             ) : null}
           </div>
         ) : null}
+
+        <LegalBusinessDetails locale={language} variant="footer" />
 
         {onlineStoreCta.enabled ? (
           <section

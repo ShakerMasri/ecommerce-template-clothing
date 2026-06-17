@@ -695,6 +695,9 @@ Important production rules:
 
 ### Environment
 
+- [ ] Verified legal-business values are configured in `src/config/legal-business.ts`; no guessed, sample, all-zero, or placeholder registration values are present.
+- [ ] The registered production domain in `src/config/legal-business.ts` is the client-owned HTTPS `.ps` domain.
+- [ ] Client-specific legal wording and tax presentation were reviewed by the client and the appropriate lawyer/accountant.
 - [ ] Production `.env` values are configured only in the hosting provider.
 - [ ] `.env` is not committed.
 - [ ] `DATABASE_URL` points to the production database.
@@ -850,10 +853,13 @@ Public client-safe template values live in typed config files:
 - `src/config/store.ts` for public store name, description, metadata, and localized logo text.
 - `src/config/delivery.ts` for delivery areas, prices, labels, defaults, and receive/pickup-point rules.
 - `src/config/contact.ts` for public support email, phone, WhatsApp, support hours, footer contact display, contact-page text, and public social links.
+- `src/config/legal-business.ts` for verified public legal identity, commercial/ecommerce registration numbers, the registered `.ps` domain, and client/accountant-approved tax wording. Keep client-specific values `null` until verified; never publish guessed or placeholder numbers.
 - `src/lib/translations.ts` for bilingual UI labels and customer-facing storefront copy.
 - `src/config/policies.ts` for public terms, privacy, shipping, returns, contact policy copy, last-updated labels, and legal-page footer labels.
 
 Only public display and storefront policy values belong in these files. Secrets, SMTP credentials, OAuth credentials, database URLs, private webhooks, internal admin-only contacts, and private client agreements must stay out of source code and in the correct server-side environment/secrets system. Public policy copy in the template is placeholder text, not legal advice, and must be reviewed/replaced for each client before launch.
+
+The legal-business config is intentionally incomplete in the reusable template. The footer, terms page, and contact page render the legal identity block only when the required identity fields contain non-placeholder values and the configured canonical domain is a valid HTTPS `.ps` domain. This display guard reduces accidental publication of fake registration details; it does not replace client-specific lawyer/accountant review or government registration. No Prisma migration is introduced by this config-only checkpoint.
 
 English and Arabic storefront marketing copy should be written naturally for each audience rather than translated word for word. The default Arabic tone is simple, professional Palestinian Arabic for customer-facing promotional text, while validation, accessibility, policy, and security messages should remain clear and unambiguous. Each client should review the wording for their audience, products, gender/age segment, and local delivery terms before launch.
 

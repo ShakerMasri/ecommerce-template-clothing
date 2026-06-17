@@ -6,6 +6,8 @@ Use this checklist before the first real client launch and before any major prod
 
 - [ ] `docs/first-client-setup-checklist.md` is completed for this client.
 - [ ] Client-specific public config has been reviewed.
+- [ ] `src/config/legal-business.ts` contains only verified client values; unknown fields remain `null`.
+- [ ] Legal identity, registration details, `.ps` domain, and tax wording were reviewed with the client and appropriate lawyer/accountant.
 - [ ] Client-specific assets and product images have been reviewed for commercial-use rights.
 - [ ] Public policy text has been replaced, reviewed, or explicitly accepted by the client as placeholder-based copy.
 - [ ] No unfinished add-on is advertised as included in the launch package.
@@ -58,6 +60,9 @@ Verify:
 - [ ] No secret uses a `NEXT_PUBLIC_` prefix.
 
 ## 4. Domain and OAuth
+
+- [ ] The legal-business canonical domain is the client-owned HTTPS `.ps` production domain.
+- [ ] Social profiles and other electronic sales channels point clearly to the registered domain where required by the client's registration setup.
 
 Before launch:
 
@@ -161,6 +166,12 @@ Verify in production mode with the real provider:
 - [ ] Failed email delivery is logged safely.
 
 ## 11. Legal, Licensing, and Assets
+
+- [ ] Footer, terms, and contact pages display the verified legal-business identity block.
+- [ ] Commercial and ecommerce registration numbers are real client-supplied values, not examples or placeholders.
+- [ ] No registration number is published before verification.
+- [ ] Public tax wording was approved by the client's accountant; no tax rate was inferred by the developer.
+- [ ] The template is described as technically prepared for compliance review, not guaranteed fully compliant without client-specific professional review.
 
 Before client delivery:
 

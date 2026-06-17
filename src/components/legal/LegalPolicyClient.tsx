@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LegalBusinessDetails } from "~/components/legal/LegalBusinessDetails";
 import { LegalPage } from "~/components/legal/LegalPage";
 import { useAppPreferences } from "~/components/providers/AppPreferencesProvider";
 import type { LegalPageKey } from "~/lib/translations";
@@ -10,7 +11,7 @@ type LegalPolicyClientProps = {
 };
 
 export function LegalPolicyClient({ pageKey }: LegalPolicyClientProps) {
-  const { t } = useAppPreferences();
+  const { language, t } = useAppPreferences();
   const page = t.legal.pages[pageKey];
 
   return (
@@ -21,6 +22,10 @@ export function LegalPolicyClient({ pageKey }: LegalPolicyClientProps) {
       lastUpdatedLabel={t.legal.common.lastUpdatedLabel}
       lastUpdatedDate={t.legal.common.lastUpdatedDate}
     >
+      {pageKey === "terms" || pageKey === "contact" ? (
+        <LegalBusinessDetails locale={language} />
+      ) : null}
+
       {page.sections.map((section) => (
         <section key={section.title}>
           <h2 className="text-xl font-bold text-[var(--ink)]">
