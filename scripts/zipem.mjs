@@ -8,29 +8,37 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  // Homepage and public storefront
-  "src/app/page.tsx",
-  "src/app/products/page.tsx",
-  "src/app/contact/page.tsx",
+  // Database
+  "prisma/schema.prisma",
 
-  // Customer-facing components
-  "src/components/products/ProductListingClient.tsx",
-  "src/components/products/CategoryTabs.tsx",
-  "src/components/products/ProductCard.tsx",
-  "src/components/layout/Header.tsx",
-  "src/components/layout/Footer.tsx",
-  "src/components/layout/WhatsappSupportShortcut.tsx",
+  // Order creation and validation
+  "src/app/api/orders/route.ts",
+  "src/app/api/orders/route.test.ts",
+  "src/server/validations/order.ts",
+  "src/server/validations/order.test.ts",
+  "src/server/pricing.ts",
+  "src/server/pricing.test.ts",
 
-  // Config and translations
-  "src/config/store.ts",
-  "src/config/contact.ts",
-  "src/lib/translations.ts",
+  // Compliance configuration
+  "src/config/legal-business.ts",
+  "src/config/delivery.ts",
+  "src/config/policies.ts",
+  "src/lib/delivery.ts",
 
-  // Tests and documentation
-  "tests/e2e/customer-pages.e2e.ts",
-  "tests/e2e/smoke.e2e.ts",
-  "README.md",
+  // Customer order display
+  "src/app/orders/page.tsx",
+  "src/components/orders/OrdersClient.tsx",
+
+  // Admin order display
+  "src/app/admin/orders/page.tsx",
+  "src/components/admin/AdminOrdersClient.tsx",
+  "src/app/api/admin/orders/route.ts",
+  "src/app/api/admin/orders/[id]/route.ts",
+
+  // E2E
+  "tests/e2e/customer-order.e2e.ts",
 ];
+
 function fail(message) {
   console.error(message);
   process.exit(1);

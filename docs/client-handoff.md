@@ -63,6 +63,22 @@ Orders store delivery snapshots, including delivery area and delivery price, so 
 
 If delivery prices need to change, a developer should update the code configuration, test checkout totals, and deploy the change.
 
+## Legal Business Information
+
+The public legal identity is configured in `src/config/legal-business.ts`. Unknown values must remain `null`; do not enter guessed, example, all-zero, or temporary registration numbers.
+
+Before launch, the client must provide and verify:
+
+- Registered electronic store name in Arabic and English.
+- Legal provider/business name in Arabic and English.
+- Physical business address.
+- Commercial registration number.
+- Ecommerce registration number.
+- Client-owned production HTTPS `.ps` domain.
+- Accountant-approved public tax wording, without the developer inventing a rate.
+
+The storefront displays this block in the footer, terms page, and contact page only after the required identity values are complete and publishable. This guard prevents accidental placeholder publication but does not replace legal registration, lawyer review, accountant review, or immutable order/invoice snapshots planned for the next checkpoint.
+
 ## Public Policy Pages
 
 Terms, privacy, shipping, returns, and contact-page policy copy are code-managed in the typed public policy config. This template copy is a placeholder and must be reviewed, replaced, or approved by the client before launch.

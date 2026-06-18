@@ -7,6 +7,8 @@ import { storeConfig } from "~/config/store";
 import {
   getDeliveryAreaLabels,
   getDeliveryCurrencyLabel,
+  getDeliveryMethodLabel,
+  getEstimatedDeliveryDuration,
   getFreeDeliveryLabel,
   type DeliveryAreaKey,
 } from "~/lib/delivery";
@@ -204,10 +206,24 @@ export type TranslationDictionary = {
     deliveryCityRequired: string;
     deliveryAddressRequired: string;
     pickupAgreementRequired: string;
+    reviewItemsTitle: string;
+    quantity: string;
+    selectedOption: string;
+    unitPrice: string;
+    lineTotal: string;
+    currency: string;
+    deliveryMethod: string;
+    estimatedDelivery: string;
+    deliveryConditions: string;
+    taxInformation: string;
+    complaintsHelp: string;
+    contactStore: string;
   };
   delivery: {
     currency: string;
     free: string;
+    method: string;
+    estimatedDuration: string;
     areas: Record<
       DeliveryAreaTranslationKey,
       {
@@ -926,7 +942,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       reviewOrder: "Review order",
       confirmOrderTitle: "Confirm your order",
       confirmOrderDescription:
-        "Review the products total, delivery price, final total, contact info, and delivery details before placing the order.",
+        "Review each product, selected option, quantity, unit price, delivery details, and final total before placing the order.",
       contactInfo: "Contact info",
       customerName: "Name",
       customerEmail: "Email",
@@ -939,10 +955,24 @@ export const translations: Record<Language, TranslationDictionary> = {
       deliveryAddressRequired: "Please enter a delivery address.",
       pickupAgreementRequired:
         "Please agree or coordinate with the store owner on WhatsApp before choosing the Nablus receive point.",
+      reviewItemsTitle: "Products in this order",
+      quantity: "Quantity",
+      selectedOption: "Selected option",
+      unitPrice: "Unit price",
+      lineTotal: "Line total",
+      currency: "Currency",
+      deliveryMethod: "Delivery method",
+      estimatedDelivery: "Estimated delivery",
+      deliveryConditions: "Delivery conditions",
+      taxInformation: "Tax information",
+      complaintsHelp: "Questions or complaints about this order?",
+      contactStore: "Contact the store",
     },
     delivery: {
       currency: getDeliveryCurrencyLabel("en"),
       free: getFreeDeliveryLabel("en"),
+      method: getDeliveryMethodLabel("en"),
+      estimatedDuration: getEstimatedDeliveryDuration("en"),
       areas: getDeliveryAreaLabels("en"),
     },
     orders: {
@@ -1683,7 +1713,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       reviewOrder: "مراجعة الطلب",
       confirmOrderTitle: "تأكيد الطلب",
       confirmOrderDescription:
-        "راجع مجموع المنتجات، سعر التوصيل، المجموع النهائي، معلومات التواصل، وتفاصيل التوصيل قبل إنشاء الطلب.",
+        "راجع كل منتج، الخيار المحدد، الكمية، سعر القطعة، تفاصيل التوصيل، والمجموع النهائي قبل إنشاء الطلب.",
       contactInfo: "معلومات التواصل",
       customerName: "الاسم",
       customerEmail: "البريد الإلكتروني",
@@ -1696,10 +1726,24 @@ export const translations: Record<Language, TranslationDictionary> = {
       deliveryAddressRequired: "يرجى إدخال عنوان التوصيل.",
       pickupAgreementRequired:
         "يرجى الموافقة أو التنسيق مع صاحب المتجر عبر واتساب قبل اختيار نقطة الاستلام في نابلس.",
+      reviewItemsTitle: "المنتجات في هذا الطلب",
+      quantity: "الكمية",
+      selectedOption: "الخيار المحدد",
+      unitPrice: "سعر القطعة",
+      lineTotal: "مجموع السطر",
+      currency: "العملة",
+      deliveryMethod: "طريقة التوصيل",
+      estimatedDelivery: "مدة التوصيل المتوقعة",
+      deliveryConditions: "شروط التوصيل",
+      taxInformation: "معلومات الضرائب",
+      complaintsHelp: "عندك سؤال أو شكوى بخصوص هذا الطلب؟",
+      contactStore: "تواصل مع المتجر",
     },
     delivery: {
       currency: getDeliveryCurrencyLabel("ar"),
       free: getFreeDeliveryLabel("ar"),
+      method: getDeliveryMethodLabel("ar"),
+      estimatedDuration: getEstimatedDeliveryDuration("ar"),
       areas: getDeliveryAreaLabels("ar"),
     },
     orders: {

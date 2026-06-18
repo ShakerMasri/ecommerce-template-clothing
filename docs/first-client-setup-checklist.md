@@ -28,12 +28,16 @@ Client-specific public values should be changed in typed config files first:
 src/config/store.ts
 src/config/contact.ts
 src/config/delivery.ts
+src/config/legal-business.ts
 src/config/policies.ts
 ```
 
 - [ ] Update store name, short name, metadata title, metadata description, and logo text in `src/config/store.ts`.
 - [ ] Update public support email, phone, WhatsApp, support hours, footer contact display, contact-page copy, and public social links in `src/config/contact.ts`.
 - [ ] Update delivery labels, prices, default area, pickup/receive-point copy, and agreement labels in `src/config/delivery.ts`.
+- [ ] Enter only client-supplied, verified legal identity and registration values in `src/config/legal-business.ts`. Leave unknown values `null`; never guess or use placeholder registration numbers.
+- [ ] Confirm the canonical website value is the client-owned production HTTPS `.ps` domain.
+- [ ] Ask the client's accountant to approve the tax wording; do not hardcode or infer a tax rate.
 - [ ] Review and replace public terms, privacy, shipping, returns, and contact policy copy in `src/config/policies.ts`.
 - [ ] Keep public policy text generic until the client reviews or replaces it.
 - [ ] Do not place secrets, private client agreements, internal admin-only contacts, private webhook URLs, SMTP credentials, OAuth credentials, database URLs, Redis tokens, or Cloudinary secrets in config files.
@@ -133,6 +137,8 @@ Run these before showing the store seriously to the client:
 - [ ] Non-admin users cannot access admin pages or admin APIs.
 - [ ] Signed-out users cannot access protected pages or protected APIs.
 - [ ] Public policy pages show client-reviewed or clearly placeholder text.
+- [ ] Footer, terms, and contact pages show the verified legal-business block only after all required identity fields are configured.
+- [ ] No example, all-zero, guessed, or placeholder registration values are visible.
 
 ## 9. Automated verification
 
@@ -163,6 +169,7 @@ Before real launch, review these with the client:
 - [ ] Checkout-time stock reservation and cancellation restore workflow.
 - [ ] Product image/license responsibility.
 - [ ] Public policy text and legal responsibility.
+- [ ] Legal business name, provider name, physical address, commercial registration, ecommerce registration, registered `.ps` domain, and accountant-approved tax wording.
 - [ ] Support contact workflow.
 - [ ] Error reference reporting workflow.
 - [ ] Production deployment checklist.
@@ -181,5 +188,6 @@ Do not launch to real customers until all are true:
 - [ ] Production migrations use `npm run db:migrate:deploy`.
 - [ ] `npm run check`, `npm run test:run`, and `npm run build` pass.
 - [ ] Manual customer and admin flows pass on the production domain.
-- [ ] Client reviewed handoff, delivery, contact, and policy text.
+- [ ] Client reviewed handoff, delivery, contact, policy text, legal identity, registration details, and tax wording.
+- [ ] Lawyer/accountant review required for this client has been completed and documented outside the public repository.
 - [ ] Dependency and asset license notes are reviewed.

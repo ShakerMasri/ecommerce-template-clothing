@@ -30,6 +30,12 @@ type DeliveryConfigDefinition<TAreas extends readonly DeliveryAreaConfig[]> = {
     labels: Record<DeliveryConfigLocale, string>;
     freeLabels: Record<DeliveryConfigLocale, string>;
   };
+  method: {
+    labels: Record<DeliveryConfigLocale, string>;
+  };
+  estimatedDuration: {
+    labels: Record<DeliveryConfigLocale, string>;
+  };
   defaultAreaKey: TAreas[number]["key"];
   areas: TAreas;
 };
@@ -50,6 +56,18 @@ export const deliveryConfig = defineDeliveryConfig({
     freeLabels: {
       en: "Free",
       ar: "مجاني",
+    },
+  },
+  method: {
+    labels: {
+      en: "Third-party delivery company or another arrangement confirmed by the store",
+      ar: "شركة توصيل خارجية أو ترتيب توصيل آخر يؤكده المتجر",
+    },
+  },
+  estimatedDuration: {
+    labels: {
+      en: "Usually 1–2 days after order confirmation, unless the store tells you otherwise",
+      ar: "عادة من يوم إلى يومين بعد تأكيد الطلب، إلا إذا أخبرك المتجر بغير ذلك",
     },
   },
   defaultAreaKey: "west_bank_cities",
