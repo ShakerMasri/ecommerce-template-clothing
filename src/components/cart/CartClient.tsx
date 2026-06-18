@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OptimizedImage } from "~/components/ui/OptimizedImage";
 import { useAppPreferences } from "~/components/providers/AppPreferencesProvider";
+import { getPublicTaxDisclosure } from "~/config/legal-business";
 import {
   DEFAULT_DELIVERY_AREA_KEY,
   DELIVERY_AREAS,
@@ -145,7 +146,7 @@ function formatVariantLabel(variant: CartVariant | null) {
 }
 
 export function CartClient() {
-  const { t } = useAppPreferences();
+  const { language, t } = useAppPreferences();
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [customer, setCustomer] = useState<CartCustomer | null>(null);
@@ -178,6 +179,7 @@ export function CartClient() {
   }, [cartItems]);
 
   const finalTotal = total + selectedDeliveryPrice;
+  const taxDisclosure = getPublicTaxDisclosure(language);
 
   const itemCount = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -1147,7 +1149,78 @@ export function CartClient() {
               </button>
             </div>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div
+              className="mt-6 rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4"
+              data-testid="checkout-review-items"
+            >
+              <h3 className="text-sm font-bold text-[var(--ink)]">
+                {t.cart.reviewItemsTitle}
+              </h3>
+
+              <ul className="mt-3 space-y-3">
+                {cartItems.map((item) => {
+                  const variantLabel = formatVariantLabel(item.productVariant);
+                  const unitPrice = getEffectiveCartPrice(item.product);
+                  const lineTotal = unitPrice * item.quantity;
+
+                  return (
+                    <li
+                      key={item.id}
+                      className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-card)] p-3"
+                    >
+                      <p className="font-bold text-[var(--ink)]">
+                        {item.product.name}
+                      </p>
+
+                      <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
+                        {variantLabel ? (
+                          <div className="flex justify-between gap-3 sm:col-span-2">
+                            <dt className="text-[var(--ink-muted)]">
+                              {t.cart.selectedOption}
+                            </dt>
+                            <dd
+                              className="text-right font-semibold text-[var(--ink)]"
+                              data-testid="checkout-review-variant"
+                            >
+                              {variantLabel}
+                            </dd>
+                          </div>
+                        ) : null}
+
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-[var(--ink-muted)]">
+                            {t.cart.quantity}
+                          </dt>
+                          <dd className="font-semibold text-[var(--ink)]">
+                            {item.quantity}
+                          </dd>
+                        </div>
+
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-[var(--ink-muted)]">
+                            {t.cart.unitPrice}
+                          </dt>
+                          <dd className="font-semibold text-[var(--ink)]">
+                            {formatPrice(unitPrice)}
+                          </dd>
+                        </div>
+
+                        <div className="flex justify-between gap-3 sm:col-span-2">
+                          <dt className="font-semibold text-[var(--ink)]">
+                            {t.cart.lineTotal}
+                          </dt>
+                          <dd className="font-bold text-[var(--accent-strong)]">
+                            {formatPrice(lineTotal)}
+                          </dd>
+                        </div>
+                      </dl>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4">
                 <h3 className="text-sm font-bold text-[var(--ink)]">
                   {t.cart.contactInfo}
@@ -1196,6 +1269,32 @@ export function CartClient() {
                       {selectedDeliveryTranslation.label}
                     </dd>
                   </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-[var(--ink-muted)]">
+                      {t.cart.deliveryMethod}
+                    </dt>
+                    <dd className="max-w-[65%] text-right font-semibold text-[var(--ink)]">
+                      {t.delivery.method}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-[var(--ink-muted)]">
+                      {t.cart.estimatedDelivery}
+                    </dt>
+                    <dd className="max-w-[65%] text-right font-semibold text-[var(--ink)]">
+                      {t.delivery.estimatedDuration}
+                    </dd>
+                  </div>
+                  {selectedDeliveryTranslation.note ? (
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-[var(--ink-muted)]">
+                        {t.cart.deliveryConditions}
+                      </dt>
+                      <dd className="max-w-[65%] text-right font-semibold text-[var(--ink)]">
+                        {selectedDeliveryTranslation.note}
+                      </dd>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between gap-3">
                     <dt className="text-[var(--ink-muted)]">
                       {t.cart.deliveryCity}
@@ -1248,6 +1347,35 @@ export function CartClient() {
                     })}
                   </dd>
                 </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-[var(--ink-muted)]">
+                    {t.cart.paymentMethod}
+                  </dt>
+                  <dd className="font-semibold text-[var(--ink)]">
+                    {t.cart.cashOnDelivery}
+                  </dd>
+                </div>
+                <div
+                  className="flex justify-between gap-4"
+                  data-testid="checkout-review-currency"
+                >
+                  <dt className="text-[var(--ink-muted)]">
+                    {t.cart.currency}
+                  </dt>
+                  <dd className="font-semibold text-[var(--ink)]">
+                    {t.delivery.currency}
+                  </dd>
+                </div>
+                {taxDisclosure ? (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-[var(--ink-muted)]">
+                      {t.cart.taxInformation}
+                    </dt>
+                    <dd className="max-w-[65%] text-right font-semibold text-[var(--ink)]">
+                      {taxDisclosure}
+                    </dd>
+                  </div>
+                ) : null}
                 <div className="flex justify-between gap-4 border-t border-[var(--line-soft)] pt-3">
                   <dt className="font-bold text-[var(--ink)]">
                     {t.cart.finalTotal}
@@ -1257,6 +1385,18 @@ export function CartClient() {
                   </dd>
                 </div>
               </dl>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-[var(--line-soft)] bg-[var(--surface-muted)] p-4 text-sm">
+              <span className="text-[var(--ink-muted)]">
+                {t.cart.complaintsHelp}{" "}
+              </span>
+              <Link
+                href="/contact"
+                className="font-bold text-[var(--accent)] hover:text-[var(--accent-strong)]"
+              >
+                {t.cart.contactStore}
+              </Link>
             </div>
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

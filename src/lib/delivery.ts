@@ -68,6 +68,16 @@ export function getFreeDeliveryLabel(locale: DeliveryConfigLocale): string {
   return deliveryConfig.currency.freeLabels[locale];
 }
 
+export function getDeliveryMethodLabel(locale: DeliveryConfigLocale): string {
+  return deliveryConfig.method.labels[locale];
+}
+
+export function getEstimatedDeliveryDuration(
+  locale: DeliveryConfigLocale,
+): string {
+  return deliveryConfig.estimatedDuration.labels[locale];
+}
+
 export function formatDeliveryPriceNis(
   priceNis: number,
   labels: { free: string; currency: string },

@@ -114,6 +114,12 @@ const arabicDeliveryPriceItems = deliveryConfig.areas.map((area) =>
 );
 const englishDeliveryAreaList = formatDeliveryAreaList("en");
 const arabicDeliveryAreaList = formatDeliveryAreaList("ar");
+const englishDeliveryMethod = deliveryConfig.method.labels.en;
+const arabicDeliveryMethod = deliveryConfig.method.labels.ar;
+const englishEstimatedDeliveryDuration =
+  deliveryConfig.estimatedDuration.labels.en;
+const arabicEstimatedDeliveryDuration =
+  deliveryConfig.estimatedDuration.labels.ar;
 
 export const policyConfig = definePublicPoliciesConfig({
   clientReviewRequiredBeforeLaunch: true,
@@ -287,14 +293,14 @@ export const policyConfig = definePublicPoliciesConfig({
             {
               title: "2. Delivery provider",
               paragraphs: [
-                "Delivery may be handled by a third-party shipping company or another delivery arrangement confirmed by the store.",
+                `${englishDeliveryMethod}.`,
                 "Delivery times may depend on the shipping company, location, weather, traffic, closures, holidays, customer availability, or other events outside the store’s control.",
               ],
             },
             {
               title: "3. Estimated delivery time",
               paragraphs: [
-                "Estimated delivery time is usually 1–2 days after the order is confirmed, unless the store tells you otherwise.",
+                `${englishEstimatedDeliveryDuration}.`,
               ],
             },
             {
@@ -533,14 +539,14 @@ export const policyConfig = definePublicPoliciesConfig({
             {
               title: "2. مزود التوصيل",
               paragraphs: [
-                "قد يتم التوصيل عن طريق شركة شحن خارجية أو أي ترتيب توصيل آخر يؤكده المتجر.",
+                `${arabicDeliveryMethod}.`,
                 "قد تختلف مدة التوصيل حسب شركة الشحن، المنطقة، الطقس، الحركة، الإغلاقات، العطل، توفر العميل أو أمور أخرى خارج سيطرة المتجر.",
               ],
             },
             {
               title: "3. مدة التوصيل المتوقعة",
               paragraphs: [
-                "مدة التوصيل المتوقعة عادة من يوم إلى يومين بعد تأكيد الطلب، إلا إذا أخبرك المتجر بغير ذلك.",
+                `${arabicEstimatedDeliveryDuration}.`,
               ],
             },
             {

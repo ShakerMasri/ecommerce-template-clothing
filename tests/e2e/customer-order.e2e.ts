@@ -102,7 +102,29 @@ test("customer can place a controlled test order", async ({ page }) => {
 
     await reviewOrderButton.click();
 
-    const confirmOrderButton = page.getByRole("button", {
+    const confirmationDialog = page.getByRole("dialog", {
+      name: /confirm your order/i,
+    });
+    const reviewedItems = confirmationDialog.getByTestId(
+      "checkout-review-items",
+    );
+
+    await expect(confirmationDialog).toBeVisible();
+    await expect(reviewedItems).toContainText("Quantity");
+    await expect(reviewedItems).toContainText("Unit price");
+    await expect(reviewedItems).toContainText(
+      formatNisPrice(expectedUnitPrice),
+    );
+    await expect(
+      confirmationDialog.getByTestId("checkout-review-currency"),
+    ).toContainText("NIS");
+    await expect(confirmationDialog).toContainText("Delivery method");
+    await expect(confirmationDialog).toContainText("Estimated delivery");
+    await expect(
+      confirmationDialog.getByRole("link", { name: /contact the store/i }),
+    ).toHaveAttribute("href", "/contact");
+
+    const confirmOrderButton = confirmationDialog.getByRole("button", {
       name: /^confirm and place order$/i,
     });
 

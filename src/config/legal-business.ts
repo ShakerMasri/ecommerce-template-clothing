@@ -150,6 +150,13 @@ export type PublicLegalBusinessProfile = {
   details: readonly LegalBusinessDetail[];
 };
 
+export function getPublicTaxDisclosure(
+  locale: LegalBusinessLocale,
+  config: PublicLegalBusinessConfig = legalBusinessConfig,
+): string | null {
+  return getLocalizedValue(config.taxDisclosure, locale);
+}
+
 export function getPublicLegalBusinessProfile(
   locale: LegalBusinessLocale,
   config: PublicLegalBusinessConfig = legalBusinessConfig,
@@ -215,7 +222,7 @@ export function getPublicLegalBusinessProfile(
     },
   ];
 
-  const taxDisclosure = getLocalizedValue(config.taxDisclosure, locale);
+  const taxDisclosure = getPublicTaxDisclosure(locale, config);
   if (taxDisclosure) {
     details.push({
       key: "taxDisclosure",
