@@ -8,32 +8,35 @@ const outputPath = resolve(repoRoot, outputName);
 const stagingDir = resolve(repoRoot, ".tmp-template-branding-files");
 
 const filesToZip = [
-  // Cart and final checkout review
-  "src/app/cart/page.tsx",
-  "src/components/cart/CartClient.tsx",
+  // Database
+  "prisma/schema.prisma",
 
-  // Product and variant display helpers
-  "src/components/cart/AddToCartControls.tsx",
-  "src/components/products/ProductDetailClient.tsx",
-
-  // Pricing, delivery, validation, and translations
-  "src/server/pricing.ts",
+  // Order creation and validation
+  "src/app/api/orders/route.ts",
+  "src/app/api/orders/route.test.ts",
   "src/server/validations/order.ts",
-  "src/lib/delivery.ts",
+  "src/server/validations/order.test.ts",
+  "src/server/pricing.ts",
+  "src/server/pricing.test.ts",
+
+  // Compliance configuration
+  "src/config/legal-business.ts",
   "src/config/delivery.ts",
   "src/config/policies.ts",
-  "src/config/legal-business.ts",
-  "src/lib/translations.ts",
+  "src/lib/delivery.ts",
 
-  // Existing order API, to confirm payload compatibility
-  "src/app/api/orders/route.ts",
+  // Customer order display
+  "src/app/orders/page.tsx",
+  "src/components/orders/OrdersClient.tsx",
 
-  // Tests
-  "src/server/pricing.test.ts",
-  "src/server/validations/order.test.ts",
-  "tests/e2e/customer-cart.e2e.ts",
+  // Admin order display
+  "src/app/admin/orders/page.tsx",
+  "src/components/admin/AdminOrdersClient.tsx",
+  "src/app/api/admin/orders/route.ts",
+  "src/app/api/admin/orders/[id]/route.ts",
+
+  // E2E
   "tests/e2e/customer-order.e2e.ts",
-  "tests/e2e/helpers/cart.ts",
 ];
 
 function fail(message) {

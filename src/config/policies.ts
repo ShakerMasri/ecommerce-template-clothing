@@ -128,7 +128,7 @@ export const policyConfig = definePublicPoliciesConfig({
       common: {
         policyBadge: "Store policy",
         lastUpdatedLabel: "Last updated",
-        lastUpdatedDate: "May 23, 2026",
+        lastUpdatedDate: "June 18, 2026",
         usefulLinks: "Useful links",
         footerLinks: {
           terms: "Terms",
@@ -323,10 +323,10 @@ export const policyConfig = definePublicPoliciesConfig({
             "This policy explains when returns are accepted and how refunds are handled.",
           sections: [
             {
-              title: "1. Return rule",
+              title: "1. Return and replacement rule",
               paragraphs: [
-                "Returns are accepted only if the product arrives damaged, defective, incorrect, or damaged during delivery.",
-                "The customer must contact the store within 2 days of receiving the order.",
+                "Return or replacement requests are accepted when a product arrives damaged, defective, incorrect, materially different from its description, or is delivered after the agreed time where applicable.",
+                "For visible delivery damage or an incorrect item, contact the store within 2 days so the issue can be documented and investigated promptly. This reporting period does not remove any mandatory rights available under applicable law.",
               ],
             },
             {
@@ -348,7 +348,15 @@ export const policyConfig = definePublicPoliciesConfig({
               ],
             },
             {
-              title: "5. How to request help",
+              title: "5. Warranty, maintenance, and support",
+              paragraphs: [
+                "If a product includes a manufacturer or store warranty, its duration, scope, exclusions, and claim method must be stated on the product page or in a separate document supplied to the customer.",
+                "A product is not represented as having a warranty unless one is clearly stated. This does not remove rights relating to defective, damaged, incorrect, late-delivered, or nonconforming products under applicable law.",
+                "Maintenance and technical support apply only where relevant to the nature of the product. For clothing, support generally covers order, size or color, delivery, defect, return, and replacement assistance.",
+              ],
+            },
+            {
+              title: "6. How to request help",
               paragraphs: [
                 `Contact us by WhatsApp at ${supportWhatsapp}, by phone at ${supportPhone}, or by email at ${supportEmail}. Include your order details, photos if the product is damaged, and a clear explanation of the issue.`,
               ],
@@ -360,12 +368,27 @@ export const policyConfig = definePublicPoliciesConfig({
           description: englishContactPageDescription,
           sections: [
             {
-              title: "Contact details",
+              title: "1. Contact details",
               items: [
                 `WhatsApp: ${supportWhatsapp}.`,
                 `Phone: ${supportPhone}.`,
                 `Support email: ${supportEmail}.`,
                 `Support hours: ${englishSupportHours}`,
+              ],
+            },
+            {
+              title: "2. How to submit a complaint",
+              paragraphs: [
+                "Contact the store through any listed channel and provide your name, order number when available, a clear description of the issue, and supporting photos or documents when relevant.",
+                "Do not send passwords, verification codes, payment credentials, or unrelated sensitive personal information.",
+              ],
+            },
+            {
+              title: "3. Complaint follow-up",
+              paragraphs: [
+                "The store will review the complaint, request any missing information, and follow up using the contact channel provided by the customer.",
+                "The response and resolution depend on the issue and applicable law. This template does not promise a fixed response period unless the client adopts and publishes one.",
+                "If the complaint is not resolved, the customer may contact the competent Palestinian consumer-protection or ecommerce authority.",
               ],
             },
           ],
@@ -376,7 +399,7 @@ export const policyConfig = definePublicPoliciesConfig({
       common: {
         policyBadge: "سياسة المتجر",
         lastUpdatedLabel: "آخر تحديث",
-        lastUpdatedDate: "23 مايو 2026",
+        lastUpdatedDate: "18 يونيو 2026",
         usefulLinks: "روابط مفيدة",
         footerLinks: {
           terms: "الشروط",
@@ -569,10 +592,10 @@ export const policyConfig = definePublicPoliciesConfig({
             "توضح هذه السياسة متى يتم قبول الإرجاع وكيف يتم التعامل مع الاسترداد.",
           sections: [
             {
-              title: "1. قاعدة الإرجاع",
+              title: "1. قاعدة الإرجاع والاستبدال",
               paragraphs: [
-                "يتم قبول الإرجاع فقط إذا وصل المنتج تالفاً أو معيباً أو خاطئاً أو تضرر أثناء التوصيل.",
-                "يجب على العميل التواصل مع المتجر خلال يومين من استلام الطلب.",
+                "يتم قبول طلبات الإرجاع أو الاستبدال إذا وصل المنتج تالفاً أو معيباً أو خاطئاً أو مختلفاً بشكل جوهري عن وصفه، أو إذا تم تسليمه بعد الموعد المتفق عليه حيث ينطبق ذلك.",
+                "في حال وجود تلف ظاهر أثناء التوصيل أو استلام منتج خاطئ، تواصل مع المتجر خلال يومين للمساعدة في توثيق المشكلة ومتابعتها بسرعة. لا تلغي هذه المدة أي حقوق إلزامية يقررها القانون النافذ.",
               ],
             },
             {
@@ -594,7 +617,15 @@ export const policyConfig = definePublicPoliciesConfig({
               ],
             },
             {
-              title: "5. طريقة طلب المساعدة",
+              title: "5. الضمان والصيانة والدعم",
+              paragraphs: [
+                "إذا كان المنتج يشمل ضماناً من الشركة المصنّعة أو المتجر، فيجب توضيح مدته ونطاقه والاستثناءات وطريقة المطالبة به في صفحة المنتج أو في وثيقة مستقلة تسلّم للعميل.",
+                "لا يُعتبر المنتج مشمولاً بضمان ما لم يتم توضيح ذلك صراحة. ولا يؤثر ذلك على الحقوق المتعلقة بالمنتج المعيب أو التالف أو الخاطئ أو المتأخر أو غير المطابق وفق القانون النافذ.",
+                "تطبق الصيانة والدعم الفني فقط عندما تكون مناسبة لطبيعة المنتج. وبالنسبة للملابس، يشمل الدعم عادةً المساعدة المتعلقة بالطلب والمقاس أو اللون والتوصيل والعيوب والإرجاع والاستبدال.",
+              ],
+            },
+            {
+              title: "6. طريقة طلب المساعدة",
               paragraphs: [
                 `للتواصل، استخدم واتساب على الرقم ${supportWhatsapp}، أو الهاتف على الرقم ${supportPhone}، أو البريد الإلكتروني ${supportEmail}. أرسل تفاصيل الطلب وصور المنتج إن كان تالفاً وشرحاً واضحاً للمشكلة.`,
               ],
@@ -606,12 +637,27 @@ export const policyConfig = definePublicPoliciesConfig({
           description: arabicContactPageDescription,
           sections: [
             {
-              title: "بيانات التواصل",
+              title: "1. بيانات التواصل",
               items: [
                 `واتساب: ${supportWhatsapp}.`,
                 `الهاتف: ${supportPhone}.`,
                 `البريد الإلكتروني للدعم: ${supportEmail}.`,
                 `ساعات الدعم: ${arabicSupportHours}`,
+              ],
+            },
+            {
+              title: "2. طريقة تقديم الشكوى",
+              paragraphs: [
+                "تواصل مع المتجر من خلال أي قناة معلنة، وأرسل اسمك ورقم الطلب إن وجد ووصفاً واضحاً للمشكلة، مع الصور أو المستندات الداعمة عند الحاجة.",
+                "لا ترسل كلمات المرور أو رموز التحقق أو بيانات الدفع أو معلومات شخصية حساسة لا علاقة لها بالشكوى.",
+              ],
+            },
+            {
+              title: "3. متابعة الشكوى",
+              paragraphs: [
+                "يراجع المتجر الشكوى ويطلب أي معلومات ناقصة ويتابع مع العميل من خلال وسيلة التواصل التي قدمها.",
+                "تعتمد مدة الرد والحل على طبيعة المشكلة والقانون النافذ. لا يَعِد هذا القالب بمدة ثابتة ما لم يعتمد العميل مدة واضحة وينشرها.",
+                "إذا لم تتم معالجة الشكوى، يمكن للعميل التواصل مع الجهة الفلسطينية المختصة بحماية المستهلك أو التجارة الإلكترونية.",
               ],
             },
           ],
